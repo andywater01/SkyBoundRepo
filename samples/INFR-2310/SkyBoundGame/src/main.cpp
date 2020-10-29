@@ -317,6 +317,29 @@ int main() {
 		});
 
 
+	// Island
+	std::vector<glm::vec3> positions_island;
+	std::vector<glm::vec3> normals_island;
+	std::vector<glm::vec2> uvs_island;
+
+	VertexArrayObject::sptr islandVAO = nullptr;
+	bool Iloader = ObjLoader::LoadFromFile("Test Island.obj", positions_island, uvs_island, normals_island);
+
+	islandVAO = VertexArrayObject::Create();
+	VertexBuffer::sptr Ivertices = VertexBuffer::Create();
+	Ivertices->LoadData(positions_island.data(), positions_island.size());
+
+	VertexBuffer::sptr I_normals = VertexBuffer::Create();
+	I_normals->LoadData(normals_island.data(), normals_island.size());
+
+	islandVAO = VertexArrayObject::Create();
+
+	islandVAO->AddVertexBuffer(Ivertices, {
+		BufferAttribute(0, 3, GL_FLOAT, false, 0, NULL)
+		});
+	islandVAO->AddVertexBuffer(I_normals, {
+		BufferAttribute(2, 3, GL_FLOAT, false, 0, NULL)
+		});
 	
 
 	
@@ -328,11 +351,11 @@ int main() {
 	shader->LoadShaderPartFromFile("shaders/frag_blinn_phong.glsl", GL_FRAGMENT_SHADER);  
 	shader->Link();  
 
-	glm::vec3 lightPos = glm::vec3(0.0f, 0.0f, 2.0f);
-	glm::vec3 lightCol = glm::vec3(1.0f, 30.0f, 1.0f);
-	float     lightAmbientPow = 0.05f;
-	float     lightSpecularPow = 10.0f;
-	glm::vec3 ambientCol = glm::vec3(30.0f);
+	glm::vec3 lightPos = glm::vec3(-2.5f, 10.0f, -10.0f);
+	glm::vec3 lightCol = glm::vec3(0.0f, 0.2f, 0.35f);
+	float     lightAmbientPow = 0.35f;
+	float     lightSpecularPow = 0.8f;
+	glm::vec3 ambientCol = glm::vec3(0.0f, 0.2f, 0.35f);
 	float     ambientPow = 1.0f;
 	float     shininess = 1.2f;
 	// These are our application / scene level uniforms that don't necessarily update
@@ -404,8 +427,8 @@ int main() {
 	transform = glm::rotate(transform, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	transform = glm::scale(transform, glm::vec3(1.0f, 1.0f, 1.0f));
 
-	transform2 = glm::translate(transform, glm::vec3(0.0f, -10.0f, 0.0f));
-	transform2 = glm::scale(transform, glm::vec3(0.5f, 0.5f, 0.5f));
+	transform2 = glm::translate(transform2, glm::vec3(0.0f, 7.2f, 3.5f));
+	transform2 = glm::scale(transform2, glm::vec3(1.0f, 1.0f, 1.0f));
 
 	float speed = 1;
 
@@ -510,6 +533,10 @@ int main() {
 		shader->SetUniformMatrix("u_ModelRotation", glm::mat3(transform));
 		playerVAO->Render();
 
+		shader->SetUniformMatrix("u_ModelViewProjection", camera->GetViewProjection() * transform2);
+		shader->SetUniformMatrix("u_Model", transform2);
+		shader->SetUniformMatrix("u_ModelRotation", glm::mat3(transform2));
+		islandVAO->Render();
 		
 		
 		
