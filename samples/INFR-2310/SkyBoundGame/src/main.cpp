@@ -476,21 +476,25 @@ int main() {
 		{
 			transform = glm::translate(transform, glm::vec3(-3.0f, 0.0f, 0.0f) * speed * dt);
 			//camera->SetPosition(camera->GetPosition() + glm::vec3(-3.0f, 0.0f, 0.0f) * dt);
+			camera->SetPosition(camera->GetPosition() + glm::vec3(0.0f, 0.0f, -3.0f) * speed * dt);
 		}
 		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
 		{
 			transform = glm::translate(transform, glm::vec3(3.0f, 0.0f, 0.0f) * speed * dt);
+			camera->SetPosition(camera->GetPosition() + glm::vec3(0.0f, 0.0f, 3.0f) * speed * dt);
 		}
 		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 		{
 			moveY = 6;
 			//transform = glm::rotate(transform, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+			//camera->SetPosition(camera->GetPosition() + glm::vec3(-moveY, 0.0f, 0.0f) * speed * dt);
 			rotY = -0.45;
 		}
 		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
 		{
 			moveY = -6;
 			//transform = glm::translate(transform, glm::vec3(0.0f, 0.0f, 3.0f) * dt);
+			//camera->SetPosition(camera->GetPosition() + glm::vec3(-moveY, 0.0f, 0.0f) * speed * dt);
 			//rotX = 0.25;
 			rotY = 0.45;
 		}
@@ -498,6 +502,8 @@ int main() {
 		{
 			speed = 5;
 		}
+
+		
 
 		transform = glm::translate(transform, glm::vec3(0.0f, 0.0f, -moveY) * dt);
 		transform = glm::rotate(transform, glm::radians(rotY), glm::vec3(0.0f, 1.0f, 0.0f));
