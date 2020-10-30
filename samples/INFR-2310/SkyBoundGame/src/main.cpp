@@ -23,6 +23,7 @@
 #include "InputHelpers.h"
 #include "MeshBuilder.h"
 #include "MeshFactory.h"
+#include "Entity.h"
 //Includes the obj loader header
 #include "ObjLoader.h"
 //Includes the not-obj header
@@ -391,8 +392,7 @@ int main() {
 
 	std::vector <glm::mat4> brickTransform;
 
-	
-
+	auto entity = Entity::Create();
 	
 
 
