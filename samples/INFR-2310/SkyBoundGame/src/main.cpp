@@ -29,6 +29,8 @@
 //Includes the not-obj header
 #include "NotObjLoader.h"
 #include "VertexTypes.h"
+#include "Entity.h"
+#include "ECS.h"
 
 #define LOG_GL_NOTIFICATIONS
 
@@ -190,7 +192,7 @@ GLfloat moveX = 0.0f;
 GLfloat rotY = 0.0f;
 GLfloat rotX = 0.0f;
 
-
+auto Player = Entity::Create();
 
 int main() {
 	Logger::Init(); // We'll borrow the logger from the toolkit, but we need to initialize it
@@ -324,7 +326,7 @@ int main() {
 	std::vector<glm::vec2> uvs_island;
 
 	VertexArrayObject::sptr islandVAO = nullptr;
-	bool Iloader = ObjLoader::LoadFromFile("Test Island.obj", positions_island, uvs_island, normals_island);
+	bool Iloader = ObjLoader::LoadFromFile("Island1Object.obj", positions_island, uvs_island, normals_island);
 
 	islandVAO = VertexArrayObject::Create();
 	VertexBuffer::sptr Ivertices = VertexBuffer::Create();
@@ -341,6 +343,30 @@ int main() {
 	islandVAO->AddVertexBuffer(I_normals, {
 		BufferAttribute(2, 3, GL_FLOAT, false, 0, NULL)
 		});
+
+	//Island 2
+	std::vector<glm::vec3> positions_island2;
+	std::vector<glm::vec3> normals_island2;
+	std::vector<glm::vec2> uvs_island2;
+
+	VertexArrayObject::sptr islandVAO2 = nullptr;
+	bool Iloader2 = ObjLoader::LoadFromFile("Island1Object.obj", positions_island2, uvs_island2, normals_island2);
+
+	islandVAO2 = VertexArrayObject::Create();
+	VertexBuffer::sptr Ivertices2 = VertexBuffer::Create();
+	Ivertices2->LoadData(positions_island.data(), positions_island.size());
+
+	VertexBuffer::sptr I_normals2 = VertexBuffer::Create();
+	I_normals2->LoadData(normals_island.data(), normals_island.size());
+
+	islandVAO2 = VertexArrayObject::Create();
+
+	islandVAO2->AddVertexBuffer(Ivertices2, {
+		BufferAttribute(0, 3, GL_FLOAT, false, 0, NULL)
+		});
+	islandVAO2->AddVertexBuffer(I_normals2, {
+		BufferAttribute(2, 3, GL_FLOAT, false, 0, NULL)
+		});
 	
 
 	
@@ -352,7 +378,7 @@ int main() {
 	shader->LoadShaderPartFromFile("shaders/frag_blinn_phong.glsl", GL_FRAGMENT_SHADER);  
 	shader->Link();  
 
-	glm::vec3 lightPos = glm::vec3(-2.5f, 10.0f, -10.0f);
+	glm::vec3 lightPos = glm::vec3(0.5f, -2.7f, 5.0f);
 	glm::vec3 lightCol = glm::vec3(0.0f, 0.2f, 0.35f);
 	float     lightAmbientPow = 0.35f;
 	float     lightSpecularPow = 0.8f;
@@ -414,10 +440,12 @@ int main() {
 	glm::mat4 transform4 = glm::mat4(1.0f);
 
 	std::vector <glm::mat4> brickTransform;
+	transform = Player.transform.RecomputeGlobal();
+
 
 	auto entity = Entity::Create();
-	
 
+	
 
 	
 
@@ -427,8 +455,14 @@ int main() {
 	transform = glm::rotate(transform, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	transform = glm::scale(transform, glm::vec3(1.0f, 1.0f, 1.0f));
 
-	transform2 = glm::translate(transform2, glm::vec3(0.0f, 7.2f, 3.5f));
-	transform2 = glm::scale(transform2, glm::vec3(1.0f, 1.0f, 1.0f));
+	transform2 = glm::translate(transform2, glm::vec3(0.0f, 17.3f, 3.5f));
+	transform2 = glm::scale(transform2, glm::vec3(3.0f, 3.0f, 3.0f));
+	transform2 = glm::rotate(transform2, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+
+	transform3 = glm::translate(transform3, glm::vec3(0.0f, 17.3f, -50.0f));
+	transform3 = glm::scale(transform3, glm::vec3(3.0f, 3.0f, 3.0f));
+	transform3 = glm::rotate(transform3, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	transform3 = glm::rotate(transform3, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
 	float speed = 1;
 
@@ -439,7 +473,8 @@ int main() {
 
 
 	
-
+	auto CamEntity = Entity::Create();
+	
 	camera = Camera::Create();
 	camera->SetPosition(glm::vec3(0, -6.5f, 10)); // Set initial position
 	camera->SetUp(glm::vec3(0, 0, -10)); // Use a z-up coordinate system
@@ -477,11 +512,15 @@ int main() {
 			transform = glm::translate(transform, glm::vec3(-3.0f, 0.0f, 0.0f) * speed * dt);
 			//camera->SetPosition(camera->GetPosition() + glm::vec3(-3.0f, 0.0f, 0.0f) * dt);
 			camera->SetPosition(camera->GetPosition() + glm::vec3(0.0f, 0.0f, -3.0f) * speed * dt);
+			//transform = Player.transform.RecomputeGlobal();
+
+			
 		}
 		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
 		{
 			transform = glm::translate(transform, glm::vec3(3.0f, 0.0f, 0.0f) * speed * dt);
 			camera->SetPosition(camera->GetPosition() + glm::vec3(0.0f, 0.0f, 3.0f) * speed * dt);
+			//transform = Player.transform.RecomputeGlobal();
 		}
 		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 		{
@@ -489,26 +528,39 @@ int main() {
 			//transform = glm::rotate(transform, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 			//camera->SetPosition(camera->GetPosition() + glm::vec3(-moveY, 0.0f, 0.0f) * speed * dt);
 			rotY = -0.45;
+			//transform = Player.transform.RecomputeGlobal();
 		}
 		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
 		{
 			moveY = -6;
+			Player.transform.m_rotation.x = (-90.0f);
 			//transform = glm::translate(transform, glm::vec3(0.0f, 0.0f, 3.0f) * dt);
 			//camera->SetPosition(camera->GetPosition() + glm::vec3(-moveY, 0.0f, 0.0f) * speed * dt);
+			
 			//rotX = 0.25;
 			rotY = 0.45;
+			//transform = Player.transform.RecomputeGlobal();
 		}
 		if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
 		{
-			speed = 5;
+			speed = 3;
+		}
+		else if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
+		{
+			speed = 1;
 		}
 
-		
+		if (Player.transform.m_pos.x >= 15 || Player.transform.m_pos.x <= -15)
+		{
+			transform = glm::translate(transform, glm::vec3(0.0f, 1.0f, 0.0f) * dt);
+		}
 
+		//transform = Player.transform.RecomputeGlobal();
 		transform = glm::translate(transform, glm::vec3(0.0f, 0.0f, -moveY) * dt);
 		transform = glm::rotate(transform, glm::radians(rotY), glm::vec3(0.0f, 1.0f, 0.0f));
 		transform = glm::translate(transform, glm::vec3(0.0f, 0.0f, moveY) * dt);
-		speed = 1;
+
+		//speed = 1;
 		rotY = 0;
 		moveY = 0;
 		moveX = 0;
@@ -544,7 +596,10 @@ int main() {
 		shader->SetUniformMatrix("u_ModelRotation", glm::mat3(transform2));
 		islandVAO->Render();
 		
-		
+		shader->SetUniformMatrix("u_ModelViewProjection", camera->GetViewProjection() * transform3);
+		shader->SetUniformMatrix("u_Model", transform3);
+		shader->SetUniformMatrix("u_ModelRotation", glm::mat3(transform3));
+		islandVAO2->Render();
 		
 
 		RenderImGui();
