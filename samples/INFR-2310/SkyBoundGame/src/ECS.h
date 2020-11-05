@@ -1,3 +1,4 @@
+/*
 #ifndef __ECS_H__
 #define __ECS_H__
 
@@ -85,3 +86,4 @@ inline void ECS::RemoveComponent(unsigned entity)
 }
 
 #endif // !__ECS_H__
+*/

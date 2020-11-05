@@ -1,5 +1,5 @@
-#include "ECS.h"
-
+//#include "ECS.h"
+/*
 entt::registry* ECS::m_reg = nullptr;
 
 void ECS::AttachRegister(entt::registry * reg)
@@ -84,3 +84,4 @@ void ECS::SetIsMainEnemy(unsigned entity, bool mainEnemy)
 	id.SetIsMainEnemy(mainEnemy);
 }
 
+*/
