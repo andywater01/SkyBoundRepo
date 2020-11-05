@@ -233,17 +233,17 @@ void ManipulateTransformWithInput(const Transform::sptr& transform, float dt) {
 
 void PlayerInput(const Transform::sptr& transform, float dt, float speed) {
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-		transform->MoveLocal(0.0f, 0.0f, 1.0f * dt * speed);
-	}
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
 		transform->MoveLocal(0.0f, 0.0f, -1.0f * dt * speed);
 	}
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+		transform->MoveLocal(0.0f, 0.0f, 1.0f * dt * speed);
+	}
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-		transform->MoveLocal(-1.0f * dt * speed, 0.0f, 0.0f);
+		transform->MoveLocal(1.0f * dt * speed, 0.0f, 0.0f);
 		//camera->SetPosition(camera->GetPosition() + glm::vec3(-1.0f, 0.0f, 0.0f) * dt);
 	}
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-		transform->MoveLocal(1.0f * dt * speed, 0.0f, 0.0f);
+		transform->MoveLocal(-1.0f * dt * speed, 0.0f, 0.0f);
 		//camera->SetPosition(camera->GetPosition() + glm::vec3(1.0f, 0.0f, 0.0f) * dt);
 	}
 	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
@@ -307,7 +307,7 @@ int main() {
 	MeshFactory::AddCube(builder, glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), glm::vec4(1.0f, 0.5f, 0.5f, 1.0f));
 	VertexArrayObject::sptr vao3 = builder.Bake();
 
-	VertexArrayObject::sptr playerVao = ObjLoader::LoadFromFile("models/SkyBoundCharacter.obj");
+	VertexArrayObject::sptr playerVao = ObjLoader::LoadFromFile("models/SkyBoundGuyCol.obj");
 
 	VertexArrayObject::sptr islandVao = ObjLoader::LoadFromFile("models/Island1Object.obj");
 		
@@ -402,7 +402,7 @@ int main() {
 	transforms[3] = Transform::Create();
 
 	// We can use operator chaining, since our Set* methods return a pointer to the instance, neat!
-	playerTransform->SetLocalPosition(0.0f, 0.0f, 0.0f)->SetLocalRotation(90.0f, 0.0f, 12.0f)->SetLocalScale(0.5f, 0.5f, 0.5f);
+	playerTransform->SetLocalPosition(0.0f, 0.0f, 0.0f)->SetLocalRotation(90.0f, 0.0f, 192.0f)->SetLocalScale(0.5f, 0.5f, 0.5f);
 	islandTransform->SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
 
 	transforms[1]->SetLocalPosition(2.0f, 0.0f, 0.5f)->SetLocalRotation(00.0f, 0.0f, 45.0f);
@@ -416,7 +416,7 @@ int main() {
 	
 
 	// Load our texture data from a file
-	Texture2DData::sptr diffuseMap = Texture2DData::LoadFromFile("images/Stone_001_Diffuse.png");
+	Texture2DData::sptr diffuseMap = Texture2DData::LoadFromFile("images/SkyBoundCharUV2.png");
 	Texture2DData::sptr diffuseMap2 = Texture2DData::LoadFromFile("images/box.bmp");
 	Texture2DData::sptr specularMap = Texture2DData::LoadFromFile("images/Stone_001_Specular.png");
 
@@ -461,7 +461,7 @@ int main() {
 	materials[3].TextureMix = 0.6f;
 	
 	camera = Camera::Create();
-	camera->SetPosition(glm::vec3(3, 1, 2)); // Set initial position
+	camera->SetPosition(glm::vec3(4, 1, 2)); // Set initial position
 	camera->SetUp(glm::vec3(0, 0, 1)); // Use a z-up coordinate system
 	camera->LookAt(glm::vec3(0.0f)); // Look at center of the screen
 	camera->SetFovDegrees(90.0f); // Set an initial FOV
@@ -487,7 +487,7 @@ int main() {
 			selectedVao = 3;
 	});
 
-	float speed = 4.0f;
+	float speed = 6.0f;
 
 	InitImGui();
 		
