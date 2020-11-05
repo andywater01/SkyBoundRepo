@@ -368,7 +368,7 @@ int main() {
 		BufferAttribute(2, 3, GL_FLOAT, false, 0, NULL)
 		});
 	
-
+	
 	
 
 
@@ -455,16 +455,15 @@ int main() {
 	transform = glm::rotate(transform, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	transform = glm::scale(transform, glm::vec3(1.0f, 1.0f, 1.0f));
 
-	transform2 = glm::translate(transform2, glm::vec3(0.0f, 17.3f, 3.5f));
-	transform2 = glm::scale(transform2, glm::vec3(3.0f, 3.0f, 3.0f));
+	transform2 = glm::translate(transform2, glm::vec3(0.0f, 16.0f, 3.5f));
+	transform2 = glm::scale(transform2, glm::vec3(3.0f, 2.5f, 3.0f));
 	transform2 = glm::rotate(transform2, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
-	transform3 = glm::translate(transform3, glm::vec3(0.0f, 17.3f, -50.0f));
-	transform3 = glm::scale(transform3, glm::vec3(3.0f, 3.0f, 3.0f));
+	transform3 = glm::translate(transform3, glm::vec3(0.0f, 16.0f, -50.0f));
+	transform3 = glm::scale(transform3, glm::vec3(3.0f, 2.5f, 3.0f));
 	transform3 = glm::rotate(transform3, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-	transform3 = glm::rotate(transform3, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
-	float speed = 1;
+	float Speed = 1.0f;
 
 
 	
@@ -506,21 +505,18 @@ int main() {
 		// Calculate the time since our last frame (dt)
 		double thisFrame = glfwGetTime();
 		float dt = static_cast<float>(thisFrame - lastFrame);
+		
 
 		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 		{
-			transform = glm::translate(transform, glm::vec3(-3.0f, 0.0f, 0.0f) * speed * dt);
+			transform = glm::translate(transform, glm::vec3(-3.0f, 0.0f, 0.0f) * Speed * dt);
 			//camera->SetPosition(camera->GetPosition() + glm::vec3(-3.0f, 0.0f, 0.0f) * dt);
-			camera->SetPosition(camera->GetPosition() + glm::vec3(0.0f, 0.0f, -3.0f) * speed * dt);
-			//transform = Player.transform.RecomputeGlobal();
-
-			
+			camera->SetPosition(camera->GetPosition() + glm::vec3(0.0f, 0.0f, -3.0f) * Speed * dt);
 		}
 		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
 		{
-			transform = glm::translate(transform, glm::vec3(3.0f, 0.0f, 0.0f) * speed * dt);
-			camera->SetPosition(camera->GetPosition() + glm::vec3(0.0f, 0.0f, 3.0f) * speed * dt);
-			//transform = Player.transform.RecomputeGlobal();
+			transform = glm::translate(transform, glm::vec3(3.0f, 0.0f, 0.0f) * Speed * dt);
+			camera->SetPosition(camera->GetPosition() + glm::vec3(0.0f, 0.0f, 3.0f) * Speed * dt);
 		}
 		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 		{
@@ -533,7 +529,7 @@ int main() {
 		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
 		{
 			moveY = -6;
-			Player.transform.m_rotation.x = (-90.0f);
+			
 			//transform = glm::translate(transform, glm::vec3(0.0f, 0.0f, 3.0f) * dt);
 			//camera->SetPosition(camera->GetPosition() + glm::vec3(-moveY, 0.0f, 0.0f) * speed * dt);
 			
@@ -543,24 +539,21 @@ int main() {
 		}
 		if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
 		{
-			speed = 3;
+			Speed = 2.3f;
 		}
-		else if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
+		if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
 		{
-			speed = 1;
+			Speed = 1.0f;
 		}
 
-		if (Player.transform.m_pos.x >= 15 || Player.transform.m_pos.x <= -15)
-		{
-			transform = glm::translate(transform, glm::vec3(0.0f, 1.0f, 0.0f) * dt);
-		}
-
-		//transform = Player.transform.RecomputeGlobal();
-		transform = glm::translate(transform, glm::vec3(0.0f, 0.0f, -moveY) * dt);
+		
+		//Player rotate by moveY
+		transform = glm::translate(transform, glm::vec3(0.0f, 0.0f, -moveY) * Speed * dt);
 		transform = glm::rotate(transform, glm::radians(rotY), glm::vec3(0.0f, 1.0f, 0.0f));
-		transform = glm::translate(transform, glm::vec3(0.0f, 0.0f, moveY) * dt);
-
-		//speed = 1;
+		transform = glm::translate(transform, glm::vec3(0.0f, 0.0f, moveY) * Speed * dt);
+		
+		
+		//When A/D are not pressed set rotSpeeds back to 0
 		rotY = 0;
 		moveY = 0;
 		moveX = 0;
@@ -599,7 +592,7 @@ int main() {
 		shader->SetUniformMatrix("u_ModelViewProjection", camera->GetViewProjection() * transform3);
 		shader->SetUniformMatrix("u_Model", transform3);
 		shader->SetUniformMatrix("u_ModelRotation", glm::mat3(transform3));
-		islandVAO2->Render();
+		islandVAO->Render();
 		
 
 		RenderImGui();

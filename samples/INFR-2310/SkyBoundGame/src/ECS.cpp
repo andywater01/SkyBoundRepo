@@ -1,4 +1,4 @@
-//#include "ECS.h"
+#include "ECS.h"
 /*
 entt::registry* ECS::m_reg = nullptr;
 
