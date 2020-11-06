@@ -233,17 +233,26 @@ void ManipulateTransformWithInput(const Transform::sptr& transform, float dt) {
 
 void PlayerInput(const Transform::sptr& transform, float dt, float speed) {
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-		transform->MoveLocal(0.0f, 0.0f, -1.0f * dt * speed);
+		//transform->MoveLocal(0.0f, 0.0f, -1.0f * dt * speed);
+		transform->MoveLocalFixed(0.0f, -1.0f * dt * speed, 0.0f);
+
+		transform->SetLocalRotation(90.0f, 0.0f, 282.0f);
 	}
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-		transform->MoveLocal(0.0f, 0.0f, 1.0f * dt * speed);
+		//transform->MoveLocal(0.0f, 0.0f, 1.0f * dt * speed);
+		transform->MoveLocalFixed(0.0f, 1.0f * dt * speed, 0.0f);
+		transform->SetLocalRotation(90.0f, 0.0f, 102.0f);
 	}
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-		transform->MoveLocal(1.0f * dt * speed, 0.0f, 0.0f);
+		//transform->MoveLocal(1.0f * dt * speed, 0.0f, 0.0f);
+		transform->MoveLocalFixed(-1.0f * dt * speed, 0.0f, 0.0f);
+		transform->SetLocalRotation(90.0f, 0.0f, 192.0f);
 		//camera->SetPosition(camera->GetPosition() + glm::vec3(-1.0f, 0.0f, 0.0f) * dt);
 	}
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-		transform->MoveLocal(-1.0f * dt * speed, 0.0f, 0.0f);
+		//transform->MoveLocal(-1.0f * dt * speed, 0.0f, 0.0f);
+		transform->MoveLocalFixed(1.0f * dt * speed, 0.0f, 0.0f);
+		transform->SetLocalRotation(90.0f, 0.0f, 12.0f);
 		//camera->SetPosition(camera->GetPosition() + glm::vec3(1.0f, 0.0f, 0.0f) * dt);
 	}
 	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
@@ -251,6 +260,14 @@ void PlayerInput(const Transform::sptr& transform, float dt, float speed) {
 	}
 	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
 		transform->MoveLocal(0.0f, 0.0f, -1.0f * dt);
+	}
+	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+	{
+		speed = speed * 4;
+	}
+	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
+	{
+		speed = speed / 4;
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
@@ -309,7 +326,7 @@ int main() {
 
 	VertexArrayObject::sptr playerVao = ObjLoader::LoadFromFile("models/SkyBoundGuyCol.obj");
 
-	VertexArrayObject::sptr islandVao = ObjLoader::LoadFromFile("models/Island1Object.obj");
+	VertexArrayObject::sptr islandVao = ObjLoader::LoadFromFile("models/Island1ObjectTex.obj");
 		
 	// Load our shaders
 	Shader::sptr shader = Shader::Create();
@@ -391,9 +408,12 @@ int main() {
 	// Create some transforms and initialize them
 	Transform::sptr playerTransform;
 	Transform::sptr islandTransform;
+	Transform::sptr islandTransform2;
+
 
 	playerTransform = Transform::Create();
 	islandTransform = Transform::Create();
+	islandTransform2 = Transform::Create();
 
 	Transform::sptr transforms[4];
 	transforms[0] = Transform::Create();
@@ -404,6 +424,7 @@ int main() {
 	// We can use operator chaining, since our Set* methods return a pointer to the instance, neat!
 	playerTransform->SetLocalPosition(0.0f, 0.0f, 0.0f)->SetLocalRotation(90.0f, 0.0f, 192.0f)->SetLocalScale(0.5f, 0.5f, 0.5f);
 	islandTransform->SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+	islandTransform2->SetLocalPosition(-175.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
 
 	transforms[1]->SetLocalPosition(2.0f, 0.0f, 0.5f)->SetLocalRotation(00.0f, 0.0f, 45.0f);
 	transforms[2]->SetLocalPosition(-2.0f, 0.0f, 0.5f)->SetLocalRotation(00.0f, 0.0f, -45.0f);
@@ -417,7 +438,7 @@ int main() {
 
 	// Load our texture data from a file
 	Texture2DData::sptr diffuseMap = Texture2DData::LoadFromFile("images/SkyBoundCharUV2.png");
-	Texture2DData::sptr diffuseMap2 = Texture2DData::LoadFromFile("images/box.bmp");
+	Texture2DData::sptr diffuseMap2 = Texture2DData::LoadFromFile("images/GrassIslandColours.png");
 	Texture2DData::sptr specularMap = Texture2DData::LoadFromFile("images/Stone_001_Specular.png");
 
 	// Create a texture from the data
@@ -556,6 +577,10 @@ int main() {
 		islandMaterial.Albedo->Bind(0);
 		islandMaterial.Specular->Bind(1);
 		RenderVAO(shader, islandVao, camera, islandTransform);
+
+		islandMaterial.Albedo->Bind(0);
+		islandMaterial.Specular->Bind(1);
+		RenderVAO(shader, islandVao, camera, islandTransform2);
 
 
 
