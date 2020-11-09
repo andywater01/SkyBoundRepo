@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <GLM/glm.hpp>
 
+
+#include "ITexture.h"
 #include "TextureEnums.h"
 #include "Texture2DData.h"
 
@@ -15,6 +17,8 @@ struct Texture2DDescription
 	WrapMode       VerticalWrap;
 	MinFilter      MinificationFilter;
 	MagFilter      MagnificationFilter;
+	float          MaxAnisotropic;
+	bool           GenerateMipMaps;
 
 	Texture2DDescription() :
 		Width(0), Height(0),
@@ -22,14 +26,16 @@ struct Texture2DDescription
 		HorizontalWrap(WrapMode::Repeat),
 		VerticalWrap(WrapMode::Repeat),
 		MinificationFilter(MinFilter::NearestMipLinear),
-		MagnificationFilter(MagFilter::Linear)
+		MagnificationFilter(MagFilter::Linear),
+		MaxAnisotropic(-1.0f),
+		GenerateMipMaps(true)
 	{ }
 };
 
 /// <summary>
 /// Represents a wrapper around a 2D OpenGL texture
 /// </summary>
-class Texture2D final
+class Texture2D final : public ITexture
 {
 public:
 	// We'll disallow moving and copying, since we want to manually control when the destructor is called
@@ -50,55 +56,40 @@ public:
 	/// </summary>
 	/// <param name="description">The default description for the texture</param>
 	Texture2D(const Texture2DDescription& description);
-	~Texture2D();
+	// ITexture handles destroying the OpenGL data, so we can use the default destructor
+	~Texture2D() = default;
 
 	/// <summary>
 	/// Uploads data to this texture
 	/// </summary>
 	/// <param name="data">The texture data to upload into this texture</param>
 	void LoadData(const Texture2DData::sptr& data);
-	/// <summary>
-	/// Clears this texture to a given color
-	/// </summary>
-	/// <param name="color">The color to clear the texture to</param>
-	void Clear(const glm::vec4 color = glm::vec4(1.0f));
 
 	/// <summary>
-	/// Binds this texture to the given texture slot
+	/// Loads an image directly from a file
 	/// </summary>
-	/// <param name="slot">The slot to bind the texture to</param>
-	void Bind(int slot);
-	/// <summary>
-	/// Unbinds a texture from the given slot
-	/// </summary>
-	/// <param name="slot">The slot to unbind a texture from</param>
-	static void UnBind(int slot);
+	/// <param name="path">The path to load the image from</param>
+	/// <returns>A pointer to the loaded image</returns>
+	static Texture2D::sptr LoadFromFile(const std::string& path);
 
-	/// <summary>
-	/// Gets the underlying OpenGL handle for this texture
-	/// </summary>
-	GLuint GetHandle() const { return _handle; }
-	
 	uint32_t GetWidth() const { return _description.Width; }
 	uint32_t GetHeight() const { return _description.Height; }
-	InternalFormat GetFormat() const { return _description.Format; }	
+	InternalFormat GetFormat() const { return _description.Format; }
 	MinFilter GetMinFilter() const { return _description.MinificationFilter; }
 	MagFilter GetMagFilter() const { return _description.MagnificationFilter; }
 	WrapMode GetWrapS() const { return _description.HorizontalWrap; }
 	WrapMode GetWrapT() const { return _description.VerticalWrap; }
-	
+
 	void SetMinFilter(MinFilter filter);
 	void SetMagFilter(MagFilter filter);
 	void SetWrapS(WrapMode mode);
 	void SetWrapT(WrapMode mode);
+	void SetAnisotropicFiltering(float level = -1.0f);
 
 	const Texture2DDescription& GetDescription() const { return _description; }
-	
+
 private:
 	Texture2DDescription _description;
-	GLuint _handle;
 
 	void _RecreateTexture();
-	
-	static int MAX_TEXTURE_SIZE;
 };

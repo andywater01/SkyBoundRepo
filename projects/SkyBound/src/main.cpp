@@ -16,7 +16,19 @@
 #include "Graphics/VertexBuffer.h"
 #include "Graphics/VertexArrayObject.h"
 #include "Graphics/Shader.h"
+#include "Graphics/TextureCubeMap.h"
+#include "Graphics/TextureCubeMapData.h"
+#include "Gameplay/ShaderMaterial.h"
+#include "Gameplay/IBehaviour.h"
+
 #include "Gameplay/Camera.h"
+#include "Gameplay/Scene.h"
+#include "Gameplay/Application.h"
+#include "Gameplay/RendererComponent.h"
+#include "Gameplay/GameObjectTag.h"
+
+#include "Behaviours/SimpleMoveBehaviour.h"
+
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
@@ -178,88 +190,96 @@ void RenderImGui() {
 void RenderVAO(
 	const Shader::sptr& shader,
 	const VertexArrayObject::sptr& vao,
-	const Camera::sptr& camera,
-	const Transform::sptr& transform)
+	const glm::mat4& viewProjection,
+	const Transform& transform)
 {
-	shader->SetUniformMatrix("u_ModelViewProjection", camera->GetViewProjection() * transform->LocalTransform());
-	shader->SetUniformMatrix("u_Model", transform->LocalTransform());
-	shader->SetUniformMatrix("u_NormalMatrix", transform->NormalMatrix());
+	shader->SetUniformMatrix("u_ModelViewProjection", viewProjection * transform.LocalTransform());
+	shader->SetUniformMatrix("u_Model", transform.LocalTransform());
+	shader->SetUniformMatrix("u_NormalMatrix", transform.NormalMatrix());
 	vao->Render();
 }
 
-void ManipulateTransformWithInput(const Transform::sptr& transform, float dt) {
+void ManipulateTransformWithInput(Transform& transform, float dt) {
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-		transform->MoveLocal(0.0f, -1.0f * dt, 0.0f);
+		transform.MoveLocal(0.0f, -1.0f * dt, 0.0f);
 		camera->SetPosition(glm::vec3(0.0f, -1.0f * dt, 0.0f));
 	}
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) { 
-		transform->MoveLocal(0.0f,  1.0f * dt, 0.0f);
+		transform.MoveLocal(0.0f,  1.0f * dt, 0.0f);
 		camera->SetPosition(glm::vec3(0.0f, 1.0f * dt, 0.0f));
 	}
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-		transform->MoveLocal(-1.0f * dt, 0.0f, 0.0f);
+		transform.MoveLocal(-1.0f * dt, 0.0f, 0.0f);
 		camera->SetPosition(glm::vec3(-1.0f * dt, 0.0f, 0.0f));
 	}
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-		transform->MoveLocal( 1.0f * dt, 0.0f,  0.0f);
+		transform.MoveLocal( 1.0f * dt, 0.0f,  0.0f);
 		camera->SetPosition(glm::vec3(1.0f * dt, 0.0f, 0.0f));
 	}
 	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-		transform->MoveLocal(0.0f, 0.0f,  1.0f * dt);
+		transform.MoveLocal(0.0f, 0.0f,  1.0f * dt);
 	}
 	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
-		transform->MoveLocal(0.0f, 0.0f, -1.0f * dt);
+		transform.MoveLocal(0.0f, 0.0f, -1.0f * dt);
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) { 
-		transform->RotateLocal(0.0f, -45.0f * dt, 0.0f);
+		transform.RotateLocal(0.0f, -45.0f * dt, 0.0f);
 	}
 	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-		transform->RotateLocal(0.0f,  45.0f * dt,0.0f);
+		transform.RotateLocal(0.0f,  45.0f * dt,0.0f);
 	}
 	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-		transform->RotateLocal( 45.0f * dt, 0.0f,0.0f);
+		transform.RotateLocal( 45.0f * dt, 0.0f,0.0f);
 	}
 	if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-		transform->RotateLocal(-45.0f * dt, 0.0f, 0.0f);
+		transform.RotateLocal(-45.0f * dt, 0.0f, 0.0f);
 	}
 	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
-		transform->RotateLocal(0.0f, 0.0f, 45.0f * dt);
+		transform.RotateLocal(0.0f, 0.0f, 45.0f * dt);
 	}
 	if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
-		transform->RotateLocal(0.0f, 0.0f, -45.0f * dt);
+		transform.RotateLocal(0.0f, 0.0f, -45.0f * dt);
 	}
 }
 
-void PlayerInput(const Transform::sptr& transform, float dt, float speed) {
+void PlayerInput(GameObject& transform, float dt, float speed) {
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
 		//transform->MoveLocal(0.0f, 0.0f, -1.0f * dt * speed);
-		transform->MoveLocalFixed(0.0f, -1.0f * dt * speed, 0.0f);
-
-		transform->SetLocalRotation(90.0f, 0.0f, 282.0f);
+		//transform.MoveLocalFixed(0.0f, -1.0f * dt * speed, 0.0f);
+		transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(0.0f, -1.0f * dt * speed, 0.0f));
+		transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 270.0f);
+		//transform.SetLocalRotation(90.0f, 0.0f, 282.0f);
 	}
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
 		//transform->MoveLocal(0.0f, 0.0f, 1.0f * dt * speed);
-		transform->MoveLocalFixed(0.0f, 1.0f * dt * speed, 0.0f);
-		transform->SetLocalRotation(90.0f, 0.0f, 102.0f);
+		transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(0.0f, 1.0f * dt * speed, 0.0f));
+		transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
+		//transform.MoveLocalFixed(0.0f, 1.0f * dt * speed, 0.0f);
+		//transform.SetLocalRotation(90.0f, 0.0f, 102.0f);
 	}
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
 		//transform->MoveLocal(1.0f * dt * speed, 0.0f, 0.0f);
-		transform->MoveLocalFixed(-1.0f * dt * speed, 0.0f, 0.0f);
-		transform->SetLocalRotation(90.0f, 0.0f, 192.0f);
+		//transform.MoveLocalFixed(-1.0f * dt * speed, 0.0f, 0.0f);
+		transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(-1.0f * dt * speed, 0.0f, 0.0f));
+		transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 180.0f);
+		//transform.SetLocalRotation(90.0f, 0.0f, 192.0f);
 		//camera->SetPosition(camera->GetPosition() + glm::vec3(-1.0f, 0.0f, 0.0f) * dt);
 	}
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
 		//transform->MoveLocal(-1.0f * dt * speed, 0.0f, 0.0f);
-		transform->MoveLocalFixed(1.0f * dt * speed, 0.0f, 0.0f);
-		transform->SetLocalRotation(90.0f, 0.0f, 12.0f);
+		//transform.MoveLocalFixed(1.0f * dt * speed, 0.0f, 0.0f);
+		
+		transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(1.0f * dt * speed, 0.0f, 0.0f));
+		transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
+		//transform.SetLocalRotation(90.0f, 0.0f, 12.0f);
 		//camera->SetPosition(camera->GetPosition() + glm::vec3(1.0f, 0.0f, 0.0f) * dt);
 	}
 	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-		transform->MoveLocal(0.0f, 0.0f, 1.0f * dt);
+		//transform.MoveLocal(0.0f, 0.0f, 1.0f * dt);
 	}
 	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
-		transform->MoveLocal(0.0f, 0.0f, -1.0f * dt);
+		//transform.MoveLocal(0.0f, 0.0f, -1.0f * dt);
 	}
 	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
 	{
@@ -271,22 +291,22 @@ void PlayerInput(const Transform::sptr& transform, float dt, float speed) {
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-		transform->RotateLocal(0.0f, -45.0f * dt, 0.0f);
+		//transform.RotateLocal(0.0f, -45.0f * dt, 0.0f);
 	}
 	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-		transform->RotateLocal(0.0f, 45.0f * dt, 0.0f);
+		//transform.RotateLocal(0.0f, 45.0f * dt, 0.0f);
 	}
 	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-		transform->RotateLocal(45.0f * dt, 0.0f, 0.0f);
+		//transform.RotateLocal(45.0f * dt, 0.0f, 0.0f);
 	}
 	if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-		transform->RotateLocal(-45.0f * dt, 0.0f, 0.0f);
+		//transform.RotateLocal(-45.0f * dt, 0.0f, 0.0f);
 	}
 	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
-		transform->RotateLocal(0.0f, 0.0f, 45.0f * dt);
+		//transform.RotateLocal(0.0f, 0.0f, 45.0f * dt);
 	}
 	if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
-		transform->RotateLocal(0.0f, 0.0f, -45.0f * dt);
+		//transform.RotateLocal(0.0f, 0.0f, -45.0f * dt);
 	}
 }
 
@@ -300,6 +320,16 @@ struct Material
 	float			TextureMix;
 };
 
+void SetupShaderForFrame(const Shader::sptr& shader, const glm::mat4& view, const glm::mat4& projection) {
+	shader->Bind();
+	// These are the uniforms that update only once per frame
+	shader->SetUniformMatrix("u_View", view);
+	shader->SetUniformMatrix("u_ViewProjection", projection * view);
+	shader->SetUniformMatrix("u_SkyboxMatrix", projection * glm::mat4(glm::mat3(view)));
+	glm::vec3 camPos = glm::inverse(view) * glm::vec4(0, 0, 0, 1);
+	shader->SetUniform("u_CamPos", camPos);
+}
+
 int main() {
 	Logger::Init(); // We'll borrow the logger from the toolkit, but we need to initialize it
 
@@ -310,291 +340,446 @@ int main() {
 	//Initialize GLAD
 	if (!initGLAD())
 		return 1;
+	{
 
-	// Let OpenGL know that we want debug output, and route it to our handler function
-	glEnable(GL_DEBUG_OUTPUT);
-	glDebugMessageCallback(GlDebugMessage, nullptr);
 
-	// Enable texturing
-	glEnable(GL_TEXTURE_2D);
-	
-		
-	// We'll use the provided mesh builder to build a new mesh with a few elements
-	MeshBuilder<VertexPosNormTexCol> builder = MeshBuilder<VertexPosNormTexCol>();
-	MeshFactory::AddCube(builder, glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), glm::vec4(1.0f, 0.5f, 0.5f, 1.0f));
-	VertexArrayObject::sptr vao3 = builder.Bake();
+		// Let OpenGL know that we want debug output, and route it to our handler function
+		glEnable(GL_DEBUG_OUTPUT);
+		glDebugMessageCallback(GlDebugMessage, nullptr);
 
-	VertexArrayObject::sptr playerVao = ObjLoader::LoadFromFile("models/SkyBoundGuyCol.obj");
+		// Enable texturing
+		glEnable(GL_TEXTURE_2D);
 
-	VertexArrayObject::sptr islandVao = ObjLoader::LoadFromFile("models/Island1ObjectTex.obj");
-		
-	// Load our shaders
-	Shader::sptr shader = Shader::Create();
-	shader->LoadShaderPartFromFile("shaders/vertex_shader.glsl", GL_VERTEX_SHADER);
-	shader->LoadShaderPartFromFile("shaders/frag_blinn_phong_textured.glsl", GL_FRAGMENT_SHADER);  
-	shader->Link();  
 
-	glm::vec3 lightPos = glm::vec3(0.0f, 0.0f, 6.0f);
-	glm::vec3 lightCol = glm::vec3(0.9f, 0.85f, 0.5f);
-	float     lightAmbientPow = 0.05f;
-	float     lightSpecularPow = 1.0f;
-	glm::vec3 ambientCol = glm::vec3(1.0f);
-	float     ambientPow = 0.8f;
-	float     textureMix = 0.2f;
-	float     shininess = 4.0f;
-	float     lightLinearFalloff = 0.09f;
-	float     lightQuadraticFalloff = 0.032f;
-	
-	// These are our application / scene level uniforms that don't necessarily update
-	// every frame
-	shader->SetUniform("u_LightPos", lightPos);
-	shader->SetUniform("u_LightCol", lightCol);
-	shader->SetUniform("u_AmbientLightStrength", lightAmbientPow);
-	shader->SetUniform("u_SpecularLightStrength", lightSpecularPow);
-	shader->SetUniform("u_AmbientCol", ambientCol);
-	shader->SetUniform("u_AmbientStrength", ambientPow);
-	shader->SetUniform("u_TextureMix", textureMix);
-	shader->SetUniform("u_Shininess", shininess);
-	shader->SetUniform("u_LightAttenuationConstant", 1.0f);
-	shader->SetUniform("u_LightAttenuationLinear", lightLinearFalloff);
-	shader->SetUniform("u_LightAttenuationQuadratic", lightQuadraticFalloff);
+		// We'll use the provided mesh builder to build a new mesh with a few elements
+		MeshBuilder<VertexPosNormTexCol> builder = MeshBuilder<VertexPosNormTexCol>();
+		MeshFactory::AddCube(builder, glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), glm::vec4(1.0f, 0.5f, 0.5f, 1.0f));
+		VertexArrayObject::sptr vao3 = builder.Bake();
 
-	// We'll add some ImGui controls to control our shader
-	imGuiCallbacks.push_back([&]() {
-		if (ImGui::CollapsingHeader("Scene Level Lighting Settings"))
+		VertexArrayObject::sptr playerVao = ObjLoader::LoadFromFile("models/SkyBoundGuyCol.obj");
+
+		VertexArrayObject::sptr islandVao = ObjLoader::LoadFromFile("models/Island1ObjectTex.obj");
+
+
+
+		// Load our shaders
+		Shader::sptr shader = Shader::Create();
+		shader->LoadShaderPartFromFile("shaders/vertex_shader.glsl", GL_VERTEX_SHADER);
+		shader->LoadShaderPartFromFile("shaders/frag_blinn_phong_textured.glsl", GL_FRAGMENT_SHADER);
+		shader->Link();
+
+		glm::vec3 lightPos = glm::vec3(0.0f, 0.0f, 6.0f);
+		glm::vec3 lightCol = glm::vec3(0.9f, 0.85f, 0.5f);
+		float     lightAmbientPow = 0.05f;
+		float     lightSpecularPow = 1.0f;
+		glm::vec3 ambientCol = glm::vec3(1.0f);
+		float     ambientPow = 0.8f;
+		float     textureMix = 0.2f;
+		float     shininess = 4.0f;
+		float     lightLinearFalloff = 0.09f;
+		float     lightQuadraticFalloff = 0.032f;
+
+		// These are our application / scene level uniforms that don't necessarily update
+		// every frame
+		shader->SetUniform("u_LightPos", lightPos);
+		shader->SetUniform("u_LightCol", lightCol);
+		shader->SetUniform("u_AmbientLightStrength", lightAmbientPow);
+		shader->SetUniform("u_SpecularLightStrength", lightSpecularPow);
+		shader->SetUniform("u_AmbientCol", ambientCol);
+		shader->SetUniform("u_AmbientStrength", ambientPow);
+		shader->SetUniform("u_TextureMix", textureMix);
+		shader->SetUniform("u_Shininess", shininess);
+		shader->SetUniform("u_LightAttenuationConstant", 1.0f);
+		shader->SetUniform("u_LightAttenuationLinear", lightLinearFalloff);
+		shader->SetUniform("u_LightAttenuationQuadratic", lightQuadraticFalloff);
+
+
+
+		Texture2D::sptr PlayerDiffuse = Texture2D::LoadFromFile("images/SkyBoundCharUV2.png");
+		Texture2D::sptr diffuseMp02 = Texture2D::LoadFromFile("images/GrassIslandColours.png");
+		Texture2DData::sptr specularMp02 = Texture2DData::LoadFromFile("images/Stone_001_Specular.png");
+
+		// Load the cube map
+		//TextureCubeMap::sptr environmentMap = TextureCubeMap::LoadFromImages("images/cubemaps/skybox/sample.jpg");
+		TextureCubeMap::sptr environmentMap = TextureCubeMap::LoadFromImages("images/cubemaps/skybox/ocean.jpg");
+
+		GameScene::sptr scene = GameScene::Create("test");
+		Application::Instance().ActiveScene = scene;
+
+		auto renderGroup = scene->Registry().group<RendererComponent, Transform>();
+
+		ShaderMaterial::sptr material0 = ShaderMaterial::Create();
+		material0->Shader = shader;
+		material0->Set("s_Diffuse", PlayerDiffuse);
+		//material0->Set("s_Diffuse2", Boxdiffuse2);
+		//material0->Set("s_Specular", Boxspecular);
+		material0->Set("u_Shininess", 8.0f);
+		//material0->Set("u_TextureMix", 0.5f);
+		//material0->Set("u_Reflectivity", 0.6f);
+
+		ShaderMaterial::sptr material1 = ShaderMaterial::Create();
+		material1->Shader = shader;
+		//material1->Set("s_Diffuse2", diffuseMp2);
+		material1->Set("s_Diffuse", diffuseMp02);
+		//material0->Set("s_Specular", Boxspecular);
+		material1->Set("u_Shininess", 8.0f);
+		//material0->Set("u_TextureMix", 0.5f);
+		//material0->Set("u_Reflectivity", 0.6f);
+
+		//X = In and Out
+		//Y = Left and Right
+		//Z = up and down
+
+		GameObject player = scene->CreateEntity("player");
 		{
-			if (ImGui::ColorPicker3("Ambient Color", glm::value_ptr(ambientCol))) {
-				shader->SetUniform("u_AmbientCol", ambientCol);
-			}
-			if (ImGui::SliderFloat("Fixed Ambient Power", &ambientPow, 0.01f, 1.0f)) {
-				shader->SetUniform("u_AmbientStrength", ambientPow); 
-			}
+			VertexArrayObject::sptr PlayerVAO = ObjLoader::LoadFromFile("models/SkyBoundGuyCol.obj");
+			player.emplace<RendererComponent>().SetMesh(PlayerVAO).SetMaterial(material0);
+			player.get<Transform>().SetLocalPosition(0.5f, 0.5f, 0.0f);
+			player.get<Transform>().SetLocalRotation(90.0f, 0.0f, 180.0f);
+			player.get<Transform>().SetLocalScale(0.5f, 0.5f, 0.5f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(player);
 		}
-		if (ImGui::CollapsingHeader("Light Level Lighting Settings")) 
+
+		GameObject island1 = scene->CreateEntity("Island1");
 		{
-			if (ImGui::DragFloat3("Light Pos", glm::value_ptr(lightPos), 0.01f, -10.0f, 10.0f)) {
-				shader->SetUniform("u_LightPos", lightPos);
-			}
-			if (ImGui::ColorPicker3("Light Col", glm::value_ptr(lightCol))) {
-				shader->SetUniform("u_LightCol", lightCol);
-			}
-			if (ImGui::SliderFloat("Light Ambient Power", &lightAmbientPow, 0.0f, 1.0f)) {
-				shader->SetUniform("u_AmbientLightStrength", lightAmbientPow);
-			}
-			if (ImGui::SliderFloat("Light Specular Power", &lightSpecularPow, 0.0f, 1.0f)) {
-				shader->SetUniform("u_SpecularLightStrength", lightSpecularPow);
-			}
-			if (ImGui::DragFloat("Light Linear Falloff", &lightLinearFalloff, 0.01f, 0.0f, 1.0f)) {
-				shader->SetUniform("u_LightAttenuationLinear", lightLinearFalloff);
-			}
-			if (ImGui::DragFloat("Light Quadratic Falloff", &lightQuadraticFalloff, 0.01f, 0.0f, 1.0f)) {
-				shader->SetUniform("u_LightAttenuationQuadratic", lightQuadraticFalloff);
-			}
+			VertexArrayObject::sptr Island1VAO = ObjLoader::LoadFromFile("models/Island1ObjectTex.obj");
+			island1.emplace<RendererComponent>().SetMesh(Island1VAO).SetMaterial(material1);
+			island1.get<Transform>().SetLocalPosition(0.0f, 0.0f, -10.0f);
+			island1.get<Transform>().SetLocalRotation(-90.0f, 180.0f, 0.0f);
+			island1.get<Transform>().SetLocalScale(2.0f, 2.0f, 2.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(island1);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
 		}
-		if (ImGui::CollapsingHeader("Material Level Lighting Settings"))
+
+
+		// Load a second material for our reflective material!
+		Shader::sptr reflectiveShader = Shader::Create();
+		reflectiveShader->LoadShaderPartFromFile("shaders/vertex_shader.glsl", GL_VERTEX_SHADER);
+		reflectiveShader->LoadShaderPartFromFile("shaders/frag_reflection.frag.glsl", GL_FRAGMENT_SHADER);
+		reflectiveShader->Link();
+
+		ShaderMaterial::sptr reflectiveMat = ShaderMaterial::Create();
+		reflectiveMat->Shader = reflectiveShader;
+		reflectiveMat->Set("s_Environment", environmentMap);
+		// TODO: send the rotation to apply to the skybox
+		reflectiveMat->Set("u_EnvironmentRotation", glm::mat3(glm::rotate(glm::mat4(1.0f), glm::radians(90.0f),
+			glm::vec3(1, 0, 0))));
+
+
 		{
-			if (ImGui::SliderFloat("Shininess", &shininess, 0.1f, 128.0f)) {
-				shader->SetUniform("u_Shininess", shininess);
-			}
+			// Load our shaders 
+			Shader::sptr skybox = std::make_shared<Shader>();
+			skybox->LoadShaderPartFromFile("shaders/skybox-shader.vert.glsl", GL_VERTEX_SHADER);
+			skybox->LoadShaderPartFromFile("shaders/skybox-shader.frag.glsl", GL_FRAGMENT_SHADER);
+			skybox->Link();
+
+			ShaderMaterial::sptr skyboxMat = ShaderMaterial::Create();
+			skyboxMat->Shader = skybox;
+			skyboxMat->Set("s_Environment", environmentMap);
+			// TODO: send the rotation to apply to the skybox
+			skyboxMat->RenderLayer = 100;
+			skyboxMat->Set("u_EnvironmentRotation", glm::mat3(glm::rotate(glm::mat4(1.0f), glm::radians(90.0f),
+				glm::vec3(1, 0, 0))));
+
+
+			MeshBuilder<VertexPosNormTexCol> mesh;
+			MeshFactory::AddIcoSphere(mesh, glm::vec3(0.0f), 1.0f);
+			MeshFactory::InvertFaces(mesh);
+			VertexArrayObject::sptr meshVao = mesh.Bake();
+
+			GameObject skyboxObj = scene->CreateEntity("skybox");
+			skyboxObj.get<Transform>().SetLocalPosition(0.0f, 0.0f, 0.0f);
+			skyboxObj.get_or_emplace<RendererComponent>().SetMesh(meshVao).SetMaterial(skyboxMat);
 		}
-	});
-
-	// GL states
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
-
-	// NEW STUFF
-
-	// Create some transforms and initialize them
-	Transform::sptr playerTransform;
-	Transform::sptr islandTransform;
-	Transform::sptr islandTransform2;
 
 
-	playerTransform = Transform::Create();
-	islandTransform = Transform::Create();
-	islandTransform2 = Transform::Create();
+		// We'll add some ImGui controls to control our shader
+		imGuiCallbacks.push_back([&]() {
+			if (ImGui::CollapsingHeader("Scene Level Lighting Settings"))
+			{
+				if (ImGui::ColorPicker3("Ambient Color", glm::value_ptr(ambientCol))) {
+					shader->SetUniform("u_AmbientCol", ambientCol);
+				}
+				if (ImGui::SliderFloat("Fixed Ambient Power", &ambientPow, 0.01f, 1.0f)) {
+					shader->SetUniform("u_AmbientStrength", ambientPow);
+				}
+			}
+			if (ImGui::CollapsingHeader("Light Level Lighting Settings"))
+			{
+				if (ImGui::DragFloat3("Light Pos", glm::value_ptr(lightPos), 0.01f, -10.0f, 10.0f)) {
+					shader->SetUniform("u_LightPos", lightPos);
+				}
+				if (ImGui::ColorPicker3("Light Col", glm::value_ptr(lightCol))) {
+					shader->SetUniform("u_LightCol", lightCol);
+				}
+				if (ImGui::SliderFloat("Light Ambient Power", &lightAmbientPow, 0.0f, 1.0f)) {
+					shader->SetUniform("u_AmbientLightStrength", lightAmbientPow);
+				}
+				if (ImGui::SliderFloat("Light Specular Power", &lightSpecularPow, 0.0f, 1.0f)) {
+					shader->SetUniform("u_SpecularLightStrength", lightSpecularPow);
+				}
+				if (ImGui::DragFloat("Light Linear Falloff", &lightLinearFalloff, 0.01f, 0.0f, 1.0f)) {
+					shader->SetUniform("u_LightAttenuationLinear", lightLinearFalloff);
+				}
+				if (ImGui::DragFloat("Light Quadratic Falloff", &lightQuadraticFalloff, 0.01f, 0.0f, 1.0f)) {
+					shader->SetUniform("u_LightAttenuationQuadratic", lightQuadraticFalloff);
+				}
+			}
+			if (ImGui::CollapsingHeader("Material Level Lighting Settings"))
+			{
+				if (ImGui::SliderFloat("Shininess", &shininess, 0.1f, 128.0f)) {
+					shader->SetUniform("u_Shininess", shininess);
+				}
+			}
+			});
 
-	Transform::sptr transforms[4];
-	transforms[0] = Transform::Create();
-	transforms[1] = Transform::Create();
-	transforms[2] = Transform::Create();
-	transforms[3] = Transform::Create();
+		// GL states
+		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_CULL_FACE);
+		glDepthFunc(GL_LEQUAL);
 
-	// We can use operator chaining, since our Set* methods return a pointer to the instance, neat!
-	playerTransform->SetLocalPosition(0.0f, 0.0f, 0.0f)->SetLocalRotation(90.0f, 0.0f, 192.0f)->SetLocalScale(0.5f, 0.5f, 0.5f);
-	islandTransform->SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
-	islandTransform2->SetLocalPosition(-175.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		// NEW STUFF
 
-	transforms[1]->SetLocalPosition(2.0f, 0.0f, 0.5f)->SetLocalRotation(00.0f, 0.0f, 45.0f);
-	transforms[2]->SetLocalPosition(-2.0f, 0.0f, 0.5f)->SetLocalRotation(00.0f, 0.0f, -45.0f);
-	transforms[3]->SetLocalPosition(0.0f, 0.0f, 0.5f)->SetLocalRotation(00.0f, 0.0f, 0.0f);
+		// Create some transforms and initialize them
+		/*Transform playerTransform;
+		Transform islandTransform;
+		Transform islandTransform2;
 
-	// We'll store all our VAOs into a nice array for easy access
-	VertexArrayObject::sptr vaos[4];
-	vaos[3] = vao3;
 
-	
+		playerTransform = Transform::Create();
+		islandTransform = Transform::Create();
+		islandTransform2 = Transform::Create();
 
-	// Load our texture data from a file
-	Texture2DData::sptr diffuseMap = Texture2DData::LoadFromFile("images/SkyBoundCharUV2.png");
-	Texture2DData::sptr diffuseMap2 = Texture2DData::LoadFromFile("images/GrassIslandColours.png");
-	Texture2DData::sptr specularMap = Texture2DData::LoadFromFile("images/Stone_001_Specular.png");
+		Transform::sptr transforms[4];
+		transforms[0] = Transform::Create();
+		transforms[1] = Transform::Create();
+		transforms[2] = Transform::Create();
+		transforms[3] = Transform::Create();
 
-	// Create a texture from the data
-	Texture2D::sptr diffuse = Texture2D::Create();
-	diffuse->LoadData(diffuseMap);
+		// We can use operator chaining, since our Set* methods return a pointer to the instance, neat!
+		playerTransform->SetLocalPosition(0.0f, 10.0f, 0.0f)->SetLocalRotation(90.0f, 0.0f, 192.0f)->SetLocalScale(0.5f, 0.5f, 0.5f);
+		islandTransform->SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		islandTransform2->SetLocalPosition(-175.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
 
-	// Create a texture from the data
-	Texture2D::sptr diffuse2 = Texture2D::Create();
-	diffuse2->LoadData(diffuseMap2);
+		transforms[1]->SetLocalPosition(2.0f, 0.0f, 0.5f)->SetLocalRotation(00.0f, 0.0f, 45.0f);
+		transforms[2]->SetLocalPosition(-2.0f, 0.0f, 0.5f)->SetLocalRotation(00.0f, 0.0f, -45.0f);
+		transforms[3]->SetLocalPosition(0.0f, 0.0f, 0.5f)->SetLocalRotation(00.0f, 0.0f, 0.0f);*/
 
-	Texture2D::sptr specular = Texture2D::Create();
-	specular->LoadData(specularMap);
-
-	// Creating an empty texture
-	Texture2DDescription desc = Texture2DDescription();
-	desc.Width = 1;
-	desc.Height = 1;
-	desc.Format = InternalFormat::RGB8;
-	Texture2D::sptr texture2 = Texture2D::Create(desc);
-	texture2->Clear();
+		// We'll store all our VAOs into a nice array for easy access
+		VertexArrayObject::sptr vaos[4];
+		vaos[3] = vao3;
 
 
 
-	// We'll use a temporary lil structure to store some info about our material (we'll expand this later)
-	Material materials[4];
-	Material playerMaterial;
-	Material islandMaterial;
+		// Load our texture data from a file
+		Texture2DData::sptr diffuseMp = Texture2DData::LoadFromFile("images/SkyBoundCharUV2.png");
+		Texture2DData::sptr diffuseMp2 = Texture2DData::LoadFromFile("images/GrassIslandColours.png");
+		Texture2DData::sptr specularMp = Texture2DData::LoadFromFile("images/Stone_001_Specular.png");
 
-	playerMaterial.Albedo = diffuse;
-	playerMaterial.Specular = specular;
-	playerMaterial.Shininess = 4.0f;
+		// Create a texture from the data
+		Texture2D::sptr diffuse = Texture2D::Create();
+		diffuse->LoadData(diffuseMp);
 
-	islandMaterial.Albedo = diffuse2;
-	islandMaterial.Specular = specular;
-	islandMaterial.Shininess = 4.0f;
-	
-	materials[3].Albedo    = diffuse;
-	materials[3].NewTexture = diffuse2;
-	materials[3].Specular  = specular;
-	materials[3].Shininess = 64.0f;
-	materials[3].TextureMix = 0.6f;
-	
-	camera = Camera::Create();
-	camera->SetPosition(glm::vec3(4, 1, 2)); // Set initial position
-	camera->SetUp(glm::vec3(0, 0, 1)); // Use a z-up coordinate system
-	camera->LookAt(glm::vec3(0.0f)); // Look at center of the screen
-	camera->SetFovDegrees(90.0f); // Set an initial FOV
-	camera->SetOrthoHeight(3.0f);
+		// Create a texture from the data
+		Texture2D::sptr diffuse2 = Texture2D::Create();
+		diffuse2->LoadData(diffuseMp2);
 
-	// We'll use a vector to store all our key press events for now
-	std::vector<KeyPressWatcher> keyToggles;
-	// This is an example of a key press handling helper. Look at InputHelpers.h an .cpp to see
-	// how this is implemented. Note that the ampersand here is capturing the variables within
-	// the scope. If you wanted to do some method on the class, your best bet would be to give it a method and
-	// use std::bind
-	keyToggles.emplace_back(GLFW_KEY_T, [&](){ camera->ToggleOrtho(); });
+		Texture2D::sptr specular = Texture2D::Create();
+		specular->LoadData(specularMp);
 
-	int selectedVao = 3; // select cube by default
-	keyToggles.emplace_back(GLFW_KEY_KP_ADD, [&]() {
-		selectedVao++;
-		if (selectedVao >= 4)
-			selectedVao = 1;
-	});
-	keyToggles.emplace_back(GLFW_KEY_KP_SUBTRACT, [&]() {
-		selectedVao--;
-		if (selectedVao <= 0)
-			selectedVao = 3;
-	});
+		// Creating an empty texture
+		Texture2DDescription desc = Texture2DDescription();
+		desc.Width = 1;
+		desc.Height = 1;
+		desc.Format = InternalFormat::RGB8;
+		Texture2D::sptr texture2 = Texture2D::Create(desc);
+		texture2->Clear();
 
-	float speed = 6.0f;
 
-	InitImGui();
-		
-	// Our high-precision timer
-	double lastFrame = glfwGetTime();
-	
-	///// Game loop /////
-	while (!glfwWindowShouldClose(window)) {
-		glfwPollEvents();
 
-		// Calculate the time since our last frame (dt)
-		double thisFrame = glfwGetTime();
-		float dt = static_cast<float>(thisFrame - lastFrame);
+		// We'll use a temporary lil structure to store some info about our material (we'll expand this later)
+		Material materials[4];
+		Material playerMaterial;
+		Material islandMaterial;
 
-		// We'll make sure our UI isn't focused before we start handling input for our game
-		if (!ImGui::IsAnyWindowFocused()) {
-			// We need to poll our key watchers so they can do their logic with the GLFW state
-			// Note that since we want to make sure we don't copy our key handlers, we need a const
-			// reference!
-			for (const KeyPressWatcher& watcher : keyToggles) {
-				watcher.Poll(window);
+		playerMaterial.Albedo = diffuse;
+		playerMaterial.Specular = specular;
+		playerMaterial.Shininess = 4.0f;
+
+		islandMaterial.Albedo = diffuse2;
+		islandMaterial.Specular = specular;
+		islandMaterial.Shininess = 4.0f;
+
+		materials[3].Albedo = diffuse;
+		materials[3].NewTexture = diffuse2;
+		materials[3].Specular = specular;
+		materials[3].Shininess = 64.0f;
+		materials[3].TextureMix = 0.6f;
+
+		camera = Camera::Create();
+		camera->SetPosition(glm::vec3(4.0f, 1.2f, 2.0f)); // Set initial position
+		camera->SetUp(glm::vec3(0, 0, 1)); // Use a z-up coordinate system
+		camera->LookAt(glm::vec3(0.0f)); // Look at center of the screen
+		camera->SetFovDegrees(90.0f); // Set an initial FOV
+		camera->SetOrthoHeight(3.0f);
+
+		// We'll use a vector to store all our key press events for now
+		std::vector<KeyPressWatcher> keyToggles;
+		// This is an example of a key press handling helper. Look at InputHelpers.h an .cpp to see
+		// how this is implemented. Note that the ampersand here is capturing the variables within
+		// the scope. If you wanted to do some method on the class, your best bet would be to give it a method and
+		// use std::bind
+		keyToggles.emplace_back(GLFW_KEY_T, [&]() { camera->ToggleOrtho(); });
+
+		int selectedVao = 3; // select cube by default
+		keyToggles.emplace_back(GLFW_KEY_KP_ADD, [&]() {
+			selectedVao++;
+			if (selectedVao >= 4)
+				selectedVao = 1;
+			});
+		keyToggles.emplace_back(GLFW_KEY_KP_SUBTRACT, [&]() {
+			selectedVao--;
+			if (selectedVao <= 0)
+				selectedVao = 3;
+			});
+
+		float speed = 3.0f;
+
+		InitImGui();
+
+		// Our high-precision timer
+		double lastFrame = glfwGetTime();
+
+		///// Game loop /////
+		while (!glfwWindowShouldClose(window)) {
+			glfwPollEvents();
+
+			// Calculate the time since our last frame (dt)
+			double thisFrame = glfwGetTime();
+			float dt = static_cast<float>(thisFrame - lastFrame);
+
+			// We'll make sure our UI isn't focused before we start handling input for our game
+			if (!ImGui::IsAnyWindowFocused()) {
+				// We need to poll our key watchers so they can do their logic with the GLFW state
+				// Note that since we want to make sure we don't copy our key handlers, we need a const
+				// reference!
+				for (const KeyPressWatcher& watcher : keyToggles) {
+					watcher.Poll(window);
+				}
+
+				// We'll run some basic input to move our transform around
+				//ManipulateTransformWithInput(transforms[selectedVao], dt);
+				PlayerInput(player, dt, speed);
 			}
 
-			// We'll run some basic input to move our transform around
-			//ManipulateTransformWithInput(transforms[selectedVao], dt);
-			PlayerInput(playerTransform, dt, speed);
-		}
-						
-		glClearColor(0.08f, 0.17f, 0.31f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glClearColor(0.08f, 0.17f, 0.31f, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		shader->Bind();
-		// These are the uniforms that update only once per frame
-		shader->SetUniformMatrix("u_View", camera->GetView());
-		shader->SetUniform("u_CamPos", camera->GetPosition());
-		
-		// Tell OpenGL that slot 0 will hold the diffuse, and slot 1 will hold the specular
-		shader->SetUniform("s_Diffuse",  0);
-		shader->SetUniform("s_Specular", 1); 
-		shader->SetUniform("s_Diffuse2", 2);
-		
-		// Render all VAOs in our scene
-		//for(int ix = 0; ix < 4; ix++) {
-			// TODO: Apply materials
+			shader->Bind();
+			// These are the uniforms that update only once per frame
+			shader->SetUniformMatrix("u_View", camera->GetView());
+			shader->SetUniform("u_CamPos", camera->GetPosition());
+
+			// Tell OpenGL that slot 0 will hold the diffuse, and slot 1 will hold the specular
+			shader->SetUniform("s_Diffuse", 0);
+			shader->SetUniform("s_Specular", 1);
+			shader->SetUniform("s_Diffuse2", 2);
+
+			// Render all VAOs in our scene
+			//for(int ix = 0; ix < 4; ix++) {
+				// TODO: Apply materials
+
+				// Apply material properties for each instance
+				//materials[ix].Albedo->Bind(0);
+				///materials[ix].Specular->Bind(1);
+				///materials[ix].NewTexture->Bind(2);
+				//shader->SetUniform("u_Shininess", materials[ix].Shininess);
+				//shader->SetUniform("u_TextureMix", materials[ix].TextureMix);
+				//shader->SetUniform("u_TextureMix", materials[ix].TextureMix);
+
+				//RenderVAO(shader, vaos[ix], camera, transforms[ix]);			
+			//}
+
+
+			//RenderVAO(shader, vao3, camera, transforms[3]);
+
+
+			playerMaterial.Albedo->Bind(0);
+			playerMaterial.Specular->Bind(1);
+			//RenderVAO(shader, playerVao, camera, playerTransform);
+
+
+			islandMaterial.Albedo->Bind(0);
+			islandMaterial.Specular->Bind(1);
+			//RenderVAO(shader, islandVao, camera, islandTransform);
+
+			islandMaterial.Albedo->Bind(0);
+			islandMaterial.Specular->Bind(1);
+			//RenderVAO(shader, islandVao, camera, islandTransform2);
+
+
+
+			camera->SetPosition(player.get<Transform>().GetLocalPosition() + glm::vec3(6.0f, 0.0f, 2.5f));
+			camera->SetRotation(glm::vec3(-95.0f, 0.0f, 0.0f));
 			
-			// Apply material properties for each instance
-			//materials[ix].Albedo->Bind(0);
-			///materials[ix].Specular->Bind(1);
-			///materials[ix].NewTexture->Bind(2);
-			//shader->SetUniform("u_Shininess", materials[ix].Shininess);
-			//shader->SetUniform("u_TextureMix", materials[ix].TextureMix);
-			//shader->SetUniform("u_TextureMix", materials[ix].TextureMix);
-			
-			//RenderVAO(shader, vaos[ix], camera, transforms[ix]);			
-		//}
 
 
-		//RenderVAO(shader, vao3, camera, transforms[3]);
+			//Transform& camTransform = cameraObject.get<Transform>();
+			glm::mat4 view = (camera->GetView());
+			glm::mat4 projection = camera->GetProjection();
+			glm::mat4 viewProjection = projection * view;
+
+			// Sort the renderers by shader and material, we will go for a minimizing context switches approach here,
+			// but you could for instance sort front to back to optimize for fill rate if you have intensive fragment shaders
+			renderGroup.sort<RendererComponent>([](const RendererComponent& l, const RendererComponent& r) {
+				// Sort by render layer first, higher numbers get drawn last
+				if (l.Material->RenderLayer < r.Material->RenderLayer) return true;
+				if (l.Material->RenderLayer > r.Material->RenderLayer) return false;
+
+				// Sort by shader pointer next (so materials using the same shader run sequentially where possible)
+				if (l.Material->Shader < r.Material->Shader) return true;
+				if (l.Material->Shader > r.Material->Shader) return false;
+
+				// Sort by material pointer last (so we can minimize switching between materials)
+				if (l.Material < r.Material) return true;
+				if (l.Material > r.Material) return false;
+
+				return false;
+				});
+
+			// Start by assuming no shader or material is applied
+			Shader::sptr current = nullptr;
+			ShaderMaterial::sptr currentMat = nullptr;
+
+			// Iterate over the render group components and draw them
+			renderGroup.each([&](entt::entity, RendererComponent& renderer, Transform& transform) {
+				// If the shader has changed, bind it and set up it's uniforms
+				if (current != renderer.Material->Shader) {
+					current = renderer.Material->Shader;
+					current->Bind();
+					SetupShaderForFrame(current, view, projection);
+				}
+				// If the material has changed, apply it
+				if (currentMat != renderer.Material) {
+					currentMat = renderer.Material;
+					currentMat->Apply();
+				}
+				// Render the mesh
+				RenderVAO(renderer.Material->Shader, renderer.Mesh, viewProjection, transform);
+				});
 
 
-		playerMaterial.Albedo->Bind(0);
-		playerMaterial.Specular->Bind(1);
-		RenderVAO(shader, playerVao, camera, playerTransform);
+			RenderImGui();
 
+			glfwSwapBuffers(window);
+			lastFrame = thisFrame;
+		}
 
-		islandMaterial.Albedo->Bind(0);
-		islandMaterial.Specular->Bind(1);
-		RenderVAO(shader, islandVao, camera, islandTransform);
+		ShutdownImGui();
 
-		islandMaterial.Albedo->Bind(0);
-		islandMaterial.Specular->Bind(1);
-		RenderVAO(shader, islandVao, camera, islandTransform2);
-
-
-
-		camera->SetPosition(playerTransform->GetLocalPosition() + glm::vec3(5.0f, 2.0f, 3.0f));
-
-		RenderImGui();
-
-		glfwSwapBuffers(window);
-		lastFrame = thisFrame;
+		// Clean up the toolkit logger so we don't leak memory
+		Application::Instance().ActiveScene = nullptr;
 	}
-
-	ShutdownImGui();
-
-	// Clean up the toolkit logger so we don't leak memory
 	Logger::Uninitialize();
 	return 0;
 }

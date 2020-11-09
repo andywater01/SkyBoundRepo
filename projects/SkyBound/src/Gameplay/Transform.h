@@ -11,15 +11,7 @@ class Transform final
 public:
 	// We'll disallow moving and copying, since we want to manually control when the destructor is called
 	// We'll use these classes via pointers
-	Transform(const Transform& other) = delete;
-	Transform(Transform&& other) = delete;
-	Transform& operator=(const Transform& other) = delete;
-	Transform& operator=(Transform&& other) = delete;
-
-	typedef std::shared_ptr<Transform> sptr;
-	static inline sptr Create() {
-		return std::make_shared<Transform>();
-	}
+	
 
 public:
 	Transform() :
@@ -54,6 +46,9 @@ public:
 	/// <returns>A pointer to this, to allow for chaining. DO NOT STORE POINTER!</returns>
 	Transform* SetLocalRotation(float yawDeg, float pitchDeg, float rollDeg);
 
+	const glm::quat& GetLocalRotationQuat() const { return _rotation; }
+
+	Transform& SetLocalRotation(const glm::quat& quaternion);
 	// Position Getters/Setters
 
 	/// <summary>
@@ -157,6 +152,8 @@ public:
 	Transform* MoveLocalFixed(float x, float y, float z);
 
 	// Matrix gets
+
+	void Recalculate() const;
 
 	/// <summary>
 	/// Gets the local transformation matrix for this transform, updating it if required

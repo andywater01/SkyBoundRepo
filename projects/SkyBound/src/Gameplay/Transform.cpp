@@ -13,6 +13,13 @@ Transform* Transform::SetLocalRotation(const glm::vec3 eulerDegrees) {
 	return this;
 }
 
+Transform& Transform::SetLocalRotation(const glm::quat& quaternion) {
+	_rotation = quaternion;
+	_rotationEulerDeg = glm::degrees(glm::eulerAngles(_rotation));
+	_isLocalDirty = true;
+	return *this;
+}
+
 Transform* Transform::SetLocalRotation(float yawDeg, float pitchDeg, float rollDeg) {
 	_rotationEulerDeg.x = yawDeg;
 	_rotationEulerDeg.y = pitchDeg;
@@ -99,6 +106,10 @@ Transform* Transform::MoveLocalFixed(float x, float y, float z) {
 	_position.z += z;
 	_isLocalDirty = true;
 	return this;
+}
+
+void Transform::Recalculate() const {
+	_UpdateLocalTransformIfDirty();
 }
 
 const glm::mat4& Transform::LocalTransform() const {

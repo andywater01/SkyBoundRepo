@@ -45,6 +45,7 @@ public:
 	/// Sets this camera's position in world space
 	/// </summary>
 	void SetPosition(const glm::vec3& position);
+	void SetRotation(const glm::vec3& rotation);
 	/// <summary>
 	/// Sets the camera's forward vector, ie what way it's facing
 	/// </summary>
@@ -101,6 +102,8 @@ public:
 	/// </summary>
 	const glm::mat4& GetViewProjection() const;
 
+	const glm::mat4& GetViewProjNoTranslation() const;
+
 protected:
 	bool _isOrtho;
 	float _orthoHeight;
@@ -111,6 +114,7 @@ protected:
 	float _aspectRatio;
 
 	glm::vec3 _position;
+	glm::vec3 _rotation;
 	glm::vec3 _normal;
 	glm::vec3 _up;
 
@@ -121,6 +125,8 @@ protected:
 	mutable glm::mat4 _viewProjection;
 	// A dirty flag that indicates whether we need to re-calculate our view projection matrix
 	mutable bool      _isDirty;
+
+	mutable glm::mat4 _viewProjectionNoTranslate;
 
 	// Recalculates the projection matrix
 	void __CalculateProjection();

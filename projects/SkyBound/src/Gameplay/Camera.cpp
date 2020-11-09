@@ -35,6 +35,11 @@ void Camera::SetPosition(const glm::vec3& position) {
 	__CalculateView();
 }
 
+void Camera::SetRotation(const glm::vec3& rotation) {
+	_rotation = rotation;
+	__CalculateView();
+}
+
 void Camera::SetForward(const glm::vec3& forward) {
 	_normal = forward;
 	__CalculateView();
@@ -74,6 +79,17 @@ const glm::mat4& Camera::GetViewProjection() const {
 	return _viewProjection;
 }
 
+const glm::mat4& Camera::GetViewProjNoTranslation() const
+{
+	if (_isDirty) {
+		_viewProjection = _projection * _view;
+		_viewProjectionNoTranslate = _projection * glm::mat4(glm::mat3(_view));
+		_isDirty = false;
+	}
+	return _viewProjectionNoTranslate;
+}
+
+
 void Camera::__CalculateProjection() {
 	if (_isOrtho) {
 		_projection = glm::ortho(
@@ -88,6 +104,6 @@ void Camera::__CalculateProjection() {
 }
 
 void Camera::__CalculateView() {
-	_view = glm::lookAt(_position, _position + _normal, _up);
+	_view = glm::lookAt(_position, _position + _rotation, _up);
 	_isDirty = true;
 }

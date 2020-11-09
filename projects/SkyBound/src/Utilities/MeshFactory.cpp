@@ -234,10 +234,10 @@ void MeshFactory::AddUvSphere(MeshBuilder<VertexPosNormTexCol>& data, const glm:
 	verts[verts.size() - 1].UV = { 0.5f, 0.0f };
 
 	// Apply color to all verts we added
-	for(int ix = offset; ix < verts.size(); ix++) {
+	for (int ix = offset; ix < verts.size(); ix++) {
 		verts[ix].Color = col;
 	}
-	
+
 	int numIndices = (slices - 1) * slices * 6;
 	data._indices.reserve(data._indices.size() + numIndices);
 
@@ -295,6 +295,25 @@ void MeshFactory::AddPlane(MeshBuilder<VertexPosNormTexCol>& mesh, const glm::ve
 	mesh.AddIndexTri(p1, p4, p3);
 }
 
+void MeshFactory::InvertFaces(MeshBuilder<VertexPosNormTexCol>& mesh)
+{
+	if (mesh.GetIndexCount() > 0) {
+		for (size_t ix = 0; ix < mesh._indices.size(); ix += 3) {
+			uint32_t temp = mesh._indices[ix + 2u];
+			mesh._indices[ix + 2u] = mesh._indices[ix + 1u];
+			mesh._indices[ix + 1u] = temp;
+		}
+	}
+	else {
+		VertexPosNormTexCol temp;
+		for (size_t ix = 0; ix < mesh._vertices.size(); ix += 3) {
+			temp = mesh._vertices[ix + 2u];
+			mesh._vertices[ix + 2u] = mesh._vertices[ix + 1u];
+			mesh._vertices[ix + 1u] = temp;
+		}
+	}
+}
+
 void MeshFactory::AddCube(MeshBuilder<VertexPosNormTexCol>& mesh, const glm::vec3& pos, const glm::vec3& scale,
 	const glm::vec3& eulerDeg, const glm::vec4& col) {
 	const glm::mat4 transform = glm::translate(MAT4_IDENTITY, pos) * glm::mat4(glm::quat(glm::radians(eulerDeg))) * glm::scale(MAT4_IDENTITY, scale);
@@ -339,7 +358,7 @@ void MeshFactory::AddCube(MeshBuilder<VertexPosNormTexCol>& mesh, const glm::mat
 
 	uint32_t indices[36];
 
-	#pragma region AddVerts
+#pragma region AddVerts
 
 	mesh.ReserveVertexSpace(24);
 
@@ -355,8 +374,8 @@ void MeshFactory::AddCube(MeshBuilder<VertexPosNormTexCol>& mesh, const glm::mat
 	indices[7] = mesh.AddVertex(positions[7], normals[5], uvs[3], col);
 
 	// Left
-	indices[8]  = mesh.AddVertex(positions[0], normals[0], uvs[0], col);
-	indices[9]  = mesh.AddVertex(positions[4], normals[0], uvs[1], col);
+	indices[8] = mesh.AddVertex(positions[0], normals[0], uvs[0], col);
+	indices[9] = mesh.AddVertex(positions[4], normals[0], uvs[1], col);
 	indices[10] = mesh.AddVertex(positions[6], normals[0], uvs[2], col);
 	indices[11] = mesh.AddVertex(positions[2], normals[0], uvs[3], col);
 	// Right
@@ -376,9 +395,9 @@ void MeshFactory::AddCube(MeshBuilder<VertexPosNormTexCol>& mesh, const glm::mat
 	indices[22] = mesh.AddVertex(positions[4], normals[2], uvs[2], col);
 	indices[23] = mesh.AddVertex(positions[0], normals[2], uvs[3], col);
 
-	#pragma endregion
+#pragma endregion
 
-	#pragma region Make Triangles
+#pragma region Make Triangles
 
 	for (int ix = 0; ix < 6; ix++) {
 		size_t o = ix * 4;
@@ -386,5 +405,5 @@ void MeshFactory::AddCube(MeshBuilder<VertexPosNormTexCol>& mesh, const glm::mat
 		mesh.AddIndexTri(indices[o + 0], indices[o + 2], indices[o + 3]);
 	}
 
-	#pragma endregion
+#pragma endregion
 }

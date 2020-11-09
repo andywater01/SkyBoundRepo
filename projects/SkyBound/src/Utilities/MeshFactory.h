@@ -8,7 +8,7 @@
 class MeshFactory
 {
 public:
-	
+
 	static void AddCube(MeshBuilder<VertexPosNormTexCol>& mesh, const glm::vec3& pos, const glm::vec3& scale, const glm::vec3& eulerDeg = glm::vec3(0.0f), const glm::vec4& col = glm::vec4(1.0f));
 	static void AddCube(MeshBuilder<VertexPosNormTexCol>& mesh, const glm::mat4& transform, const glm::vec4& col = glm::vec4(1.0f));
 
@@ -19,8 +19,9 @@ public:
 
 	static void AddPlane(MeshBuilder<VertexPosNormTexCol>& mesh, const glm::vec3& pos, const glm::vec3& normal, const glm::vec3& tangent, const glm::vec2& scale, const glm::vec4& col = glm::vec4(1.0f));
 
-	
-protected:	
+	static void InvertFaces(MeshBuilder<VertexPosNormTexCol>& mesh);
+
+protected:
 	MeshFactory() = default;
 	~MeshFactory() = default;
 
