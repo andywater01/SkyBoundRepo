@@ -397,6 +397,8 @@ int main() {
 
 		Texture2D::sptr PlayerDiffuse = Texture2D::LoadFromFile("images/SkyBoundCharUV2.png");
 		Texture2D::sptr diffuseMp02 = Texture2D::LoadFromFile("images/GrassIslandColours.png");
+		Texture2D::sptr diffuseMp03 = Texture2D::LoadFromFile("images/WizardColours.png");
+
 		Texture2DData::sptr specularMp02 = Texture2DData::LoadFromFile("images/Stone_001_Specular.png");
 
 		// Load the cube map
@@ -419,12 +421,13 @@ int main() {
 
 		ShaderMaterial::sptr material1 = ShaderMaterial::Create();
 		material1->Shader = shader;
-		//material1->Set("s_Diffuse2", diffuseMp2);
 		material1->Set("s_Diffuse", diffuseMp02);
-		//material0->Set("s_Specular", Boxspecular);
 		material1->Set("u_Shininess", 8.0f);
-		//material0->Set("u_TextureMix", 0.5f);
-		//material0->Set("u_Reflectivity", 0.6f);
+		
+		ShaderMaterial::sptr material2 = ShaderMaterial::Create();
+		material2->Shader = shader;
+		material2->Set("s_Diffuse", diffuseMp03);
+		material2->Set("u_Shininess", 8.0f);
 
 		//X = In and Out
 		//Y = Left and Right
@@ -434,7 +437,7 @@ int main() {
 		{
 			VertexArrayObject::sptr PlayerVAO = ObjLoader::LoadFromFile("models/SkyBoundGuyCol.obj");
 			player.emplace<RendererComponent>().SetMesh(PlayerVAO).SetMaterial(material0);
-			player.get<Transform>().SetLocalPosition(0.5f, 0.5f, 0.0f);
+			player.get<Transform>().SetLocalPosition(0.5f, 0.5f, 0.1f);
 			player.get<Transform>().SetLocalRotation(90.0f, 0.0f, 180.0f);
 			player.get<Transform>().SetLocalScale(0.5f, 0.5f, 0.5f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(player);
@@ -448,6 +451,17 @@ int main() {
 			island1.get<Transform>().SetLocalRotation(-90.0f, 180.0f, 0.0f);
 			island1.get<Transform>().SetLocalScale(2.0f, 2.0f, 2.0f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(island1);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
+		GameObject Wizard = scene->CreateEntity("Wizard");
+		{
+			VertexArrayObject::sptr WizardVAO = ObjLoader::LoadFromFile("models/WizardDone.obj");
+			Wizard.emplace<RendererComponent>().SetMesh(WizardVAO).SetMaterial(material2);
+			Wizard.get<Transform>().SetLocalPosition(-8.0f, 0.5f, -2.5f);
+			Wizard.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
+			Wizard.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Wizard);
 			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
 		}
 
