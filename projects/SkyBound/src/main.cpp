@@ -283,31 +283,16 @@ void PlayerInput(GameObject& transform, float dt, float speed) {
 	}
 	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
 	{
-		speed = speed * 4;
-	}
-	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
-	{
-		speed = speed / 4;
-	}
+		speed = speed * 4.0f;
 
-	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-		//transform.RotateLocal(0.0f, -45.0f * dt, 0.0f);
+		if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
+		{
+			speed = speed / 4.0f;
+		}
 	}
-	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-		//transform.RotateLocal(0.0f, 45.0f * dt, 0.0f);
-	}
-	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-		//transform.RotateLocal(45.0f * dt, 0.0f, 0.0f);
-	}
-	if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-		//transform.RotateLocal(-45.0f * dt, 0.0f, 0.0f);
-	}
-	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
-		//transform.RotateLocal(0.0f, 0.0f, 45.0f * dt);
-	}
-	if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
-		//transform.RotateLocal(0.0f, 0.0f, -45.0f * dt);
-	}
+	
+
+	
 }
 
 struct Material
@@ -465,7 +450,7 @@ int main() {
 			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
 		}
 
-
+		
 		// Load a second material for our reflective material!
 		Shader::sptr reflectiveShader = Shader::Create();
 		reflectiveShader->LoadShaderPartFromFile("shaders/vertex_shader.glsl", GL_VERTEX_SHADER);
@@ -736,7 +721,7 @@ int main() {
 			camera->SetPosition(player.get<Transform>().GetLocalPosition() + glm::vec3(6.0f, 0.0f, 2.5f));
 			camera->SetRotation(glm::vec3(-95.0f, 0.0f, 0.0f));
 			
-
+			
 
 			//Transform& camTransform = cameraObject.get<Transform>();
 			glm::mat4 view = (camera->GetView());
@@ -781,7 +766,7 @@ int main() {
 				// Render the mesh
 				RenderVAO(renderer.Material->Shader, renderer.Mesh, viewProjection, transform);
 				});
-
+			
 
 			RenderImGui();
 
