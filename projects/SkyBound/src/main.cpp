@@ -41,6 +41,8 @@
 #include "Utilities/NotObjLoader.h"
 #include "Utilities/ObjLoader.h"
 #include "Utilities/VertexTypes.h"
+#include "bullet/btBulletCollisionCommon.h"
+#include "bullet/btBulletDynamicsCommon.h"
 
 #define LOG_GL_NOTIFICATIONS
 
@@ -315,6 +317,12 @@ void SetupShaderForFrame(const Shader::sptr& shader, const glm::mat4& view, cons
 	shader->SetUniform("u_CamPos", camPos);
 }
 
+inline btVector3 glm2bt(const glm::vec3& vec)
+{
+	return { vec.x, vec.y, vec.z };
+}
+
+
 int main() {
 	Logger::Init(); // We'll borrow the logger from the toolkit, but we need to initialize it
 
@@ -325,6 +333,31 @@ int main() {
 	//Initialize GLAD
 	if (!initGLAD())
 		return 1;
+
+	//https://github.com/bulletphysics/bullet3/blob/master/examples/HelloWorld/HelloWorld.cpp
+	//https://www.raywenderlich.com/2606-bullet-physics-tutorial-getting-started#toc-anchor-001
+
+	///collision configuration contains default setup for memory, collision setup. Advanced users can create their own configuration.
+	btDefaultCollisionConfiguration* collisionConfiguration = new btDefaultCollisionConfiguration();
+
+	///use the default collision dispatcher. For parallel processing you can use a diffent dispatcher (see Extras/BulletMultiThreaded)
+	btCollisionDispatcher* dispatcher = new btCollisionDispatcher(collisionConfiguration);
+
+	///btDbvtBroadphase is a good general purpose broadphase. You can also try out btAxis3Sweep.
+	btBroadphaseInterface* overlappingPairCache = new btDbvtBroadphase();
+
+	///the default constraint solver. For parallel processing you can use a different solver (see Extras/BulletMultiThreaded)
+	btSequentialImpulseConstraintSolver* solver = new btSequentialImpulseConstraintSolver;
+
+	btDiscreteDynamicsWorld* dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
+
+	dynamicsWorld->setGravity(btVector3(0, -10, 0));
+
+	//keep track of the shapes, we release memory at exit.
+	//make sure to re-use collision shapes among rigid bodies whenever possible!
+	btAlignedObjectArray<btCollisionShape*> collisionShapes;
+
+
 	{
 
 
@@ -418,6 +451,8 @@ int main() {
 		//Y = Left and Right
 		//Z = up and down
 
+		
+
 		GameObject player = scene->CreateEntity("player");
 		{
 			VertexArrayObject::sptr PlayerVAO = ObjLoader::LoadFromFile("models/SkyBoundGuyCol.obj");
@@ -426,6 +461,36 @@ int main() {
 			player.get<Transform>().SetLocalRotation(90.0f, 0.0f, 180.0f);
 			player.get<Transform>().SetLocalScale(0.5f, 0.5f, 0.5f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(player);
+
+			//Collision Stuff
+			btCollisionShape* playerShape = new btBoxShape(btVector3(btScalar(30.), btScalar(30.), btScalar(30.)));
+
+			collisionShapes.push_back(playerShape);
+
+			btTransform playerTransform;
+			playerTransform.setIdentity();
+			playerTransform.setOrigin(glm2bt(player.get<Transform>().GetLocalPosition()));
+
+			btScalar mass(2.0f);
+
+			//rigidbody is dynamic if and only if mass is non zero, otherwise static
+			bool isDynamic = (mass != 0.f);
+
+			btVector3 localInertia(0, 0, 0);
+			if (isDynamic)
+				playerShape->calculateLocalInertia(mass, localInertia);
+
+			//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+			btDefaultMotionState* myMotionState = new btDefaultMotionState(playerTransform);
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, playerShape, localInertia);
+			btRigidBody* body = new btRigidBody(rbInfo);
+
+			body->applyGravity();
+
+			body->setWorldTransform(playerTransform);
+
+			//add the body to the dynamics world
+			dynamicsWorld->addRigidBody(body);
 		}
 
 		GameObject island1 = scene->CreateEntity("Island1");
@@ -437,6 +502,32 @@ int main() {
 			island1.get<Transform>().SetLocalScale(2.0f, 2.0f, 2.0f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(island1);
 			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+
+
+			btCollisionShape* island1Shape = new btBoxShape(btVector3(btScalar(50.), btScalar(50.), btScalar(50.)));
+
+			collisionShapes.push_back(island1Shape);
+
+			btTransform island1Transform;
+			island1Transform.setIdentity();
+			island1Transform.setOrigin(glm2bt(island1.get<Transform>().GetLocalPosition()));
+
+			btScalar mass(0.);
+
+			//rigidbody is dynamic if and only if mass is non zero, otherwise static
+			bool isDynamic = (mass != 0.f);
+
+			btVector3 localInertia(0, 0, 0);
+			if (isDynamic)
+				island1Shape->calculateLocalInertia(mass, localInertia);
+
+			//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+			btDefaultMotionState* myMotionState = new btDefaultMotionState(island1Transform);
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, island1Shape, localInertia);
+			btRigidBody* body = new btRigidBody(rbInfo);
+
+			//add the body to the dynamics world
+			dynamicsWorld->addRigidBody(body);
 		
 
 			GameObject island2 = scene->CreateEntity("Island2");
@@ -475,7 +566,7 @@ int main() {
 		// TODO: send the rotation to apply to the skybox
 		reflectiveMat->Set("u_EnvironmentRotation", glm::mat3(glm::rotate(glm::mat4(1.0f), glm::radians(90.0f),
 			glm::vec3(1, 0, 0))));
-
+		
 
 		{
 			// Load our shaders 
@@ -733,6 +824,12 @@ int main() {
 			camera->SetPosition(player.get<Transform>().GetLocalPosition() + glm::vec3(6.0f, 0.0f, 2.5f));
 			camera->SetRotation(glm::vec3(-95.0f, 0.0f, 0.0f));
 			
+
+
+
+			
+
+
 			
 
 			//Transform& camTransform = cameraObject.get<Transform>();
@@ -777,14 +874,85 @@ int main() {
 				}
 				// Render the mesh
 				RenderVAO(renderer.Material->Shader, renderer.Mesh, viewProjection, transform);
-				});
+			});
 			
+
+			/// Do some simulation
+
+			///-----stepsimulation_start-----
+			for (int i = 0; i < 150; i++)
+			{
+				dynamicsWorld->stepSimulation(1.f / 60.f, 10);
+
+				//print positions of all objects
+				for (int j = dynamicsWorld->getNumCollisionObjects() - 1; j >= 0; j--)
+				{
+					btCollisionObject* obj = dynamicsWorld->getCollisionObjectArray()[j];
+					btRigidBody* body = btRigidBody::upcast(obj);
+					btTransform trans;
+					if (body && body->getMotionState())
+					{
+						body->getMotionState()->getWorldTransform(trans);
+					}
+					else
+					{
+						trans = obj->getWorldTransform();
+					}
+					printf("world pos object %d = %f,%f,%f\n", j, float(trans.getOrigin().getX()), float(trans.getOrigin().getY()), float(trans.getOrigin().getZ()));
+				}
+			}
+
+			///-----stepsimulation_end-----
+
+			//cleanup in the reverse order of creation/initialization
+
+
+			
+
 
 			RenderImGui();
 
 			glfwSwapBuffers(window);
 			lastFrame = thisFrame;
 		}
+
+
+		///-----cleanup_start-----
+
+		//remove the rigidbodies from the dynamics world and delete them
+		for (int i = dynamicsWorld->getNumCollisionObjects() - 1; i >= 0; i--)
+		{
+			btCollisionObject* obj = dynamicsWorld->getCollisionObjectArray()[i];
+			btRigidBody* body = btRigidBody::upcast(obj);
+			if (body && body->getMotionState())
+			{
+				delete body->getMotionState();
+			}
+			dynamicsWorld->removeCollisionObject(obj);
+			delete obj;
+		}
+
+		//delete collision shapes
+		for (int j = 0; j < collisionShapes.size(); j++)
+		{
+			btCollisionShape* shape = collisionShapes[j];
+			collisionShapes[j] = 0;
+			delete shape;
+		}
+
+		//delete dynamics world
+		delete dynamicsWorld;
+
+		//delete solver
+		delete solver;
+
+		//delete broadphase
+		delete overlappingPairCache;
+
+		//delete dispatcher
+		delete dispatcher;
+
+		delete collisionConfiguration;
 
 		ShutdownImGui();
 
