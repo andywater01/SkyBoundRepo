@@ -437,7 +437,19 @@ int main() {
 			island1.get<Transform>().SetLocalScale(2.0f, 2.0f, 2.0f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(island1);
 			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		
+
+			GameObject island2 = scene->CreateEntity("Island2");
+		
+		
+			island2.emplace<RendererComponent>().SetMesh(Island1VAO).SetMaterial(material1);
+			island2.get<Transform>().SetLocalPosition(-35.0f, 0.0f, -10.0f);
+			island2.get<Transform>().SetLocalRotation(-90.0f, 180.0f, 0.0f);
+			island2.get<Transform>().SetLocalScale(2.0f, 2.0f, 2.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(island2);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
 		}
+
 
 		GameObject Wizard = scene->CreateEntity("Wizard");
 		{
