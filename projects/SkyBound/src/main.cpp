@@ -416,6 +416,7 @@ int main() {
 		Texture2D::sptr PlayerDiffuse = Texture2D::LoadFromFile("images/SkyBoundCharUV2.png");
 		Texture2D::sptr diffuseMp02 = Texture2D::LoadFromFile("images/GrassIslandColours.png");
 		Texture2D::sptr diffuseMp03 = Texture2D::LoadFromFile("images/WizardColours.png");
+		Texture2D::sptr diffuseMp04 = Texture2D::LoadFromFile("images/PhantomColours.png");
 
 		Texture2DData::sptr specularMp02 = Texture2DData::LoadFromFile("images/Stone_001_Specular.png");
 
@@ -447,6 +448,11 @@ int main() {
 		material2->Set("s_Diffuse", diffuseMp03);
 		material2->Set("u_Shininess", 8.0f);
 
+		ShaderMaterial::sptr material3 = ShaderMaterial::Create();
+		material3->Shader = shader;
+		material3->Set("s_Diffuse", diffuseMp04);
+		material3->Set("u_Shininess", 8.0f);
+
 		//X = In and Out
 		//Y = Left and Right
 		//Z = up and down
@@ -463,7 +469,7 @@ int main() {
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(player);
 
 			//Collision Stuff
-			btCollisionShape* playerShape = new btBoxShape(btVector3(btScalar(30.), btScalar(30.), btScalar(30.)));
+			/*btCollisionShape* playerShape = new btBoxShape(btVector3(btScalar(30.), btScalar(30.), btScalar(30.)));
 
 			collisionShapes.push_back(playerShape);
 
@@ -474,7 +480,7 @@ int main() {
 			btScalar mass(2.0f);
 
 			//rigidbody is dynamic if and only if mass is non zero, otherwise static
-			bool isDynamic = (mass != 0.f);
+			bool isDynamic = (mass != 2.f);
 
 			btVector3 localInertia(0, 0, 0);
 			if (isDynamic)
@@ -490,7 +496,7 @@ int main() {
 			body->setWorldTransform(playerTransform);
 
 			//add the body to the dynamics world
-			dynamicsWorld->addRigidBody(body);
+			dynamicsWorld->addRigidBody(body);*/
 		}
 
 		GameObject island1 = scene->CreateEntity("Island1");
@@ -515,10 +521,10 @@ int main() {
 			btScalar mass(0.);
 
 			//rigidbody is dynamic if and only if mass is non zero, otherwise static
-			bool isDynamic = (mass != 0.f);
+			bool isStatic = (mass != 0.f);
 
 			btVector3 localInertia(0, 0, 0);
-			if (isDynamic)
+			if (isStatic)
 				island1Shape->calculateLocalInertia(mass, localInertia);
 
 			//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
@@ -544,7 +550,7 @@ int main() {
 
 		GameObject Wizard = scene->CreateEntity("Wizard");
 		{
-			VertexArrayObject::sptr WizardVAO = ObjLoader::LoadFromFile("models/WizardDone.obj");
+			VertexArrayObject::sptr WizardVAO = ObjLoader::LoadFromFile("models/BridgeKeeper.obj");
 			Wizard.emplace<RendererComponent>().SetMesh(WizardVAO).SetMaterial(material2);
 			Wizard.get<Transform>().SetLocalPosition(-8.0f, 0.5f, -2.5f);
 			Wizard.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
@@ -553,6 +559,17 @@ int main() {
 			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
 		}
 
+
+		GameObject Phantom = scene->CreateEntity("Phantom");
+		{
+			VertexArrayObject::sptr PhantomVAO = ObjLoader::LoadFromFile("models/Phantom2.obj");
+			Phantom.emplace<RendererComponent>().SetMesh(PhantomVAO).SetMaterial(material3);
+			Phantom.get<Transform>().SetLocalPosition(-35.0f, 6.0f, -1.0f);
+			Phantom.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
+			Phantom.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Phantom);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
 		
 		// Load a second material for our reflective material!
 		Shader::sptr reflectiveShader = Shader::Create();
