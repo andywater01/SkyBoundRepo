@@ -337,6 +337,7 @@ int main() {
 	//https://github.com/bulletphysics/bullet3/blob/master/examples/HelloWorld/HelloWorld.cpp
 	//https://www.raywenderlich.com/2606-bullet-physics-tutorial-getting-started#toc-anchor-001
 
+	/*
 	///collision configuration contains default setup for memory, collision setup. Advanced users can create their own configuration.
 	btDefaultCollisionConfiguration* collisionConfiguration = new btDefaultCollisionConfiguration();
 
@@ -356,7 +357,7 @@ int main() {
 	//keep track of the shapes, we release memory at exit.
 	//make sure to re-use collision shapes among rigid bodies whenever possible!
 	btAlignedObjectArray<btCollisionShape*> collisionShapes;
-
+	*/
 
 	{
 
@@ -423,6 +424,15 @@ int main() {
 		// Load the cube map
 		//TextureCubeMap::sptr environmentMap = TextureCubeMap::LoadFromImages("images/cubemaps/skybox/sample.jpg");
 		TextureCubeMap::sptr environmentMap = TextureCubeMap::LoadFromImages("images/cubemaps/skybox/ocean.jpg");
+
+
+		///////////////////////////////////// Scene Generation //////////////////////////////////////////////////
+		#pragma region Scene Generation
+
+		// We need to tell our scene system what extra component types we want to support
+		GameScene::RegisterComponentType<RendererComponent>();
+		GameScene::RegisterComponentType<BehaviourBinding>();
+		GameScene::RegisterComponentType<Camera>();
 
 		GameScene::sptr scene = GameScene::Create("test");
 		Application::Instance().ActiveScene = scene;
@@ -509,7 +519,7 @@ int main() {
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(island1);
 			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
 
-
+			/*
 			btCollisionShape* island1Shape = new btBoxShape(btVector3(btScalar(50.), btScalar(50.), btScalar(50.)));
 
 			collisionShapes.push_back(island1Shape);
@@ -534,6 +544,7 @@ int main() {
 
 			//add the body to the dynamics world
 			dynamicsWorld->addRigidBody(body);
+			*/
 		
 
 			GameObject island2 = scene->CreateEntity("Island2");
@@ -584,6 +595,50 @@ int main() {
 		reflectiveMat->Set("u_EnvironmentRotation", glm::mat3(glm::rotate(glm::mat4(1.0f), glm::radians(90.0f),
 			glm::vec3(1, 0, 0))));
 		
+		#pragma endregion
+		//////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+		///////////////////////////////////// Scene Generation 2 //////////////////////////////////////////////////
+		#pragma region Scene Generation 2
+
+		// We need to tell our scene system what extra component types we want to support
+		GameScene::RegisterComponentType<RendererComponent>();
+		GameScene::RegisterComponentType<BehaviourBinding>();
+		GameScene::RegisterComponentType<Camera>();
+
+		GameScene::sptr scene2 = GameScene::Create("Scene 2");
+		Application::Instance().ActiveScene = scene2;
+
+		auto renderGroup2 = scene2->Registry().group<RendererComponent, Transform>();
+
+		
+
+		//X = In and Out
+		//Y = Left and Right
+		//Z = up and down
+
+
+
+		GameObject obj5 = scene2->CreateEntity("cube");
+		{
+			MeshBuilder<VertexPosNormTexCol> builder = MeshBuilder<VertexPosNormTexCol>();
+			MeshFactory::AddCube(builder, glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f));
+			VertexArrayObject::sptr vao = builder.Bake();
+
+			obj5.emplace<RendererComponent>().SetMesh(vao).SetMaterial(reflectiveMat);
+			obj5.get<Transform>().SetLocalPosition(-4.0f, 0.0f, 2.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(obj5);
+		}
+
+		#pragma endregion
+		//////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
 
 		{
 			// Load our shaders 
@@ -893,7 +948,7 @@ int main() {
 				RenderVAO(renderer.Material->Shader, renderer.Mesh, viewProjection, transform);
 			});
 			
-
+			/*
 			/// Do some simulation
 
 			///-----stepsimulation_start-----
@@ -922,7 +977,7 @@ int main() {
 			///-----stepsimulation_end-----
 
 			//cleanup in the reverse order of creation/initialization
-
+			*/
 
 			
 
@@ -933,7 +988,7 @@ int main() {
 			lastFrame = thisFrame;
 		}
 
-
+		/*
 		///-----cleanup_start-----
 
 		//remove the rigidbodies from the dynamics world and delete them
@@ -970,11 +1025,13 @@ int main() {
 		delete dispatcher;
 
 		delete collisionConfiguration;
+		*/
 
 		ShutdownImGui();
 
 		// Clean up the toolkit logger so we don't leak memory
 		Application::Instance().ActiveScene = nullptr;
+		
 	}
 	Logger::Uninitialize();
 	return 0;
