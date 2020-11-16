@@ -8,6 +8,8 @@
 #include <json.hpp>
 #include <fstream>
 
+#include <Attributes.h>
+
 #include <GLM/glm.hpp>
 #include <GLM/gtc/matrix_transform.hpp>
 #include <GLM/gtc/type_ptr.hpp>
@@ -80,6 +82,10 @@ void GlDebugMessage(GLenum source, GLenum type, GLuint id, GLenum severity, GLsi
 
 GLFWwindow* window;
 Camera::sptr camera = nullptr;
+
+Attributes PhantomAttrib;
+bool isRotate = true;
+bool isLeft = true;
 
 void GlfwWindowResizedCallback(GLFWwindow* window, int width, int height) {
 	glViewport(0, 0, width, height);
@@ -323,6 +329,12 @@ inline btVector3 glm2bt(const glm::vec3& vec)
 }
 
 
+template<typename T>
+T LERP(const T& p0, const T& p1, float t)
+{
+	return (1.0f - t) * p0 + t * p1;
+}
+
 int main() {
 	Logger::Init(); // We'll borrow the logger from the toolkit, but we need to initialize it
 
@@ -334,6 +346,7 @@ int main() {
 	if (!initGLAD())
 		return 1;
 
+	/*
 	//https://github.com/bulletphysics/bullet3/blob/master/examples/HelloWorld/HelloWorld.cpp
 	//https://www.raywenderlich.com/2606-bullet-physics-tutorial-getting-started#toc-anchor-001
 
@@ -356,7 +369,7 @@ int main() {
 	//keep track of the shapes, we release memory at exit.
 	//make sure to re-use collision shapes among rigid bodies whenever possible!
 	btAlignedObjectArray<btCollisionShape*> collisionShapes;
-
+	*/
 
 	{
 
@@ -423,6 +436,18 @@ int main() {
 		// Load the cube map
 		//TextureCubeMap::sptr environmentMap = TextureCubeMap::LoadFromImages("images/cubemaps/skybox/sample.jpg");
 		TextureCubeMap::sptr environmentMap = TextureCubeMap::LoadFromImages("images/cubemaps/skybox/ocean.jpg");
+
+
+
+		///////////////////////////////////// Scene Generation //////////////////////////////////////////////////
+		#pragma region Scene Generation
+
+		// We need to tell our scene system what extra component types we want to support
+		GameScene::RegisterComponentType<RendererComponent>();
+		GameScene::RegisterComponentType<BehaviourBinding>();
+		GameScene::RegisterComponentType<Camera>();
+
+
 
 		GameScene::sptr scene = GameScene::Create("test");
 		Application::Instance().ActiveScene = scene;
@@ -509,7 +534,7 @@ int main() {
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(island1);
 			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
 
-
+			/*
 			btCollisionShape* island1Shape = new btBoxShape(btVector3(btScalar(50.), btScalar(50.), btScalar(50.)));
 
 			collisionShapes.push_back(island1Shape);
@@ -534,7 +559,7 @@ int main() {
 
 			//add the body to the dynamics world
 			dynamicsWorld->addRigidBody(body);
-		
+		*/
 
 			GameObject island2 = scene->CreateEntity("Island2");
 		
@@ -584,6 +609,43 @@ int main() {
 		reflectiveMat->Set("u_EnvironmentRotation", glm::mat3(glm::rotate(glm::mat4(1.0f), glm::radians(90.0f),
 			glm::vec3(1, 0, 0))));
 		
+		#pragma endregion
+		//////////////////////////////////////////////////////////////////////////////////////////
+
+		///////////////////////////////////// Scene Generation 2 //////////////////////////////////////////////////
+		#pragma region Scene Generation 2
+
+		// We need to tell our scene system what extra component types we want to support
+		GameScene::RegisterComponentType<RendererComponent>();
+		GameScene::RegisterComponentType<BehaviourBinding>();
+		GameScene::RegisterComponentType<Camera>();
+
+		GameScene::sptr scene2 = GameScene::Create("Scene 2");
+		Application::Instance().ActiveScene = scene2;
+
+		auto renderGroup2 = scene2->Registry().group<RendererComponent, Transform>();
+
+
+
+		//X = In and Out
+		//Y = Left and Right
+		//Z = up and down
+
+
+
+		GameObject obj5 = scene2->CreateEntity("cube");
+		{
+			MeshBuilder<VertexPosNormTexCol> builder = MeshBuilder<VertexPosNormTexCol>();
+			MeshFactory::AddCube(builder, glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f));
+			VertexArrayObject::sptr vao = builder.Bake();
+
+			obj5.emplace<RendererComponent>().SetMesh(vao).SetMaterial(reflectiveMat);
+			obj5.get<Transform>().SetLocalPosition(-4.0f, 0.0f, 2.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(obj5);
+		}
+
+		#pragma endregion
+		//////////////////////////////////////////////////////////////////////////////////////////
 
 		{
 			// Load our shaders 
@@ -769,6 +831,7 @@ int main() {
 		// Our high-precision timer
 		double lastFrame = glfwGetTime();
 
+		
 		///// Game loop /////
 		while (!glfwWindowShouldClose(window)) {
 			glfwPollEvents();
@@ -776,6 +839,45 @@ int main() {
 			// Calculate the time since our last frame (dt)
 			double thisFrame = glfwGetTime();
 			float dt = static_cast<float>(thisFrame - lastFrame);
+			float PhantomTimer = static_cast<float>(thisFrame - lastFrame);
+			float tPos = PhantomTimer / 1.5f;
+
+			PhantomAttrib.curRot = Phantom.get<Transform>().GetLocalRotation();
+			
+
+			PhantomAttrib.curPos = Phantom.get<Transform>().GetLocalPosition();
+			PhantomAttrib.endPos = glm::vec3(-35.0f, -6.0f, -1.0f);
+
+			if (isLeft)
+			{
+				PhantomAttrib.endPos = glm::vec3(-35.0f, -6.0f, -1.0f);
+				Phantom.get<Transform>().SetLocalPosition(LERP(PhantomAttrib.curPos, PhantomAttrib.endPos, tPos));
+			}
+			if (!isLeft)
+			{
+				PhantomAttrib.endPos = glm::vec3(-35.0f, 6.0f, -1.0f);
+				Phantom.get<Transform>().SetLocalPosition(LERP(PhantomAttrib.curPos, PhantomAttrib.endPos, tPos));
+			}
+
+			if (PhantomAttrib.curPos.y == PhantomAttrib.endPos.y)
+			{
+				
+				Phantom.get<Transform>().SetLocalPosition(LERP(PhantomAttrib.curPos, PhantomAttrib.endPos, tPos));
+				if (isRotate)
+				{
+					Phantom.get<Transform>().SetLocalScale(Phantom.get<Transform>().GetLocalScale().x, 
+					Phantom.get<Transform>().GetLocalScale().y, 
+					Phantom.get<Transform>().GetLocalScale().z * -1);
+
+					isLeft = !isLeft;
+					isRotate = !isRotate;
+				}
+					
+				
+				PhantomAttrib.endPos = glm::vec3(PhantomAttrib.endPos.x, PhantomAttrib.endPos.y * -1, PhantomAttrib.endPos.z);
+			}
+
+			
 
 			// We'll make sure our UI isn't focused before we start handling input for our game
 			if (!ImGui::IsAnyWindowFocused()) {
@@ -895,7 +997,7 @@ int main() {
 			
 
 			/// Do some simulation
-
+			/*
 			///-----stepsimulation_start-----
 			for (int i = 0; i < 150; i++)
 			{
@@ -918,6 +1020,7 @@ int main() {
 					printf("world pos object %d = %f,%f,%f\n", j, float(trans.getOrigin().getX()), float(trans.getOrigin().getY()), float(trans.getOrigin().getZ()));
 				}
 			}
+			*/
 
 			///-----stepsimulation_end-----
 
@@ -935,7 +1038,7 @@ int main() {
 
 
 		///-----cleanup_start-----
-
+		/*
 		//remove the rigidbodies from the dynamics world and delete them
 		for (int i = dynamicsWorld->getNumCollisionObjects() - 1; i >= 0; i--)
 		{
@@ -956,7 +1059,7 @@ int main() {
 			collisionShapes[j] = 0;
 			delete shape;
 		}
-
+		
 		//delete dynamics world
 		delete dynamicsWorld;
 
@@ -970,7 +1073,7 @@ int main() {
 		delete dispatcher;
 
 		delete collisionConfiguration;
-
+		*/
 		ShutdownImGui();
 
 		// Clean up the toolkit logger so we don't leak memory
