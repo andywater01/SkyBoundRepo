@@ -335,6 +335,47 @@ T LERP(const T& p0, const T& p1, float t)
 	return (1.0f - t) * p0 + t * p1;
 }
 
+
+void LerpMove(GameObject character, float timer, float t, Attributes attrib, glm::vec3 endPos)
+{
+	
+
+	attrib.curRot = character.get<Transform>().GetLocalRotation();
+
+
+	attrib.curPos = character.get<Transform>().GetLocalPosition();
+	//attrib.endPos = glm::vec3(endPos.x, endPos.y, endPos.z);
+
+	if (isLeft)
+	{
+		attrib.endPos = glm::vec3(endPos.x, endPos.y, endPos.z);
+		character.get<Transform>().SetLocalPosition(LERP(attrib.curPos, attrib.endPos, t));
+	}
+	if (!isLeft)
+	{
+		attrib.endPos = glm::vec3(endPos.x, endPos.y * -1, endPos.z);
+		character.get<Transform>().SetLocalPosition(LERP(attrib.curPos, attrib.endPos, t));
+	}
+
+	if (attrib.curPos.y == attrib.endPos.y)
+	{
+		isRotate;
+		character.get<Transform>().SetLocalPosition(LERP(attrib.curPos, attrib.endPos, t));
+		if (isRotate)
+		{
+			character.get<Transform>().SetLocalScale(character.get<Transform>().GetLocalScale().x,
+				character.get<Transform>().GetLocalScale().y,
+				character.get<Transform>().GetLocalScale().z * -1);
+
+			isLeft = !isLeft;
+			isRotate = !isRotate;
+		}
+
+
+		PhantomAttrib.endPos = glm::vec3(PhantomAttrib.endPos.x, PhantomAttrib.endPos.y * -1, PhantomAttrib.endPos.z);
+	}
+}
+
 int main() {
 	Logger::Init(); // We'll borrow the logger from the toolkit, but we need to initialize it
 
@@ -589,7 +630,7 @@ int main() {
 		{
 			VertexArrayObject::sptr PhantomVAO = ObjLoader::LoadFromFile("models/Phantom2.obj");
 			Phantom.emplace<RendererComponent>().SetMesh(PhantomVAO).SetMaterial(material3);
-			Phantom.get<Transform>().SetLocalPosition(-35.0f, 6.0f, -1.0f);
+			Phantom.get<Transform>().SetLocalPosition(-35.0f, 9.5f, -1.0f);
 			Phantom.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
 			Phantom.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Phantom);
@@ -830,7 +871,7 @@ int main() {
 
 		// Our high-precision timer
 		double lastFrame = glfwGetTime();
-
+		glm::vec3 endPos = glm::vec3(-35.0f, -9.5f, -1.0f);
 		
 		///// Game loop /////
 		while (!glfwWindowShouldClose(window)) {
@@ -840,44 +881,9 @@ int main() {
 			double thisFrame = glfwGetTime();
 			float dt = static_cast<float>(thisFrame - lastFrame);
 			float PhantomTimer = static_cast<float>(thisFrame - lastFrame);
-			float tPos = PhantomTimer / 1.5f;
+			float tPos = PhantomTimer / 1.2f;
 
-			PhantomAttrib.curRot = Phantom.get<Transform>().GetLocalRotation();
-			
-
-			PhantomAttrib.curPos = Phantom.get<Transform>().GetLocalPosition();
-			PhantomAttrib.endPos = glm::vec3(-35.0f, -6.0f, -1.0f);
-
-			if (isLeft)
-			{
-				PhantomAttrib.endPos = glm::vec3(-35.0f, -6.0f, -1.0f);
-				Phantom.get<Transform>().SetLocalPosition(LERP(PhantomAttrib.curPos, PhantomAttrib.endPos, tPos));
-			}
-			if (!isLeft)
-			{
-				PhantomAttrib.endPos = glm::vec3(-35.0f, 6.0f, -1.0f);
-				Phantom.get<Transform>().SetLocalPosition(LERP(PhantomAttrib.curPos, PhantomAttrib.endPos, tPos));
-			}
-
-			if (PhantomAttrib.curPos.y == PhantomAttrib.endPos.y)
-			{
-				
-				Phantom.get<Transform>().SetLocalPosition(LERP(PhantomAttrib.curPos, PhantomAttrib.endPos, tPos));
-				if (isRotate)
-				{
-					Phantom.get<Transform>().SetLocalScale(Phantom.get<Transform>().GetLocalScale().x, 
-					Phantom.get<Transform>().GetLocalScale().y, 
-					Phantom.get<Transform>().GetLocalScale().z * -1);
-
-					isLeft = !isLeft;
-					isRotate = !isRotate;
-				}
-					
-				
-				PhantomAttrib.endPos = glm::vec3(PhantomAttrib.endPos.x, PhantomAttrib.endPos.y * -1, PhantomAttrib.endPos.z);
-			}
-
-			
+			LerpMove(Phantom, PhantomTimer, tPos, PhantomAttrib, endPos);
 
 			// We'll make sure our UI isn't focused before we start handling input for our game
 			if (!ImGui::IsAnyWindowFocused()) {
