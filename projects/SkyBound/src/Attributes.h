@@ -11,6 +11,7 @@ struct Attributes
 public:
 	glm::vec3 curPos;
 	glm::vec3 endPos;
+	glm::vec3 startPos;
 	glm::quat curRot;
 	glm::quat endRot;
 

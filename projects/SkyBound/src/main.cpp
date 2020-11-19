@@ -335,8 +335,10 @@ T LERP(const T& p0, const T& p1, float t)
 	return (1.0f - t) * p0 + t * p1;
 }
 
+bool PhantomMove = true;
+float TimeLimit = 2.0f;
 
-void LerpMove(GameObject character, float timer, float t, Attributes attrib, glm::vec3 endPos)
+void LerpMove(GameObject character, float timer, float t, Attributes attrib, glm::vec3 endPos, glm::vec3 startPos)
 {
 	
 
@@ -344,36 +346,43 @@ void LerpMove(GameObject character, float timer, float t, Attributes attrib, glm
 
 
 	attrib.curPos = character.get<Transform>().GetLocalPosition();
-	//attrib.endPos = glm::vec3(endPos.x, endPos.y, endPos.z);
+	
 
-	if (isLeft)
-	{
-		attrib.endPos = glm::vec3(endPos.x, endPos.y, endPos.z);
-		character.get<Transform>().SetLocalPosition(LERP(attrib.curPos, attrib.endPos, t));
-	}
-	if (!isLeft)
-	{
-		attrib.endPos = glm::vec3(endPos.x, endPos.y * -1, endPos.z);
-		character.get<Transform>().SetLocalPosition(LERP(attrib.curPos, attrib.endPos, t));
-	}
 
-	if (attrib.curPos.y == attrib.endPos.y)
+
+
+	/*if (isLeft)
 	{
-		isRotate;
-		character.get<Transform>().SetLocalPosition(LERP(attrib.curPos, attrib.endPos, t));
-		if (isRotate)
+		//attrib.endPos = glm::vec3(endPos.x, endPos.y, endPos.z);
+		character.get<Transform>().SetLocalPosition(LERP(startPos, endPos, t));
+
+		if (attrib.curPos.y <= endPos.y)
 		{
-			character.get<Transform>().SetLocalScale(character.get<Transform>().GetLocalScale().x,
-				character.get<Transform>().GetLocalScale().y,
-				character.get<Transform>().GetLocalScale().z * -1);
+			isRotate;
+			//character.get<Transform>().SetLocalPosition(LERP(attrib.curPos, attrib.endPos, t));
+			if (isRotate)
+			{
+				character.get<Transform>().SetLocalScale(character.get<Transform>().GetLocalScale().x,
+					character.get<Transform>().GetLocalScale().y,
+					character.get<Transform>().GetLocalScale().z * -1);
 
-			isLeft = !isLeft;
-			isRotate = !isRotate;
+				isLeft = isLeft = false;
+				isRotate = isRotate = false;
+			}
+
+
+			//PhantomAttrib.endPos = glm::vec3(PhantomAttrib.endPos.x, PhantomAttrib.endPos.y * -1, PhantomAttrib.endPos.z);
 		}
-
-
-		PhantomAttrib.endPos = glm::vec3(PhantomAttrib.endPos.x, PhantomAttrib.endPos.y * -1, PhantomAttrib.endPos.z);
 	}
+	else if (!isLeft)
+	{
+		//attrib.endPos = glm::vec3(endPos.x, endPos.y * -1, endPos.z);
+		character.get<Transform>().SetLocalPosition(LERP(endPos, startPos, t));
+	}*/
+
+	
+
+	
 }
 
 int main() {
@@ -872,6 +881,9 @@ int main() {
 		// Our high-precision timer
 		double lastFrame = glfwGetTime();
 		glm::vec3 endPos = glm::vec3(-35.0f, -9.5f, -1.0f);
+		glm::vec3 startPos = glm::vec3(-35.0f, 9.5f, -1.0f);
+
+		float PhantomTimer = 0.0f;
 		
 		///// Game loop /////
 		while (!glfwWindowShouldClose(window)) {
@@ -880,10 +892,13 @@ int main() {
 			// Calculate the time since our last frame (dt)
 			double thisFrame = glfwGetTime();
 			float dt = static_cast<float>(thisFrame - lastFrame);
-			float PhantomTimer = static_cast<float>(thisFrame - lastFrame);
-			float tPos = PhantomTimer / 1.2f;
+			
+			PhantomTimer += dt;
+			float tPos = PhantomTimer / TimeLimit;
 
-			LerpMove(Phantom, PhantomTimer, tPos, PhantomAttrib, endPos);
+			LerpMove(Phantom, PhantomTimer, tPos, PhantomAttrib, endPos, startPos);
+			//std::cout << (endPos.y) << std::endl;
+			std::cout << (Phantom.get<Transform>().GetLocalPosition().y) << std::endl;
 
 			// We'll make sure our UI isn't focused before we start handling input for our game
 			if (!ImGui::IsAnyWindowFocused()) {
