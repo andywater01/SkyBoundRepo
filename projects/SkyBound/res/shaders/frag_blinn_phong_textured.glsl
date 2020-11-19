@@ -29,6 +29,11 @@ uniform float u_TextureMix;
 uniform vec3  u_CamPos;
 
 out vec4 frag_color;
+const float lightIntensity = 10.0;
+
+//Toon Shading
+const int bands = 5;
+const float scaleFactor = 1.0/bands;
 
 // https://learnopengl.com/Advanced-Lighting/Advanced-Lighting
 void main() {
@@ -39,11 +44,18 @@ void main() {
 	vec3 N = normalize(inNormal);
 	vec3 lightDir = normalize(u_LightPos - inPos);
 
-	float dif = max(dot(N, lightDir), 0.0);
+	float dist = length(u_LightPos - inPos);
+
+	//float dif = max(dot(N, lightDir), 0.0);
+	float dif = max(0.0, dot(lightDir, N));
 	vec3 diffuse = dif * u_LightCol;// add diffuse intensity
 
+	vec3 diffuseOut = (dif * u_LightCol) / (dist*dist);
+	diffuseOut = diffuseOut * lightIntensity;
+
+	diffuseOut = floor(diffuseOut * bands) * scaleFactor;
+
 	//Attenuation
-	float dist = length(u_LightPos - inPos);
 	float attenuation = 1.0f / (
 		u_LightAttenuationConstant + 
 		u_LightAttenuationLinear * dist +
@@ -64,9 +76,12 @@ void main() {
 
 	vec4 mixedTextureColor = mix(textureColor, textureColor2, u_TextureMix);
 
+	//Outline Effect             Thickness of Line
+	float edge = (dot(viewDir, N) < 0.1) ? 0.0 : 1.0; //If below threshold it is 0, otherwise 1
+
 	vec3 result = (
 		(u_AmbientCol * u_AmbientStrength) + // global ambient light
-		(ambient + diffuse + specular) * attenuation // light factors from our single light
+		(ambient + diffuseOut * edge + specular) * attenuation // light factors from our single light
 		) * inColor * mixedTextureColor.rgb; // Object color
 
 	frag_color = vec4(result, mixedTextureColor.a);

@@ -289,19 +289,13 @@ void PlayerInput(GameObject& transform, float dt, float speed) {
 	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
 		//transform.MoveLocal(0.0f, 0.0f, -1.0f * dt);
 	}
-	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-	{
-		speed = speed * 4.0f;
-
-		if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
-		{
-			speed = speed / 4.0f;
-		}
-	}
+	
 	
 
 	
 }
+
+
 
 struct Material
 {
@@ -335,55 +329,7 @@ T LERP(const T& p0, const T& p1, float t)
 	return (1.0f - t) * p0 + t * p1;
 }
 
-bool PhantomMove = true;
-float TimeLimit = 2.0f;
 
-void LerpMove(GameObject character, float timer, float t, Attributes attrib, glm::vec3 endPos, glm::vec3 startPos)
-{
-	
-
-	attrib.curRot = character.get<Transform>().GetLocalRotation();
-
-
-	attrib.curPos = character.get<Transform>().GetLocalPosition();
-	
-
-
-
-
-	/*if (isLeft)
-	{
-		//attrib.endPos = glm::vec3(endPos.x, endPos.y, endPos.z);
-		character.get<Transform>().SetLocalPosition(LERP(startPos, endPos, t));
-
-		if (attrib.curPos.y <= endPos.y)
-		{
-			isRotate;
-			//character.get<Transform>().SetLocalPosition(LERP(attrib.curPos, attrib.endPos, t));
-			if (isRotate)
-			{
-				character.get<Transform>().SetLocalScale(character.get<Transform>().GetLocalScale().x,
-					character.get<Transform>().GetLocalScale().y,
-					character.get<Transform>().GetLocalScale().z * -1);
-
-				isLeft = isLeft = false;
-				isRotate = isRotate = false;
-			}
-
-
-			//PhantomAttrib.endPos = glm::vec3(PhantomAttrib.endPos.x, PhantomAttrib.endPos.y * -1, PhantomAttrib.endPos.z);
-		}
-	}
-	else if (!isLeft)
-	{
-		//attrib.endPos = glm::vec3(endPos.x, endPos.y * -1, endPos.z);
-		character.get<Transform>().SetLocalPosition(LERP(endPos, startPos, t));
-	}*/
-
-	
-
-	
-}
 
 int main() {
 	Logger::Init(); // We'll borrow the logger from the toolkit, but we need to initialize it
@@ -420,6 +366,27 @@ int main() {
 	//make sure to re-use collision shapes among rigid bodies whenever possible!
 	btAlignedObjectArray<btCollisionShape*> collisionShapes;
 	*/
+
+	////////////////// LERPING Variables ////////////////////////////////////////////////
+
+	//Phantom Position Lerp
+	glm::vec3 endPos = glm::vec3(-35.0f, -9.5f, -1.0f);
+	glm::vec3 startPos = glm::vec3(-35.0f, 9.5f, -1.0f);
+
+	float PhantomTimer = 0.0f;
+	float PhantomTimeLimit = 4.0f;
+	bool PhantomMove = true;
+
+	//Phantom Rotation Lerp
+	glm::quat startPhantomRot = glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+	glm::quat endPhantomRot = glm::angleAxis(glm::radians(180.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+
+	float PhantomRotTimer = 0.0f;
+	float PhantomRotTimeLimit = 4.0f;
+	bool PhantomRot = true;
+	bool flipPhantom = false;
+
+	//////////////////////////////////////////////////////////////////////////////////////
 
 	{
 
@@ -459,7 +426,7 @@ int main() {
 		float     shininess = 4.0f;
 		float     lightLinearFalloff = 0.09f;
 		float     lightQuadraticFalloff = 0.032f;
-
+		
 		// These are our application / scene level uniforms that don't necessarily update
 		// every frame
 		shader->SetUniform("u_LightPos", lightPos);
@@ -873,17 +840,19 @@ int main() {
 			if (selectedVao <= 0)
 				selectedVao = 3;
 			});
-
-		float speed = 3.0f;
+		
+		
 
 		InitImGui();
 
 		// Our high-precision timer
 		double lastFrame = glfwGetTime();
-		glm::vec3 endPos = glm::vec3(-35.0f, -9.5f, -1.0f);
-		glm::vec3 startPos = glm::vec3(-35.0f, 9.5f, -1.0f);
 
-		float PhantomTimer = 0.0f;
+		//Speed Variables
+		float speed = 3.0f;
+		float speedTimer = 0.0f;
+		float speedTimeLimit = 2.0f;
+		bool canSprint = true;
 		
 		///// Game loop /////
 		while (!glfwWindowShouldClose(window)) {
@@ -893,12 +862,55 @@ int main() {
 			double thisFrame = glfwGetTime();
 			float dt = static_cast<float>(thisFrame - lastFrame);
 			
-			PhantomTimer += dt;
-			float tPos = PhantomTimer / TimeLimit;
 
-			LerpMove(Phantom, PhantomTimer, tPos, PhantomAttrib, endPos, startPos);
+			//Phantom LERP Position
+			PhantomTimer += dt;
+
+			if (PhantomTimer >= PhantomTimeLimit)
+			{
+				PhantomTimer = 0.0f;
+				PhantomMove = !PhantomMove;
+			}
+
+			float phantomTPos = PhantomTimer / PhantomTimeLimit;
+
+			if (PhantomMove == true)
+			{
+				Phantom.get<Transform>().SetLocalPosition(LERP(startPos, endPos, phantomTPos));
+			}
+			else if (PhantomMove == false)
+			{
+				Phantom.get<Transform>().SetLocalPosition(LERP(endPos, startPos, phantomTPos));
+			}
+
+
+			if (Phantom.get<Transform>().GetLocalPosition() == startPos)
+			{
+				if (flipPhantom)
+				{
+					Phantom.get<Transform>().SetLocalScale(Phantom.get<Transform>().GetLocalScale() * glm::vec3(1.0f, 1.0f, -1.0f));
+				}
+			}
+			
+			if (Phantom.get<Transform>().GetLocalPosition() == endPos)
+			{
+				flipPhantom = true;
+
+				if (flipPhantom)
+				{
+					Phantom.get<Transform>().SetLocalScale(Phantom.get<Transform>().GetLocalScale() * glm::vec3(1.0f, 1.0f, -1.0f));
+				}
+			}
+
+
+			//LerpMove(Phantom, PhantomTimer, tPos, PhantomAttrib, endPos, startPos);
 			//std::cout << (endPos.y) << std::endl;
-			std::cout << (Phantom.get<Transform>().GetLocalPosition().y) << std::endl;
+			//std::cout << (Phantom.get<Transform>().GetLocalPosition().y) << std::endl;
+
+			
+
+
+			
 
 			// We'll make sure our UI isn't focused before we start handling input for our game
 			if (!ImGui::IsAnyWindowFocused()) {
@@ -912,6 +924,42 @@ int main() {
 				// We'll run some basic input to move our transform around
 				//ManipulateTransformWithInput(transforms[selectedVao], dt);
 				PlayerInput(player, dt, speed);
+
+
+				//Sprinting Function
+				#pragma region Sprint Stuff
+				if (canSprint)
+				{
+					if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+					{
+						speed = 12.0f;
+
+						speedTimer += dt;
+
+						if (speedTimer >= speedTimeLimit)
+						{
+							speed = 3.0f;
+							canSprint = false;
+						}
+					}
+					if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
+					{
+						speed = 3.0f;
+					}
+				}
+
+				if (!canSprint)
+				{
+					speedTimer -= dt;
+
+					if (speedTimer <= 0.0f)
+					{
+						speedTimer == 0.0f;
+						canSprint = true;
+					}
+				}
+				
+				#pragma endregion
 			}
 
 			glClearColor(0.08f, 0.17f, 0.31f, 1.0f);
