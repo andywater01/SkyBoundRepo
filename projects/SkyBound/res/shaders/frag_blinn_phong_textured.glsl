@@ -50,10 +50,10 @@ void main() {
 	float dif = max(0.0, dot(lightDir, N));
 	vec3 diffuse = dif * u_LightCol;// add diffuse intensity
 
-	vec3 diffuseOut = (dif * u_LightCol) / (dist*dist);
-	diffuseOut = diffuseOut * lightIntensity;
+	//vec3 diffuseOut = (dif * u_LightCol) / (dist*dist);
+	//diffuseOut = diffuseOut * lightIntensity;
 
-	diffuseOut = floor(diffuseOut * bands) * scaleFactor;
+	//diffuse = floor(diffuseOut * bands) * scaleFactor;
 
 	//Attenuation
 	float attenuation = 1.0f / (
@@ -77,12 +77,20 @@ void main() {
 	vec4 mixedTextureColor = mix(textureColor, textureColor2, u_TextureMix);
 
 	//Outline Effect             Thickness of Line
-	float edge = (dot(viewDir, N) < 0.1) ? 0.0 : 1.0; //If below threshold it is 0, otherwise 1
+	float edge = (dot(viewDir, N) < 0.15) ? 0.0 : 1.0; //If below threshold it is 0, otherwise 1
 
-	vec3 result = (
-		(u_AmbientCol * u_AmbientStrength) + // global ambient light
-		(ambient + diffuseOut * edge + specular) * attenuation // light factors from our single light
-		) * inColor * mixedTextureColor.rgb; // Object color
+	vec3 lightContribution = (ambient + diffuse + specular) * attenuation;
+
+	lightContribution = clamp(floor(lightContribution * bands) * scaleFactor, vec3(0.0), vec3(1.0));
+
+	vec3 result = (u_AmbientCol * u_AmbientStrength +
+		lightContribution) *
+						// global ambient light
+						// light factors from our single light
+		  inColor * mixedTextureColor.rgb * edge; // Object color
+
+	
+	vec3 debug = (viewDir - vec3(0.5)) * 2;
 
 	frag_color = vec4(result, mixedTextureColor.a);
 }

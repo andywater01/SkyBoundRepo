@@ -504,6 +504,8 @@ int main() {
 		GameObject player = scene->CreateEntity("player");
 		{
 			VertexArrayObject::sptr PlayerVAO = ObjLoader::LoadFromFile("models/SkyBoundGuyCol.obj");
+			
+
 			player.emplace<RendererComponent>().SetMesh(PlayerVAO).SetMaterial(material0);
 			player.get<Transform>().SetLocalPosition(0.5f, 0.5f, 0.1f);
 			player.get<Transform>().SetLocalRotation(90.0f, 0.0f, 180.0f);
@@ -969,8 +971,8 @@ int main() {
 
 			shader->Bind();
 			// These are the uniforms that update only once per frame
-			shader->SetUniformMatrix("u_View", camera->GetView());
-			shader->SetUniform("u_CamPos", camera->GetPosition());
+			//shader->SetUniformMatrix("u_View", camera->GetView());
+			//shader->SetUniform("u_CamPos", camera->GetPosition());
 
 			// Tell OpenGL that slot 0 will hold the diffuse, and slot 1 will hold the specular
 			shader->SetUniform("s_Diffuse", 0);
@@ -1016,7 +1018,7 @@ int main() {
 			
 
 
-
+			
 			
 
 
@@ -1066,12 +1068,12 @@ int main() {
 				RenderVAO(renderer.Material->Shader, renderer.Mesh, viewProjection, transform);
 			});
 			
-
-			/// Do some simulation
+			
+			/// Do some simulations
 			/*
 			///-----stepsimulation_start-----
 			for (int i = 0; i < 150; i++)
-			{
+			{aa
 				dynamicsWorld->stepSimulation(1.f / 60.f, 10);
 
 				//print positions of all objects
@@ -1101,12 +1103,12 @@ int main() {
 			
 
 
-			RenderImGui();
+			RenderImGui();   
 
 			glfwSwapBuffers(window);
-			lastFrame = thisFrame;
+			lastFrame = thisFrame;    
 		}
-
+		 
 
 		///-----cleanup_start-----
 		/*
