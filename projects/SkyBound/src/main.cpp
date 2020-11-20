@@ -510,8 +510,9 @@ int main() {
 			player.get<Transform>().SetLocalScale(0.5f, 0.5f, 0.5f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(player);
 
+			/*
 			//Collision Stuff
-			/*btCollisionShape* playerShape = new btBoxShape(btVector3(btScalar(30.), btScalar(30.), btScalar(30.)));
+			btCollisionShape* playerShape = new btBoxShape(btVector3(btScalar(30.), btScalar(30.), btScalar(30.)));
 
 			collisionShapes.push_back(playerShape);
 
@@ -538,7 +539,8 @@ int main() {
 			body->setWorldTransform(playerTransform);
 
 			//add the body to the dynamics world
-			dynamicsWorld->addRigidBody(body);*/
+			dynamicsWorld->addRigidBody(body);
+			*/
 		}
 
 		GameObject island1 = scene->CreateEntity("Island1");
