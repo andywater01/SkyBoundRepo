@@ -251,7 +251,15 @@ void ManipulateTransformWithInput(Transform& transform, float dt) {
 	}
 }
 
-void PlayerInput(GameObject& transform, float dt, float speed) {
+
+inline btVector3 glm2bt(const glm::vec3& vec)
+{
+	return { vec.x, vec.y, vec.z };
+}
+
+
+
+void PlayerInput(GameObject& transform, float dt, float speed, btRigidBody *body, btTransform phyTransform) {
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
 		//transform->MoveLocal(0.0f, 0.0f, -1.0f * dt * speed);
 		//transform.MoveLocalFixed(0.0f, -1.0f * dt * speed, 0.0f);
@@ -263,6 +271,9 @@ void PlayerInput(GameObject& transform, float dt, float speed) {
 		//transform->MoveLocal(0.0f, 0.0f, 1.0f * dt * speed);
 		transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(0.0f, 1.0f * dt * speed, 0.0f));
 		transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
+		//body->activate(true);
+		//body->setLinearVelocity(btVector3(0, 4, 0));
+		//body->applyForce(btVector3(0, 1000, 0), btVector3(0, 1000, 0));
 		//transform.MoveLocalFixed(0.0f, 1.0f * dt * speed, 0.0f);
 		//transform.SetLocalRotation(90.0f, 0.0f, 102.0f);
 	}
@@ -290,9 +301,7 @@ void PlayerInput(GameObject& transform, float dt, float speed) {
 		//transform.MoveLocal(0.0f, 0.0f, -1.0f * dt);
 	}
 	
-	
-
-	
+	//body->setWorldTransform(phyTransform);
 }
 
 
@@ -317,17 +326,35 @@ void SetupShaderForFrame(const Shader::sptr& shader, const glm::mat4& view, cons
 	shader->SetUniform("u_CamPos", camPos);
 }
 
+/*
 inline btVector3 glm2bt(const glm::vec3& vec)
 {
 	return { vec.x, vec.y, vec.z };
 }
-
+*/
 
 template<typename T>
 T LERP(const T& p0, const T& p1, float t)
 {
 	return (1.0f - t) * p0 + t * p1;
 }
+
+
+
+//New variables
+btBroadphaseInterface* _broadphase;
+btDefaultCollisionConfiguration* _collisionConfiguration;
+btCollisionDispatcher* _dispatcher;
+btSequentialImpulseConstraintSolver* _solver;
+btDiscreteDynamicsWorld* _world;
+
+
+
+
+
+
+
+
 
 
 
@@ -342,9 +369,14 @@ int main() {
 	if (!initGLAD())
 		return 1;
 
-	/*
+	//initPhysics();
+
+	
 	//https://github.com/bulletphysics/bullet3/blob/master/examples/HelloWorld/HelloWorld.cpp
 	//https://www.raywenderlich.com/2606-bullet-physics-tutorial-getting-started#toc-anchor-001
+
+	// Build the broadphase
+	//btBroadphaseInterface* broadphase = new btDbvtBroadphase();
 
 	///collision configuration contains default setup for memory, collision setup. Advanced users can create their own configuration.
 	btDefaultCollisionConfiguration* collisionConfiguration = new btDefaultCollisionConfiguration();
@@ -360,12 +392,59 @@ int main() {
 
 	btDiscreteDynamicsWorld* dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
 
-	dynamicsWorld->setGravity(btVector3(0, -10, 0));
+	dynamicsWorld->setGravity(btVector3(0, 0, -1));
 
 	//keep track of the shapes, we release memory at exit.
 	//make sure to re-use collision shapes among rigid bodies whenever possible!
 	btAlignedObjectArray<btCollisionShape*> collisionShapes;
+	
+	float planeHeight = 0.0f;
+
+	/*
+	//Plane
+	btTransform t;
+	t.setIdentity();
+	t.setOrigin(btVector3(0, 0, planeHeight));
+	btStaticPlaneShape* plane = new btStaticPlaneShape(btVector3(0, 0, 1), 0);
+	btMotionState* motion = new btDefaultMotionState(t);
+	btRigidBody::btRigidBodyConstructionInfo info(0.0, motion, plane);
+	btRigidBody* body = new btRigidBody(info);
+	dynamicsWorld->addRigidBody(body);
 	*/
+
+	//Player Physics
+	btCollisionShape* playerShape = new btBoxShape(btVector3(30.f, 30.f, 30.f));
+
+	btTransform playerTransform;
+	
+	btScalar playerMass(2.f);
+
+	//rigidbody is dynamic if and only if mass is non zero, otherwise static
+	bool isPlayerDynamic = (playerMass != 0.f);
+
+	btVector3 localPlayerInertia(0, 0, 0);
+
+	//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+	btDefaultMotionState* playerMotionState;
+	btRigidBody* playerBody;
+
+
+	//Wizard Physics
+	btCollisionShape* wizardShape = new btBoxShape(btVector3(30.f, 30.f, 30.f));
+
+	btTransform wizardTransform;
+
+	btScalar wizardMass(2.f);
+
+	//rigidbody is dynamic if and only if mass is non zero, otherwise static
+	bool isWizardDynamic = (wizardMass != 0.f);
+
+	btVector3 localWizardInertia(0, 0, 0);
+
+	//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+	btDefaultMotionState* wizardMotionState;
+	btRigidBody* wizardBody;
+
 
 	////////////////// LERPING Variables ////////////////////////////////////////////////
 
@@ -507,42 +586,45 @@ int main() {
 			
 
 			player.emplace<RendererComponent>().SetMesh(PlayerVAO).SetMaterial(material0);
-			player.get<Transform>().SetLocalPosition(0.5f, 0.5f, 0.1f);
-			player.get<Transform>().SetLocalRotation(90.0f, 0.0f, 180.0f);
-			player.get<Transform>().SetLocalScale(0.5f, 0.5f, 0.5f);
+			//player.get<Transform>().SetLocalPosition(0.5f, 0.5f, 0.1f);
+			//player.get<Transform>().SetLocalRotation(90.0f, 0.0f, 180.0f);
+			//player.get<Transform>().SetLocalScale(0.5f, 0.5f, 0.5f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(player);
 
-			/*
+			
 			//Collision Stuff
-			btCollisionShape* playerShape = new btBoxShape(btVector3(btScalar(30.), btScalar(30.), btScalar(30.)));
-
 			collisionShapes.push_back(playerShape);
 
-			btTransform playerTransform;
 			playerTransform.setIdentity();
 			playerTransform.setOrigin(glm2bt(player.get<Transform>().GetLocalPosition()));
 
-			btScalar mass(2.0f);
+			if (isPlayerDynamic)
+				playerShape->calculateLocalInertia(playerMass, localPlayerInertia);
 
-			//rigidbody is dynamic if and only if mass is non zero, otherwise static
-			bool isDynamic = (mass != 2.f);
-
-			btVector3 localInertia(0, 0, 0);
-			if (isDynamic)
-				playerShape->calculateLocalInertia(mass, localInertia);
+			
 
 			//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
-			btDefaultMotionState* myMotionState = new btDefaultMotionState(playerTransform);
-			btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, playerShape, localInertia);
-			btRigidBody* body = new btRigidBody(rbInfo);
+			playerMotionState = new btDefaultMotionState(playerTransform);
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(playerMass, playerMotionState, playerShape, localPlayerInertia);
+			playerBody = new btRigidBody(rbInfo);
 
-			body->applyGravity();
-
-			body->setWorldTransform(playerTransform);
 
 			//add the body to the dynamics world
-			dynamicsWorld->addRigidBody(body);
-			*/
+			dynamicsWorld->addRigidBody(playerBody);
+			
+			//playerBody->applyGravity();
+
+			//playerBody->setWorldTransform(playerTransform);
+
+			//playerBody->isActive();
+			//playerBody->getMotionState()->getWorldTransform(playerTransform);
+			//float matrix[16];
+			//playerTransform.setFromOpenGLMatrix(matrix);
+			
+
+			//add the body to the dynamics world
+			//dynamicsWorld->addRigidBody(playerBody);
+			
 		}
 
 		GameObject island1 = scene->CreateEntity("Island1");
@@ -603,6 +685,38 @@ int main() {
 			Wizard.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Wizard);
 			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+
+			//Collision Stuff
+			collisionShapes.push_back(wizardShape);
+
+			wizardTransform.setIdentity();
+			wizardTransform.setOrigin(glm2bt(Wizard.get<Transform>().GetLocalPosition()));
+
+			if (isWizardDynamic)
+				wizardShape->calculateLocalInertia(wizardMass, localWizardInertia);
+
+			
+
+			//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+			wizardMotionState = new btDefaultMotionState(wizardTransform);
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(wizardMass, wizardMotionState, wizardShape, localWizardInertia);
+			wizardBody = new btRigidBody(rbInfo);
+
+			
+
+
+			//playerBody->applyGravity();
+
+			//playerBody->setWorldTransform(playerTransform);
+
+			//playerBody->isActive();
+			//playerBody->getMotionState()->getWorldTransform(playerTransform);
+			//float matrix[16];
+			//playerTransform.setFromOpenGLMatrix(matrix);
+
+
+			//add the body to the dynamics world
+			dynamicsWorld->addRigidBody(wizardBody);
 		}
 
 
@@ -865,6 +979,52 @@ int main() {
 			// Calculate the time since our last frame (dt)
 			double thisFrame = glfwGetTime();
 			float dt = static_cast<float>(thisFrame - lastFrame);
+
+
+			dynamicsWorld->stepSimulation(1.f / 60.f, 10);
+
+			//print positions of all objects
+			for (int j = dynamicsWorld->getNumCollisionObjects() - 1; j >= 0; j--)
+			{
+				btCollisionObject* obj = dynamicsWorld->getCollisionObjectArray()[j];
+				btRigidBody* body = btRigidBody::upcast(obj);
+				btTransform trans;
+				if (body && body->getMotionState())
+				{
+					body->getMotionState()->getWorldTransform(trans);
+				}
+				else
+				{
+					trans = obj->getWorldTransform();
+				}
+				printf("world pos object %d = %f,%f,%f\n", j, float(trans.getOrigin().getX()), float(trans.getOrigin().getY()), float(trans.getOrigin().getZ()));
+			}
+			
+
+			/*
+			//Gravity
+			if (!(player.get<Transform>().GetLocalPosition().z <= planeHeight))
+			{
+				player.get<Transform>().SetLocalPosition(player.get<Transform>().GetLocalPosition() - glm::vec3(0.0f, 0.0f, 2.0f * dt));
+			}
+			//player.get<Transform>().SetLocalPosition(player.get<Transform>().GetLocalPosition() - glm::vec3(0.0f, 0.0f, 2.0f * dt));
+			*/
+
+			//Updating Physics Body
+			playerTransform = playerBody->getCenterOfMassTransform();
+			playerTransform.setOrigin(glm2bt(player.get<Transform>().GetLocalPosition()));
+			playerBody->setCenterOfMassTransform(playerTransform);
+
+			wizardTransform = wizardBody->getCenterOfMassTransform();
+			wizardTransform.setOrigin(glm2bt(Wizard.get<Transform>().GetLocalPosition()));
+			wizardBody->setCenterOfMassTransform(wizardTransform);
+			
+			
+
+			
+
+
+
 			
 
 			//Phantom LERP Position
@@ -927,8 +1087,8 @@ int main() {
 
 				// We'll run some basic input to move our transform around
 				//ManipulateTransformWithInput(transforms[selectedVao], dt);
-				PlayerInput(player, dt, speed);
-
+				PlayerInput(player, dt, speed, playerBody, playerTransform);
+				
 
 				//Sprinting Function
 				#pragma region Sprint Stuff
@@ -1073,7 +1233,7 @@ int main() {
 			/*
 			///-----stepsimulation_start-----
 			for (int i = 0; i < 150; i++)
-			{aa
+			{
 				dynamicsWorld->stepSimulation(1.f / 60.f, 10);
 
 				//print positions of all objects
@@ -1098,7 +1258,7 @@ int main() {
 			///-----stepsimulation_end-----
 
 			//cleanup in the reverse order of creation/initialization
-
+			
 
 			
 
@@ -1109,9 +1269,10 @@ int main() {
 			lastFrame = thisFrame;    
 		}
 		 
-
+		
+		//deletePhysics();
 		///-----cleanup_start-----
-		/*
+		
 		//remove the rigidbodies from the dynamics world and delete them
 		for (int i = dynamicsWorld->getNumCollisionObjects() - 1; i >= 0; i--)
 		{
@@ -1146,7 +1307,8 @@ int main() {
 		delete dispatcher;
 
 		delete collisionConfiguration;
-		*/
+		
+
 		ShutdownImGui();
 
 		// Clean up the toolkit logger so we don't leak memory
