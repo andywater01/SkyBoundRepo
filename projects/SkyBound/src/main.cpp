@@ -31,6 +31,14 @@
 
 #include "Behaviours/SimpleMoveBehaviour.h"
 
+#include <Windows.h>
+#include <MMSystem.h>
+
+#pragma comment(lib, "winmm.lib")
+
+#include <fmod.h>
+
+
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
@@ -368,6 +376,11 @@ int main() {
 	//Initialize GLAD
 	if (!initGLAD())
 		return 1;
+
+	//BG music
+	PlaySound(TEXT("Music/Island1Music.wav"), NULL, SND_ASYNC | SND_FILENAME | SND_LOOP);
+
+
 
 	//initPhysics();
 
@@ -1268,7 +1281,7 @@ int main() {
 			glfwSwapBuffers(window);
 			lastFrame = thisFrame;    
 		}
-		 
+		
 		
 		//deletePhysics();
 		///-----cleanup_start-----
