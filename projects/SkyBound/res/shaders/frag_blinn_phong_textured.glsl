@@ -32,7 +32,7 @@ out vec4 frag_color;
 const float lightIntensity = 10.0;
 
 //Toon Shading
-const int bands = 5;
+const int bands = 3;
 const float scaleFactor = 1.0/bands;
 
 // https://learnopengl.com/Advanced-Lighting/Advanced-Lighting

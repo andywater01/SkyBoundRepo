@@ -94,6 +94,7 @@ Camera::sptr camera = nullptr;
 Attributes PhantomAttrib;
 bool isRotate = true;
 bool isLeft = true;
+int CoinCount = 0;
 
 void GlfwWindowResizedCallback(GLFWwindow* window, int width, int height) {
 	glViewport(0, 0, width, height);
@@ -349,6 +350,29 @@ T LERP(const T& p0, const T& p1, float t)
 
 
 
+
+void GetDistance(GameObject player, GameObject object, glm::vec3 distance)
+{
+	distance = player.get<Transform>().GetLocalPosition() - object.get<Transform>().GetLocalPosition();
+
+	if (distance.x <= 2.0f && distance.y <= 2.0f && glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+	{
+		CoinCount = 1;
+		object.get<Transform>().SetLocalPosition(100.0f, 100.0f, 100.0f);
+	}
+}
+
+void MoveWizard(GameObject player, GameObject wizard, glm::vec3 distance2, int coinCount)
+{
+	distance2 = player.get<Transform>().GetLocalPosition() - wizard.get<Transform>().GetLocalPosition();
+
+	if (distance2.x <= 2.0f && distance2.y <= 2.0f && coinCount >= 1 && glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+	{
+		CoinCount = 0;
+		wizard.get<Transform>().SetLocalPosition(wizard.get<Transform>().GetLocalPosition() + glm::vec3(-35.0f, 4.0f, 0.0f));
+	}
+}
+
 //New variables
 btBroadphaseInterface* _broadphase;
 btDefaultCollisionConfiguration* _collisionConfiguration;
@@ -539,6 +563,7 @@ int main() {
 		Texture2D::sptr diffuseMp02 = Texture2D::LoadFromFile("images/GrassIslandColours.png");
 		Texture2D::sptr diffuseMp03 = Texture2D::LoadFromFile("images/WizardColours.png");
 		Texture2D::sptr diffuseMp04 = Texture2D::LoadFromFile("images/PhantomColours.png");
+		Texture2D::sptr diffuseMp05 = Texture2D::LoadFromFile("images/CoinTex.png");
 
 		Texture2DData::sptr specularMp02 = Texture2DData::LoadFromFile("images/Stone_001_Specular.png");
 
@@ -587,6 +612,12 @@ int main() {
 		material3->Set("s_Diffuse", diffuseMp04);
 		material3->Set("u_Shininess", 8.0f);
 
+
+		ShaderMaterial::sptr material4 = ShaderMaterial::Create();
+		material4->Shader = shader;
+		material4->Set("s_Diffuse", diffuseMp05);
+		material4->Set("u_Shininess", 8.0f);
+
 		//X = In and Out
 		//Y = Left and Right
 		//Z = up and down
@@ -599,10 +630,9 @@ int main() {
 			
 
 			player.emplace<RendererComponent>().SetMesh(PlayerVAO).SetMaterial(material0);
-			player.emplace<btTransform>().setOrigin(btVector3(0.5, 0.5, 0.1));
-			//player.get<Transform>().SetLocalPosition(0.5f, 0.5f, 0.1f);
-			//player.get<Transform>().SetLocalRotation(90.0f, 0.0f, 180.0f);
-			//player.get<Transform>().SetLocalScale(0.5f, 0.5f, 0.5f);
+			player.get<Transform>().SetLocalPosition(0.5f, 0.5f, 0.1f);
+			player.get<Transform>().SetLocalRotation(90.0f, 0.0f, 180.0f);
+			player.get<Transform>().SetLocalScale(0.5f, 0.5f, 0.5f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(player);
 
 			
@@ -742,6 +772,18 @@ int main() {
 			Phantom.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
 			Phantom.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Phantom);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
+
+		GameObject Coin = scene->CreateEntity("Coin");
+		{
+			VertexArrayObject::sptr CoinVAO = ObjLoader::LoadFromFile("models/Coin/GameCoin.obj");
+			Coin.emplace<RendererComponent>().SetMesh(CoinVAO).SetMaterial(material4);
+			Coin.get<Transform>().SetLocalPosition(6.0f, -7.0f, -2.0f);
+			Coin.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
+			Coin.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Coin);
 			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
 		}
 		
@@ -985,6 +1027,8 @@ int main() {
 		float speedTimer = 0.0f;
 		float speedTimeLimit = 2.0f;
 		bool canSprint = true;
+		glm::vec3 CoinDistance = glm::vec3();
+		glm::vec3 WizardDistance = glm::vec3();
 		
 		///// Game loop /////
 		while (!glfwWindowShouldClose(window)) {
@@ -994,6 +1038,7 @@ int main() {
 			double thisFrame = glfwGetTime();
 			float dt = static_cast<float>(thisFrame - lastFrame);
 
+			std::cout << std::to_string(CoinCount) << std::endl;
 
 			dynamicsWorld->stepSimulation(1.f / 60.f, 10);
 
@@ -1139,6 +1184,11 @@ int main() {
 				
 				#pragma endregion
 			}
+
+			GetDistance(player, Coin, CoinDistance);
+			MoveWizard(player, Wizard, WizardDistance, CoinCount);
+
+
 
 			glClearColor(0.08f, 0.17f, 0.31f, 1.0f);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
