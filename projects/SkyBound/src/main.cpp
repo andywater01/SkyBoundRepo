@@ -378,7 +378,7 @@ int main() {
 		return 1;
 
 	//BG music
-	PlaySound(TEXT("Music/Island1Music.wav"), NULL, SND_ASYNC | SND_FILENAME | SND_LOOP);
+	//PlaySound(TEXT("Music/Island1Music.wav"), NULL, SND_ASYNC | SND_FILENAME | SND_LOOP);
 
 
 
@@ -599,6 +599,7 @@ int main() {
 			
 
 			player.emplace<RendererComponent>().SetMesh(PlayerVAO).SetMaterial(material0);
+			player.emplace<btTransform>().setOrigin(btVector3(0.5, 0.5, 0.1));
 			//player.get<Transform>().SetLocalPosition(0.5f, 0.5f, 0.1f);
 			//player.get<Transform>().SetLocalRotation(90.0f, 0.0f, 180.0f);
 			//player.get<Transform>().SetLocalScale(0.5f, 0.5f, 0.5f);
@@ -1024,13 +1025,13 @@ int main() {
 			*/
 
 			//Updating Physics Body
-			playerTransform = playerBody->getCenterOfMassTransform();
-			playerTransform.setOrigin(glm2bt(player.get<Transform>().GetLocalPosition()));
-			playerBody->setCenterOfMassTransform(playerTransform);
+			//playerTransform = playerBody->getCenterOfMassTransform();
+			//playerTransform.setOrigin(glm2bt(player.get<Transform>().GetLocalPosition()));
+			//playerBody->setCenterOfMassTransform(playerTransform);
 
-			wizardTransform = wizardBody->getCenterOfMassTransform();
-			wizardTransform.setOrigin(glm2bt(Wizard.get<Transform>().GetLocalPosition()));
-			wizardBody->setCenterOfMassTransform(wizardTransform);
+			//wizardTransform = wizardBody->getCenterOfMassTransform();
+			//wizardTransform.setOrigin(glm2bt(Wizard.get<Transform>().GetLocalPosition()));
+			//wizardBody->setCenterOfMassTransform(wizardTransform);
 			
 			
 
