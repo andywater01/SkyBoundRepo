@@ -2,6 +2,9 @@
 #include <memory>
 #include <GLM/glm.hpp>
 #include <GLM/gtc/quaternion.hpp>
+#include "bullet/btBulletCollisionCommon.h"
+#include "bullet/btBulletDynamicsCommon.h"
+
 
 /// <summary>
 /// A simple transformation class, without parent/child relationships
@@ -151,6 +154,18 @@ public:
 	/// <returns>A pointer to this, to allow for chaining. DO NOT STORE POINTER!</returns>
 	Transform* MoveLocalFixed(float x, float y, float z);
 
+
+	Transform* SetPosition(btVector3& trans);
+
+	Transform* SetRotation(btQuaternion& trans);
+
+
+	void Transform::SetTransform(btTransform& trans)
+	{
+		SetPosition(trans.getOrigin());
+		SetRotation(trans.getRotation());
+	}
+
 	// Matrix gets
 
 	void Recalculate() const;
@@ -174,6 +189,9 @@ private:
 	glm::vec3 _rotationEulerDeg;
 	glm::vec3 _position;
 	glm::vec3 _scale;
+
+	btVector3 _worldPosition;
+	btQuaternion _worldRotation;
 
 	void _UpdateLocalTransformIfDirty() const;
 };

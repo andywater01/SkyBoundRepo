@@ -108,6 +108,44 @@ Transform* Transform::MoveLocalFixed(float x, float y, float z) {
 	return this;
 }
 
+
+
+Transform* Transform::SetPosition(btVector3& trans)
+{
+	_worldPosition.setX(trans.getX());
+	_worldPosition.setY(trans.getY());
+	_worldPosition.setZ(trans.getZ());
+	return this;
+}
+
+
+
+Transform* Transform::SetRotation(btQuaternion& trans)
+{
+	_worldRotation.setX(trans.getX());
+	_worldRotation.setY(trans.getY());
+	_worldRotation.setZ(trans.getZ());
+	return this;
+}
+
+
+
+/*
+Transform* Transform::SetTransform(btTransform& trans)
+{
+	SetPosition(trans.getOrigin());
+	SetRotation(trans.getRotation());
+	return this;
+}
+*/
+
+
+
+
+
+
+
+
 void Transform::Recalculate() const {
 	_UpdateLocalTransformIfDirty();
 }
@@ -131,3 +169,5 @@ void Transform::_UpdateLocalTransformIfDirty() const {
 		_isLocalDirty = false;
 	}
 }
+
+

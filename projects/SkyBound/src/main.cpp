@@ -54,6 +54,7 @@
 #include "bullet/btBulletCollisionCommon.h"
 #include "bullet/btBulletDynamicsCommon.h"
 
+
 #define LOG_GL_NOTIFICATIONS
 
 /*
@@ -277,7 +278,6 @@ void PlayerInput(GameObject& transform, float dt, float speed, btRigidBody *body
 		//transform.SetLocalRotation(90.0f, 0.0f, 282.0f);
 	}
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-		//transform->MoveLocal(0.0f, 0.0f, 1.0f * dt * speed);
 		transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(0.0f, 1.0f * dt * speed, 0.0f));
 		transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
 		//body->activate(true);
@@ -315,6 +315,10 @@ void PlayerInput(GameObject& transform, float dt, float speed, btRigidBody *body
 
 
 
+
+
+
+
 struct Material
 {
 	Texture2D::sptr Albedo;
@@ -348,17 +352,18 @@ T LERP(const T& p0, const T& p1, float t)
 	return (1.0f - t) * p0 + t * p1;
 }
 
-
+bool gotCoin = false;
 
 
 void GetDistance(GameObject player, GameObject object, glm::vec3 distance)
 {
 	distance = player.get<Transform>().GetLocalPosition() - object.get<Transform>().GetLocalPosition();
 
-	if (distance.x <= 2.0f && distance.y <= 2.0f && glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+	if (distance.x <= 2.0f && distance.y <= 2.0f && glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS && gotCoin == false)
 	{
 		CoinCount = 1;
 		object.get<Transform>().SetLocalPosition(100.0f, 100.0f, 100.0f);
+		gotCoin = true;
 	}
 }
 
@@ -366,24 +371,12 @@ void MoveWizard(GameObject player, GameObject wizard, glm::vec3 distance2, int c
 {
 	distance2 = player.get<Transform>().GetLocalPosition() - wizard.get<Transform>().GetLocalPosition();
 
-	if (distance2.x <= 2.0f && distance2.y <= 2.0f && coinCount >= 1 && glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+	if (distance2.x <= 2.0f && distance2.y <= 2.0f && coinCount >= 1 && glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS && gotCoin == true)
 	{
 		CoinCount = 0;
 		wizard.get<Transform>().SetLocalPosition(wizard.get<Transform>().GetLocalPosition() + glm::vec3(-35.0f, 4.0f, 0.0f));
 	}
 }
-
-//New variables
-btBroadphaseInterface* _broadphase;
-btDefaultCollisionConfiguration* _collisionConfiguration;
-btCollisionDispatcher* _dispatcher;
-btSequentialImpulseConstraintSolver* _solver;
-btDiscreteDynamicsWorld* _world;
-
-
-
-
-
 
 
 
@@ -429,7 +422,8 @@ int main() {
 
 	btDiscreteDynamicsWorld* dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
 
-	dynamicsWorld->setGravity(btVector3(0, 0, -1));
+	dynamicsWorld->setGravity(btVector3(0.f, 0.f, 0.f));
+
 
 	//keep track of the shapes, we release memory at exit.
 	//make sure to re-use collision shapes among rigid bodies whenever possible!
@@ -450,7 +444,7 @@ int main() {
 	*/
 
 	//Player Physics
-	btCollisionShape* playerShape = new btBoxShape(btVector3(30.f, 30.f, 30.f));
+	btCollisionShape* playerShape = new btBoxShape(btVector3(1.f, 1.f, 1.f));
 
 	btTransform playerTransform;
 	
@@ -467,7 +461,7 @@ int main() {
 
 
 	//Wizard Physics
-	btCollisionShape* wizardShape = new btBoxShape(btVector3(30.f, 30.f, 30.f));
+	btCollisionShape* wizardShape = new btBoxShape(btVector3(1.f, 1.f, 1.f));
 
 	btTransform wizardTransform;
 
@@ -542,6 +536,7 @@ int main() {
 		float     shininess = 4.0f;
 		float     lightLinearFalloff = 0.09f;
 		float     lightQuadraticFalloff = 0.032f;
+		float     outlineThickness = 0.15;
 		
 		// These are our application / scene level uniforms that don't necessarily update
 		// every frame
@@ -630,7 +625,7 @@ int main() {
 			
 
 			player.emplace<RendererComponent>().SetMesh(PlayerVAO).SetMaterial(material0);
-			player.get<Transform>().SetLocalPosition(0.5f, 0.5f, 0.1f);
+			player.get<Transform>().SetLocalPosition(0.5f, 0.5f, 5.1f);
 			player.get<Transform>().SetLocalRotation(90.0f, 0.0f, 180.0f);
 			player.get<Transform>().SetLocalScale(0.5f, 0.5f, 0.5f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(player);
@@ -639,18 +634,27 @@ int main() {
 			//Collision Stuff
 			collisionShapes.push_back(playerShape);
 
+			
 			playerTransform.setIdentity();
-			playerTransform.setOrigin(glm2bt(player.get<Transform>().GetLocalPosition()));
+			playerTransform.setOrigin(btVector3(0.5f, 0.5f, 0.1f));
+			playerTransform.setRotation(btQuaternion(btVector3(1, 0, 0), btScalar(90.0f)));
+			playerTransform.setRotation(btQuaternion(btVector3(0, 0, 1), btScalar(180.0f)));
+			//playerTransform.setOrigin(glm2bt(player.get<Transform>().GetLocalPosition()));
+			//playerTransform.setIdentity();
+			player.get<Transform>().SetTransform(playerTransform);
 
 			if (isPlayerDynamic)
 				playerShape->calculateLocalInertia(playerMass, localPlayerInertia);
 
+			
 			
 
 			//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
 			playerMotionState = new btDefaultMotionState(playerTransform);
 			btRigidBody::btRigidBodyConstructionInfo rbInfo(playerMass, playerMotionState, playerShape, localPlayerInertia);
 			playerBody = new btRigidBody(rbInfo);
+
+			
 
 
 			//add the body to the dynamics world
@@ -668,6 +672,7 @@ int main() {
 
 			//add the body to the dynamics world
 			//dynamicsWorld->addRigidBody(playerBody);
+
 			
 		}
 
@@ -1060,14 +1065,15 @@ int main() {
 			}
 			
 
-			/*
+			
 			//Gravity
 			if (!(player.get<Transform>().GetLocalPosition().z <= planeHeight))
 			{
 				player.get<Transform>().SetLocalPosition(player.get<Transform>().GetLocalPosition() - glm::vec3(0.0f, 0.0f, 2.0f * dt));
 			}
+
 			//player.get<Transform>().SetLocalPosition(player.get<Transform>().GetLocalPosition() - glm::vec3(0.0f, 0.0f, 2.0f * dt));
-			*/
+			
 
 			//Updating Physics Body
 			//playerTransform = playerBody->getCenterOfMassTransform();
@@ -1079,10 +1085,28 @@ int main() {
 			//wizardBody->setCenterOfMassTransform(wizardTransform);
 			
 			
+			
+			//playerTransform.setFromOpenGLMatrix(glm::value_ptr(player.get<Transform>().LocalTransform()));
+			//playerBody->getMotionState()->setWorldTransform(playerTransform);
+
+			/*
+			btTransform playerT = playerBody->getCenterOfMassTransform();
+			playerT.setOrigin(glm2bt(player.get<Transform>().GetLocalPosition()));
+			playerBody->setWorldTransform(playerT);
+
+			btTransform wizardT = wizardBody->getCenterOfMassTransform();
+			wizardT.setOrigin(glm2bt(Wizard.get<Transform>().GetLocalPosition()));
+			wizardBody->setWorldTransform(wizardT);
+
+
+			playerT.setFromOpenGLMatrix(glm::value_ptr(player.get<Transform>().LocalTransform()));
+			playerBody->getMotionState()->setWorldTransform(playerT);
+
+			wizardT.setFromOpenGLMatrix(glm::value_ptr(Wizard.get<Transform>().LocalTransform()));
+			wizardBody->getMotionState()->setWorldTransform(wizardT);
+			*/
 
 			
-
-
 
 			
 
@@ -1184,6 +1208,8 @@ int main() {
 				
 				#pragma endregion
 			}
+
+			
 
 			GetDistance(player, Coin, CoinDistance);
 			MoveWizard(player, Wizard, WizardDistance, CoinCount);

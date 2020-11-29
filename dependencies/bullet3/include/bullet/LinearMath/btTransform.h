@@ -209,6 +209,8 @@ public:
 	void deSerializeDouble(const struct btTransformDoubleData& dataIn);
 
 	void deSerializeFloat(const struct btTransformFloatData& dataIn);
+
+	
 };
 
 SIMD_FORCE_INLINE btVector3

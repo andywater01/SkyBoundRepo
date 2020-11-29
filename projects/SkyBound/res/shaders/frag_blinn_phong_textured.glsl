@@ -25,6 +25,7 @@ uniform float u_LightAttenuationLinear;
 uniform float u_LightAttenuationQuadratic;
 
 uniform float u_TextureMix;
+uniform float u_OutlineThickness;
 
 uniform vec3  u_CamPos;
 
