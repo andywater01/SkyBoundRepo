@@ -458,6 +458,11 @@ void CheckCollision(GameObject player, GameObject other, float xRangePos, float 
 
 
 
+
+
+
+
+
 int main() {
 	Logger::Init(); // We'll borrow the logger from the toolkit, but we need to initialize it
 
@@ -504,7 +509,7 @@ int main() {
 	//make sure to re-use collision shapes among rigid bodies whenever possible!
 	btAlignedObjectArray<btCollisionShape*> collisionShapes;
 	
-	float planeHeight = 0.0f;
+	float planeHeight = 0.1f;
 
 	/*
 	//Plane
@@ -665,7 +670,7 @@ int main() {
 		//material0->Set("s_Diffuse2", Boxdiffuse2);
 		//material0->Set("s_Specular", Boxspecular);
 		material0->Set("u_Shininess", 8.0f);
-		material0->Set("u_OutlineThickness", 0.56f);
+		material0->Set("u_OutlineThickness", 0.53f);
 		//material0->Set("u_TextureMix", 0.5f);
 		//material0->Set("u_Reflectivity", 0.6f);
 
@@ -685,12 +690,14 @@ int main() {
 		material3->Shader = shader;
 		material3->Set("s_Diffuse", diffuseMp04);
 		material3->Set("u_Shininess", 8.0f);
+		material3->Set("u_OutlineThickness", 0.5f);
 
 
 		ShaderMaterial::sptr material4 = ShaderMaterial::Create();
 		material4->Shader = shader;
 		material4->Set("s_Diffuse", diffuseMp05);
 		material4->Set("u_Shininess", 8.0f);
+		material4->Set("u_OutlineThickness", 0.65f);
 
 		//X = In and Out
 		//Y = Left and Right
@@ -707,7 +714,7 @@ int main() {
 			
 
 			player.emplace<RendererComponent>().SetMesh(PlayerVAO).SetMaterial(material0);
-			player.get<Transform>().SetLocalPosition(0.5f, 0.5f, 0.1f);
+			player.get<Transform>().SetLocalPosition(0.5f, 0.5f, 1.5f);
 			player.get<Transform>().SetLocalRotation(90.0f, 0.0f, 180.0f);
 			player.get<Transform>().SetLocalScale(0.5f, 0.5f, 0.5f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(player);
@@ -1191,7 +1198,8 @@ int main() {
 			*/
 
 			
-			CheckCollision(player, Wizard, 0.75f, 0.75f, 1.0f, 1.0f);
+			CheckCollision(player, Wizard, 0.85f, 0.85f, 0.85f, 0.85f);
+
 
 			
 
@@ -1220,7 +1228,8 @@ int main() {
 			{
 				if (flipPhantom)
 				{
-					Phantom.get<Transform>().SetLocalScale(Phantom.get<Transform>().GetLocalScale() * glm::vec3(1.0f, 1.0f, -1.0f));
+					Phantom.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
+					//Phantom.get<Transform>().SetLocalScale(Phantom.get<Transform>().GetLocalScale() * glm::vec3(1.0f, 1.0f, -1.0f));
 				}
 			}
 			
@@ -1230,7 +1239,8 @@ int main() {
 
 				if (flipPhantom)
 				{
-					Phantom.get<Transform>().SetLocalScale(Phantom.get<Transform>().GetLocalScale() * glm::vec3(1.0f, 1.0f, -1.0f));
+					Phantom.get<Transform>().SetLocalRotation(90.0f, 0.0f, 180.0f);
+					//Phantom.get<Transform>().SetLocalScale(Phantom.get<Transform>().GetLocalScale() * glm::vec3(1.0f, 1.0f, -1.0f));
 				}
 			}
 
