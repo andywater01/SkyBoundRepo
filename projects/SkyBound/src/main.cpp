@@ -97,6 +97,13 @@ bool isRotate = true;
 bool isLeft = true;
 int CoinCount = 0;
 
+bool canMoveForward = true;
+bool canMoveLeft = true;
+bool canMoveBack = true;
+bool canMoveRight = true;
+
+bool MovingForward = true;
+
 void GlfwWindowResizedCallback(GLFWwindow* window, int width, int height) {
 	glViewport(0, 0, width, height);
 	camera->ResizeWindow(width, height);
@@ -269,48 +276,48 @@ inline btVector3 glm2bt(const glm::vec3& vec)
 
 
 
-void PlayerInput(GameObject& transform, float dt, float speed, btRigidBody *body, btTransform phyTransform) {
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-		//transform->MoveLocal(0.0f, 0.0f, -1.0f * dt * speed);
-		//transform.MoveLocalFixed(0.0f, -1.0f * dt * speed, 0.0f);
-		transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(0.0f, -1.0f * dt * speed, 0.0f));
-		transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 270.0f);
-		//transform.SetLocalRotation(90.0f, 0.0f, 282.0f);
-	}
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-		transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(0.0f, 1.0f * dt * speed, 0.0f));
-		transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
-		//body->activate(true);
-		//body->setLinearVelocity(btVector3(0, 4, 0));
-		//body->applyForce(btVector3(0, 1000, 0), btVector3(0, 1000, 0));
-		//transform.MoveLocalFixed(0.0f, 1.0f * dt * speed, 0.0f);
-		//transform.SetLocalRotation(90.0f, 0.0f, 102.0f);
-	}
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-		//transform->MoveLocal(1.0f * dt * speed, 0.0f, 0.0f);
-		//transform.MoveLocalFixed(-1.0f * dt * speed, 0.0f, 0.0f);
-		transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(-1.0f * dt * speed, 0.0f, 0.0f));
-		transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 180.0f);
-		//transform.SetLocalRotation(90.0f, 0.0f, 192.0f);
-		//camera->SetPosition(camera->GetPosition() + glm::vec3(-1.0f, 0.0f, 0.0f) * dt);
-	}
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-		//transform->MoveLocal(-1.0f * dt * speed, 0.0f, 0.0f);
-		//transform.MoveLocalFixed(1.0f * dt * speed, 0.0f, 0.0f);
-		
-		transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(1.0f * dt * speed, 0.0f, 0.0f));
-		transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
-		//transform.SetLocalRotation(90.0f, 0.0f, 12.0f);
-		//camera->SetPosition(camera->GetPosition() + glm::vec3(1.0f, 0.0f, 0.0f) * dt);
-	}
-	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-		//transform.MoveLocal(0.0f, 0.0f, 1.0f * dt);
-	}
-	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
-		//transform.MoveLocal(0.0f, 0.0f, -1.0f * dt);
-	}
-	
-	//body->setWorldTransform(phyTransform);
+void PlayerInput(GameObject& transform, float dt, float speed, btRigidBody* body, btTransform phyTransform) {
+if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS && canMoveLeft == true) {
+	//transform->MoveLocal(0.0f, 0.0f, -1.0f * dt * speed);
+	//transform.MoveLocalFixed(0.0f, -1.0f * dt * speed, 0.0f);
+	transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(0.0f, -1.0f * dt * speed, 0.0f));
+	transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 270.0f);
+	//transform.SetLocalRotation(90.0f, 0.0f, 282.0f);
+}
+if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS && canMoveRight == true) {
+	transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(0.0f, 1.0f * dt * speed, 0.0f));
+	transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
+	//body->activate(true);
+	//body->setLinearVelocity(btVector3(0, 4, 0));
+	//body->applyForce(btVector3(0, 1000, 0), btVector3(0, 1000, 0));
+	//transform.MoveLocalFixed(0.0f, 1.0f * dt * speed, 0.0f);
+	//transform.SetLocalRotation(90.0f, 0.0f, 102.0f);
+}
+if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS && canMoveForward == true) {
+	//transform->MoveLocal(1.0f * dt * speed, 0.0f, 0.0f);
+	//transform.MoveLocalFixed(-1.0f * dt * speed, 0.0f, 0.0f);
+	transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(-1.0f * dt * speed, 0.0f, 0.0f));
+	transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 180.0f);
+	//transform.SetLocalRotation(90.0f, 0.0f, 192.0f);
+	//camera->SetPosition(camera->GetPosition() + glm::vec3(-1.0f, 0.0f, 0.0f) * dt);
+}
+if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS && canMoveBack == true) {
+	//transform->MoveLocal(-1.0f * dt * speed, 0.0f, 0.0f);
+	//transform.MoveLocalFixed(1.0f * dt * speed, 0.0f, 0.0f);
+
+	transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(1.0f * dt * speed, 0.0f, 0.0f));
+	transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
+	//transform.SetLocalRotation(90.0f, 0.0f, 12.0f);
+	//camera->SetPosition(camera->GetPosition() + glm::vec3(1.0f, 0.0f, 0.0f) * dt);
+}
+if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+	//transform.MoveLocal(0.0f, 0.0f, 1.0f * dt);
+}
+if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
+	//transform.MoveLocal(0.0f, 0.0f, -1.0f * dt);
+}
+
+//body->setWorldTransform(phyTransform);
 }
 
 
@@ -327,6 +334,7 @@ struct Material
 
 	float           Shininess;
 	float			TextureMix;
+	float           OutlineThickness;
 };
 
 void SetupShaderForFrame(const Shader::sptr& shader, const glm::mat4& view, const glm::mat4& projection) {
@@ -377,6 +385,73 @@ void MoveWizard(GameObject player, GameObject wizard, glm::vec3 distance2, int c
 		wizard.get<Transform>().SetLocalPosition(wizard.get<Transform>().GetLocalPosition() + glm::vec3(-35.0f, 4.0f, 0.0f));
 	}
 }
+
+
+
+
+
+void CheckCollision(GameObject player, GameObject other, float xRangePos, float xRangeNeg, float yRangePos, float yRangeNeg)
+{
+	//Forward
+	if (player.get<Transform>().GetLocalPosition().x - xRangePos <= other.get<Transform>().GetLocalPosition().x + xRangeNeg &&
+		player.get<Transform>().GetLocalPosition().x >= other.get<Transform>().GetLocalPosition().x - xRangeNeg &&
+		player.get<Transform>().GetLocalPosition().y <= other.get<Transform>().GetLocalPosition().y + yRangePos &&
+		player.get<Transform>().GetLocalPosition().y >= other.get<Transform>().GetLocalPosition().y - yRangeNeg)
+	{
+		std::cout << "Can't move forwards" << std::endl;
+		canMoveForward = false;
+	}
+	else
+	{
+		canMoveForward = true;
+		MovingForward = false;
+	}
+	//Backward
+	if (player.get<Transform>().GetLocalPosition().x + xRangePos >= other.get<Transform>().GetLocalPosition().x - xRangePos &&
+		player.get<Transform>().GetLocalPosition().x <= other.get<Transform>().GetLocalPosition().x + xRangeNeg &&
+		player.get<Transform>().GetLocalPosition().y <= other.get<Transform>().GetLocalPosition().y + yRangePos &&
+		player.get<Transform>().GetLocalPosition().y >= other.get<Transform>().GetLocalPosition().y - yRangeNeg)
+	{
+		canMoveBack = false;
+		std::cout << "Can't move backwards" << std::endl;
+	}
+	else
+	{
+		canMoveBack = true;
+
+	}
+
+	//Left
+	if (player.get<Transform>().GetLocalPosition().y - yRangeNeg <= other.get<Transform>().GetLocalPosition().y + yRangePos &&
+		player.get<Transform>().GetLocalPosition().y >= other.get<Transform>().GetLocalPosition().y - yRangePos &&
+		player.get<Transform>().GetLocalPosition().x <= other.get<Transform>().GetLocalPosition().x + xRangeNeg &&
+		player.get<Transform>().GetLocalPosition().x >= other.get<Transform>().GetLocalPosition().x - xRangePos)
+	{
+		canMoveLeft = false;
+		std::cout << "Can't move Left" << std::endl;
+	}
+	else
+	{
+		canMoveLeft = true;
+	}
+
+	if (player.get<Transform>().GetLocalPosition().y + yRangeNeg >= other.get<Transform>().GetLocalPosition().y - yRangePos &&
+		player.get<Transform>().GetLocalPosition().y <= other.get<Transform>().GetLocalPosition().y + yRangePos &&
+		player.get<Transform>().GetLocalPosition().x <= other.get<Transform>().GetLocalPosition().x + xRangeNeg &&
+		player.get<Transform>().GetLocalPosition().x >= other.get<Transform>().GetLocalPosition().x - xRangePos)
+	{
+		canMoveRight = false;
+	}
+	else
+	{
+		canMoveRight = true;
+	}
+
+}
+
+
+
+
 
 
 
@@ -551,6 +626,7 @@ int main() {
 		shader->SetUniform("u_LightAttenuationConstant", 1.0f);
 		shader->SetUniform("u_LightAttenuationLinear", lightLinearFalloff);
 		shader->SetUniform("u_LightAttenuationQuadratic", lightQuadraticFalloff);
+		shader->SetUniform("u_OutlineThickness", outlineThickness);
 
 
 
@@ -589,6 +665,7 @@ int main() {
 		//material0->Set("s_Diffuse2", Boxdiffuse2);
 		//material0->Set("s_Specular", Boxspecular);
 		material0->Set("u_Shininess", 8.0f);
+		material0->Set("u_OutlineThickness", 0.56f);
 		//material0->Set("u_TextureMix", 0.5f);
 		//material0->Set("u_Reflectivity", 0.6f);
 
@@ -596,11 +673,13 @@ int main() {
 		material1->Shader = shader;
 		material1->Set("s_Diffuse", diffuseMp02);
 		material1->Set("u_Shininess", 8.0f);
+		material1->Set("u_OutlineThickness", 0.08f);
 		
 		ShaderMaterial::sptr material2 = ShaderMaterial::Create();
 		material2->Shader = shader;
 		material2->Set("s_Diffuse", diffuseMp03);
 		material2->Set("u_Shininess", 8.0f);
+		material2->Set("u_OutlineThickness", 0.5f);
 
 		ShaderMaterial::sptr material3 = ShaderMaterial::Create();
 		material3->Shader = shader;
@@ -617,6 +696,9 @@ int main() {
 		//Y = Left and Right
 		//Z = up and down
 
+
+
+
 		
 
 		GameObject player = scene->CreateEntity("player");
@@ -625,7 +707,7 @@ int main() {
 			
 
 			player.emplace<RendererComponent>().SetMesh(PlayerVAO).SetMaterial(material0);
-			player.get<Transform>().SetLocalPosition(0.5f, 0.5f, 5.1f);
+			player.get<Transform>().SetLocalPosition(0.5f, 0.5f, 0.1f);
 			player.get<Transform>().SetLocalRotation(90.0f, 0.0f, 180.0f);
 			player.get<Transform>().SetLocalScale(0.5f, 0.5f, 0.5f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(player);
@@ -982,10 +1064,12 @@ int main() {
 		playerMaterial.Albedo = diffuse;
 		playerMaterial.Specular = specular;
 		playerMaterial.Shininess = 4.0f;
+		playerMaterial.OutlineThickness = 0.50f;
 
 		islandMaterial.Albedo = diffuse2;
 		islandMaterial.Specular = specular;
 		islandMaterial.Shininess = 4.0f;
+		islandMaterial.OutlineThickness = 0.15f;
 
 		materials[3].Albedo = diffuse;
 		materials[3].NewTexture = diffuse2;
@@ -1107,6 +1191,7 @@ int main() {
 			*/
 
 			
+			CheckCollision(player, Wizard, 0.75f, 0.75f, 1.0f, 1.0f);
 
 			
 
@@ -1250,11 +1335,13 @@ int main() {
 
 			playerMaterial.Albedo->Bind(0);
 			playerMaterial.Specular->Bind(1);
+			//shader->SetUniform("u_OutlineThickness", playerMaterial.OutlineThickness);
 			//RenderVAO(shader, playerVao, camera, playerTransform);
 
 
 			islandMaterial.Albedo->Bind(0);
 			islandMaterial.Specular->Bind(1);
+			//shader->SetUniform("u_OutlineThickness", islandMaterial.OutlineThickness);
 			//RenderVAO(shader, islandVao, camera, islandTransform);
 
 			islandMaterial.Albedo->Bind(0);

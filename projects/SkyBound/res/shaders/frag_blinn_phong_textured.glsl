@@ -78,7 +78,7 @@ void main() {
 	vec4 mixedTextureColor = mix(textureColor, textureColor2, u_TextureMix);
 
 	//Outline Effect             Thickness of Line
-	float edge = (dot(viewDir, N) < 0.15) ? 0.0 : 1.0; //If below threshold it is 0, otherwise 1
+	float edge = (dot(viewDir, N) < u_OutlineThickness) ? 0.0 : 1.0; //If below threshold it is 0, otherwise 1
 
 	vec3 lightContribution = (ambient + diffuse + specular) * attenuation;
 
