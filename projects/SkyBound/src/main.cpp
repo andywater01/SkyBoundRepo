@@ -108,7 +108,6 @@ bool canMoveBack = true;
 bool canMoveRight = true;
 
 
-bool MovingForward = true;
 
 void GlfwWindowResizedCallback(GLFWwindow* window, int width, int height) {
 	glViewport(0, 0, width, height);
@@ -366,6 +365,100 @@ T LERP(const T& p0, const T& p1, float t)
 	return (1.0f - t) * p0 + t * p1;
 }
 
+
+//Templated Catmull-Rom function.
+//(This will work for any type that supports addition and scalar multiplication.)
+template<typename T>
+T Catmull(const T& p0, const T& p1, const T& p2, const T& p3, float t)
+{
+	//TODO: Implement Catmull-Rom interpolation.
+	return 0.5f * (2.f * p1 + t * (-p0 + p2)
+		+ t * t * (2.f * p0 - 5.f * p1 + 4.f * p2 - p3)
+		+ t * t * t * (-p0 + 3.f * p1 - 3.f * p2 + p3));
+}
+
+//Catmull-Rom Variables
+float m_segmentTravelTime = 1.0f;
+float m_segmentTimer;
+size_t m_segmentIndex;
+
+
+std::vector<glm::vec3> phantomWaypoints{glm::vec3(-36.0f, 12.0f, -1.0f), 
+										glm::vec3(-40.0f, 0.1f, -1.0f),
+										glm::vec3(-36.0f, -12.0f, -1.0f), 
+										glm::vec3(-33.0f, -6.8f, -1.0f), 
+										glm::vec3(-32.7f, 0.38f, -1.0f),
+										glm::vec3(-33.8f, 7.01f, -1.0f)};
+
+
+//std::vector<glm::vec3> phantomWaypoints;
+
+
+void UpdateCatmull(std::vector<glm::vec3> points, GameObject object, float deltaTime)
+{
+	if (points.size() == 0 || m_segmentTravelTime == 0)
+		return;
+
+	m_segmentTimer += deltaTime;
+
+
+	if (m_segmentIndex == 2)
+	{
+		object.get<Transform>().SetLocalRotation(90.0f, 0.0f, 180.0f);
+	}
+
+	if (m_segmentIndex == 5)
+	{
+		object.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
+	}
+
+
+
+	while (m_segmentTimer > m_segmentTravelTime)
+	{
+		m_segmentTimer -= m_segmentTravelTime;
+
+		m_segmentIndex += 1;
+
+		if (m_segmentIndex >= points.size())
+			m_segmentIndex = 0;
+	}
+
+	float t = m_segmentTimer / m_segmentTravelTime;
+
+	if (points.size() < 4)
+	{
+		object.get<Transform>().SetLocalPosition(points[0]);
+		return;
+	}
+
+	size_t p0_ind, p1_ind, p2_ind, p3_ind;
+	glm::vec3 p0, p1, p2, p3;
+
+	//For Catmull, the path segment between p1 and p2
+	//Our segment index is gonna be p1
+	p1_ind = m_segmentIndex;
+
+	p0_ind = (p1_ind == 0) ? points.size() - 1 : p1_ind - 1;
+
+	p2_ind = (p1_ind + 1) % points.size();
+
+	p3_ind = (p2_ind + 1) % points.size();
+
+	//Setting the vec3s
+	p0 = points[p0_ind];
+	p1 = points[p1_ind];
+	p2 = points[p2_ind];
+	p3 = points[p3_ind];
+
+	object.get<Transform>().SetLocalPosition(Catmull(p0, p1, p2, p3, t));
+}
+
+
+
+
+
+
 bool gotCoin = false;
 
 
@@ -393,7 +486,28 @@ void MoveWizard(GameObject player, GameObject wizard, glm::vec3 distance2, int c
 }
 
 
+void CollisionResolver()
+{
+	canMoveForward = true;
+	canMoveLeft = true;
+	canMoveBack = true;
+	canMoveRight = true;
+}
 
+void inputChecker()
+{
+	if (canMoveForward)
+		std::cout << "Can move forwards" << std::endl;
+
+	if (canMoveLeft)
+		std::cout << "Can move left" << std::endl;
+
+	if (canMoveBack)
+		std::cout << "Can move back" << std::endl;
+
+	if (canMoveRight)
+		std::cout << "Can move right" << std::endl;
+}
 
 
 void CheckCollision(GameObject player, GameObject otherObject, float xRangePos, float xRangeNeg, float yRangePos, float yRangeNeg)
@@ -409,8 +523,9 @@ void CheckCollision(GameObject player, GameObject otherObject, float xRangePos, 
 	}
 	else
 	{
+		//std::cout << "Exited forward block" << std::endl;
 		canMoveForward = true;
-		MovingForward = false;
+		
 	}
 	//Backward
 	if (player.get<Transform>().GetLocalPosition().x + xRangePos >= otherObject.get<Transform>().GetLocalPosition().x - xRangePos &&
@@ -423,8 +538,9 @@ void CheckCollision(GameObject player, GameObject otherObject, float xRangePos, 
 	}
 	else
 	{
+		//std::cout << "Exited backwards block" << std::endl;
 		canMoveBack = true;
-
+		
 	}
 
 	//Left
@@ -438,7 +554,9 @@ void CheckCollision(GameObject player, GameObject otherObject, float xRangePos, 
 	}
 	else
 	{
+		//std::cout << "Exited left block" << std::endl;
 		canMoveLeft = true;
+		
 	}
 
 	if (player.get<Transform>().GetLocalPosition().y + yRangeNeg >= otherObject.get<Transform>().GetLocalPosition().y - yRangePos &&
@@ -447,13 +565,17 @@ void CheckCollision(GameObject player, GameObject otherObject, float xRangePos, 
 		player.get<Transform>().GetLocalPosition().x >= otherObject.get<Transform>().GetLocalPosition().x - xRangePos)
 	{
 		canMoveRight = false;
+		std::cout << "Can't move right" << std::endl;
 	}
 	else
 	{
+		//std::cout << "Exited right block" << std::endl;
 		canMoveRight = true;
+		
 	}
 
 }
+
 
 
 
@@ -519,7 +641,12 @@ void CheckPhantomCollision(GameObject player, GameObject other, float xRangePos,
 
 
 
-
+void checkPosition(GameObject object)
+{
+	std::cout << "Player X" << object.get<Transform>().GetLocalPosition().x << std::endl;
+	std::cout << "Player Y" << object.get<Transform>().GetLocalPosition().y << std::endl;
+	std::cout << "Player Z" << object.get<Transform>().GetLocalPosition().z << std::endl;
+}
 
 
 
@@ -632,7 +759,7 @@ int main() {
 	float PhantomTimer = 0.0f;
 	float PhantomTimer2 = 0.0f;
 
-	float PhantomTimeLimit = 2.0f;
+	float PhantomTimeLimit = 1.0f;
 	float PhantomTimeLimit2 = 2.0f;
 
 	bool PhantomMove = true;
@@ -896,7 +1023,7 @@ int main() {
 		material17->Shader = shader;
 		material17->Set("s_Diffuse", diffuseMp18);
 		material17->Set("u_Shininess", 8.0f);
-		material17->Set("u_OutlineThickness", 0.15f);
+		material17->Set("u_OutlineThickness", 0.3f);
 
 		ShaderMaterial::sptr material18 = ShaderMaterial::Create();
 		material18->Shader = shader;
@@ -925,7 +1052,7 @@ int main() {
 			
 
 			player.emplace<RendererComponent>().SetMesh(PlayerVAO).SetMaterial(material0);
-			player.get<Transform>().SetLocalPosition(0.5f, 0.0f, 1.5f);
+			player.get<Transform>().SetLocalPosition(0.5f, 0.0f, 2.0f);
 			player.get<Transform>().SetLocalRotation(90.0f, 0.0f, 180.0f);
 			player.get<Transform>().SetLocalScale(0.5f, 0.5f, 0.5f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(player);
@@ -1322,7 +1449,7 @@ int main() {
 		//Y = Left and Right
 		//Z = up and down
 
-
+		
 
 		GameObject TaigaGround = scene2->CreateEntity("Taiga");
 		{
@@ -1414,6 +1541,7 @@ int main() {
 			skybox->LoadShaderPartFromFile("shaders/skybox-shader.frag.glsl", GL_FRAGMENT_SHADER);
 			skybox->Link();
 
+			
 			ShaderMaterial::sptr skyboxMat = ShaderMaterial::Create();
 			skyboxMat->Shader = skybox;
 			skyboxMat->Set("s_Environment", environmentMap);
@@ -1421,7 +1549,7 @@ int main() {
 			skyboxMat->RenderLayer = 100;
 			skyboxMat->Set("u_EnvironmentRotation", glm::mat3(glm::rotate(glm::mat4(1.0f), glm::radians(90.0f),
 				glm::vec3(1, 0, 0))));
-
+			
 
 			MeshBuilder<VertexPosNormTexCol> mesh;
 			MeshFactory::AddIcoSphere(mesh, glm::vec3(0.0f), 1.0f);
@@ -1474,6 +1602,51 @@ int main() {
 			{
 				if (ImGui::SliderFloat("Shininess", &shininess, 0.1f, 128.0f)) {
 					shader->SetUniform("u_Shininess", shininess);
+				}
+			}
+			if (ImGui::CollapsingHeader("Phantom Waypoints"))
+			{
+				if (ImGui::Button("Add Waypoint"))
+				{
+					glm::vec3 temp{};
+					phantomWaypoints.push_back(temp);
+				}
+
+				if (ImGui::Button("Remove Waypoint"))
+				{
+					phantomWaypoints.pop_back();
+				}
+
+				//Interface for selecting a waypoint.
+				static size_t pointSelected = 0;
+				static std::string pointLabel = "";
+
+				if (pointSelected >= phantomWaypoints.size())
+					pointSelected = phantomWaypoints.size() - 1;
+
+				for (size_t i = 0; i < phantomWaypoints.size(); ++i)
+				{
+					pointLabel = "Waypoint " + std::to_string(i);
+
+					if (ImGui::Selectable(pointLabel.c_str(), i == pointSelected))
+					{
+						pointSelected = i;
+					}
+				}
+
+				//Interface for moving a selected component.
+				if (pointSelected < phantomWaypoints.size())
+				{
+					static bool transformPanel = true;
+
+					ImGui::Begin("Point Coordinates", &transformPanel, ImVec2(300, 100));
+
+					//TODO: How will we update our point's coordinates?
+					ImGui::SliderFloat("X", &phantomWaypoints[pointSelected].x, -50.0f, 50.0f);
+					ImGui::SliderFloat("Y", &phantomWaypoints[pointSelected].y, -50.0f, 50.0f);
+					ImGui::SliderFloat("Z", &phantomWaypoints[pointSelected].z, -50.0f, 50.0f);
+
+					ImGui::End();
 				}
 			}
 			});
@@ -1631,7 +1804,7 @@ int main() {
 				{
 					trans = obj->getWorldTransform();
 				}
-				printf("world pos object %d = %f,%f,%f\n", j, float(trans.getOrigin().getX()), float(trans.getOrigin().getY()), float(trans.getOrigin().getZ()));
+				//printf("world pos object %d = %f,%f,%f\n", j, float(trans.getOrigin().getX()), float(trans.getOrigin().getY()), float(trans.getOrigin().getZ()));
 			}
 			
 
@@ -1641,7 +1814,15 @@ int main() {
 			{
 				player.get<Transform>().SetLocalPosition(player.get<Transform>().GetLocalPosition() - glm::vec3(0.0f, 0.0f, 2.0f * dt));
 			}
+			else
+			{
+				player.get<Transform>().SetLocalPosition(player.get<Transform>().GetLocalPosition().x, player.get<Transform>().GetLocalPosition().y, 0.1f);
+			}
 
+
+
+
+			//Switching scenes when player reaches a certain point
 			if (player.get<Transform>().GetLocalPosition().x <= -49 && gotCoin == true)
 			{
 				player.get<Transform>().SetLocalPosition(0.0f, 0.0f, 0.0f);
@@ -1687,15 +1868,15 @@ int main() {
 			wizardBody->getMotionState()->setWorldTransform(wizardT);
 			*/
 
-			
-			CheckCollision(player, Wizard, 0.85f, 0.85f, 0.85f, 0.85f);
-			//CheckCollision(player, Sign, 0.6f, 0.6f, 0.6f, 0.6f);
-			CheckPhantomCollision(player, Phantom, 0.8f, 0.8f, 0.8f, 0.8f);
-			CheckPhantomCollision(player, Phantom2, 0.8f, 0.8f, 0.8f, 0.8f);
 
+			PhantomTimer = 1.0f;
+
+			UpdateCatmull(phantomWaypoints, Phantom, dt);
 
 			
+			
 
+			/*
 			//Phantom LERP Position
 			PhantomTimer += dt;
 
@@ -1736,7 +1917,7 @@ int main() {
 					//Phantom.get<Transform>().SetLocalScale(Phantom.get<Transform>().GetLocalScale() * glm::vec3(1.0f, 1.0f, -1.0f));
 				}
 			}
-
+			*/
 
 
 			PhantomTimer2 += dt;
@@ -1901,9 +2082,13 @@ int main() {
 
 
 			
-			
+			//CheckCollision(player, Sign, 0.6f, 0.6f, 0.6f, 0.6f);
+			CheckCollision(player, Wizard, 0.85f, 0.85f, 0.85f, 0.85f);
+			CheckPhantomCollision(player, Phantom, 0.8f, 0.8f, 0.8f, 0.8f);
+			CheckPhantomCollision(player, Phantom2, 0.8f, 0.8f, 0.8f, 0.8f);
 
-
+			checkPosition(player);
+			//inputChecker();
 			
 
 			//Transform& camTransform = cameraObject.get<Transform>();
