@@ -11,8 +11,9 @@
 
 
 
-/*
-Frames MorphLoader::LoadFromFile(const std::string& filename, const glm::vec4& inColor)
+
+
+void MorphLoader::LoadFromFile(const std::string& filename, Frames frame, const glm::vec4& inColor)
 {
 	// Open our file in binary mode
 	std::ifstream file;
@@ -130,14 +131,11 @@ Frames MorphLoader::LoadFromFile(const std::string& filename, const glm::vec4& i
 		}
 	}
 
-	// Note: with actual OBJ files you're going to run into the issue where faces are composited of different indices
-	// You'll need to keep track of these and create vertex entries for each vertex in the face
-	// If you want to get fancy, you can track which vertices you've already added
 
-
-	return mesh.Bake();
+	frame.pos->LoadData(positions.data(), positions.size());
+	frame.normal->LoadData(normals.data(), normals.size());
+	frame.UVs->LoadData(textureCoords.data(), textureCoords.size());
 }
-*/
 
 MorphLoader::~MorphLoader()
 {
@@ -183,7 +181,7 @@ void MorphLoader::beginDraw()
 {
 }
 
-void MorphLoader::Update(float dt)
+void MorphLoader::Update(VertexBuffer::sptr vboPos1, VertexBuffer::sptr vboPos2, VertexBuffer::sptr vboNorm1, VertexBuffer::sptr vboNorm2, float dt)
 {
 	float t;
 
