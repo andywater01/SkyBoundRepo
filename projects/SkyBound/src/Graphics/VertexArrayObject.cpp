@@ -41,7 +41,7 @@ void VertexArrayObject::AddVertexBuffer(const VertexBuffer::sptr& buffer, const 
 	VertexBufferBinding binding;
 	binding.Buffer = buffer;
 	binding.Attributes = attributes;
-	_vertexBuffers.push_back(binding);
+	//_vertexBuffers.push_back(binding);
 
 	Bind();
 	buffer->Bind();

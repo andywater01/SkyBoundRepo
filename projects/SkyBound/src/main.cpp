@@ -50,6 +50,7 @@
 #include "Utilities/MeshFactory.h"
 #include "Utilities/NotObjLoader.h"
 #include "Utilities/ObjLoader.h"
+#include "MorphLoader.h"
 #include "Utilities/VertexTypes.h"
 #include "bullet/btBulletCollisionCommon.h"
 #include "bullet/btBulletDynamicsCommon.h"
@@ -605,7 +606,7 @@ int main() {
 		shader->LoadShaderPartFromFile("shaders/vertex_shader.glsl", GL_VERTEX_SHADER);
 		shader->LoadShaderPartFromFile("shaders/frag_blinn_phong_textured.glsl", GL_FRAGMENT_SHADER);
 		shader->Link();
-
+		
 		glm::vec3 lightPos = glm::vec3(0.0f, 0.0f, 6.0f);
 		glm::vec3 lightCol = glm::vec3(0.9f, 0.85f, 0.5f);
 		float     lightAmbientPow = 0.05f;
@@ -704,15 +705,21 @@ int main() {
 		//Z = up and down
 
 
+		std::vector<glm::vec3> positions1;
+		std::vector<glm::vec3> normals1;
+		std::vector<glm::vec2> uvs1;
 
+		std::vector<glm::vec3> positions2;
+		std::vector<glm::vec3> normals2;
+		std::vector<glm::vec2> uvs2;
 
 		
 
 		GameObject player = scene->CreateEntity("player");
 		{
+
 			VertexArrayObject::sptr PlayerVAO = ObjLoader::LoadFromFile("models/SkyBoundGuyCol.obj");
 			
-
 			player.emplace<RendererComponent>().SetMesh(PlayerVAO).SetMaterial(material0);
 			player.get<Transform>().SetLocalPosition(0.5f, 0.5f, 1.5f);
 			player.get<Transform>().SetLocalRotation(90.0f, 0.0f, 180.0f);
@@ -1110,7 +1117,6 @@ int main() {
 			if (selectedVao <= 0)
 				selectedVao = 3;
 			});
-		
 		
 
 		InitImGui();

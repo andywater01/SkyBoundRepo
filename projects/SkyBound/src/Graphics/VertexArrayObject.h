@@ -14,6 +14,7 @@ enum class AttribUsage
 {
 	Unknown = 0,
 	Position,
+	Position2,
 	Color,
 	Color1,   //
 	Color2,   // Extras
@@ -23,6 +24,7 @@ enum class AttribUsage
 	Texture2, // Extras
 	Texture3, //
 	Normal,
+	Normal2,
 	Tangent,
 	BiNormal,
 	User0,    //
@@ -68,6 +70,9 @@ struct BufferAttribute
 
 	BufferAttribute(uint32_t slot, uint32_t size, GLenum type, bool normalized, GLsizei stride, size_t offset, AttribUsage usage = AttribUsage::Unknown) :
 		Slot(slot), Size(size), Type(type), Normalized(normalized), Stride(stride), Offset(offset), Usage(usage) { }
+
+
+	
 };
 
 /// <summary>
@@ -130,6 +135,8 @@ public:
 	GLuint GetHandle() const { return _handle; }
 
 	void Render() const;
+
+	
 	
 protected:
 	// Helper structure to store a buffer and the attributes

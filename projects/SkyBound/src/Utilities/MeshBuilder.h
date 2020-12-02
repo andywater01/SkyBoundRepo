@@ -81,6 +81,49 @@ public:
 	/// </summary>
 	size_t GetTriangleCount() const { return _indices.size() > 0 ? _indices.size() / 3 : _vertices.size() / 3; }
 
+
+	AttribUsage GetCurrentAttrib()
+	{
+		AttribUsage usage;
+
+		return usage;
+	}
+
+
+	float m_t;
+
+
+	/*
+	void UpdateData(const MeshBuilder<VertexPosNormTexColAnim1>& frame0, const MeshBuilder<VertexPosNormTexColAnim2>& frame1, float t)
+	{
+		VertexBuffer::sptr vbo = VertexBuffer::Create();
+		vbo->LoadData(GetVertexDataPtr(), _vertices.size());
+
+		IndexBuffer::sptr ebo = IndexBuffer::Create();
+		ebo->LoadData(GetIndexDataPtr(), _indices.size());
+
+		VertexArrayObject::sptr result = VertexArrayObject::Create();
+
+		if (vbo = frame0.GetCurrentAttrib() = AttribUsage::Position)
+		{
+			result->AddVertexBuffer(vbo, VertType::V_Anim1);
+		}
+
+		if (vbo = frame1.GetCurrentAttrib() = AttribUsage::Position2)
+		{
+			result->AddVertexBuffer(vbo, VertType::V_Anim2);
+		}
+		
+	}
+	
+
+	void UpdateData(float t)
+	{
+		m_t = t;
+	}
+	*/
+	
+
 	VertexArrayObject::sptr Bake() {
 		VertexBuffer::sptr vbo = VertexBuffer::Create();
 		vbo->LoadData(GetVertexDataPtr(), _vertices.size());
@@ -89,11 +132,49 @@ public:
 		ebo->LoadData(GetIndexDataPtr(), _indices.size());
 
 		VertexArrayObject::sptr result = VertexArrayObject::Create();
+		
 		result->AddVertexBuffer(vbo, VertType::V_DECL);
+
 		result->SetIndexBuffer(ebo);
+
 
 		return result;
 	}
+
+	
+	VertexArrayObject::sptr Bake2() {
+		VertexBuffer::sptr vbo = VertexBuffer::Create();
+		vbo->LoadData(GetVertexDataPtr(), _vertices.size());
+
+		IndexBuffer::sptr ebo = IndexBuffer::Create();
+		ebo->LoadData(GetIndexDataPtr(), _indices.size());
+
+		VertexArrayObject::sptr result = VertexArrayObject::Create();
+
+		result->AddVertexBuffer(vbo, VertType::V_Anim1);
+
+		result->SetIndexBuffer(ebo);
+
+
+		return result;
+	}
+	
+
+	VertexArrayObject::sptr createVAO() {
+
+		VertexArrayObject::sptr vao = VertexArrayObject::Create();
+
+		return vao;
+	}
+	
+	VertexArrayObject::sptr returnVBO() {
+
+		VertexBuffer::sptr vbo = VertexBuffer::Create();
+		vbo->LoadData(GetVertexDataPtr(), _vertices.size());
+
+		return vbo;
+	}
+
 	
 	/// <summary>
 	/// Gets a pointer to the underlying vertex data in the mesh, valid only

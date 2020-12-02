@@ -1,5 +1,6 @@
 #pragma once
 #include "MeshFactory.h"
+#include "Gameplay/Scene.h"
 
 class ObjLoader
 {
@@ -10,3 +11,4 @@ protected:
 	ObjLoader() = default;
 	~ObjLoader() = default;
 };
+
