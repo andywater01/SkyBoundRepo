@@ -1996,10 +1996,10 @@ int main() {
 			glm::vec3 offset = glm::vec3(0.0f, 0.0f, 2.0f);
 			glm::vec3 JumpPosition = player.get<Transform>().GetLocalPosition() + offset;
 
-			if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && (player.get<Transform>().GetLocalPosition().z <= 2.0f)) {
+			if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && (player.get<Transform>().GetLocalPosition().z <= 2.5f)) {
 				JumpTimer += dt;
 				if (JumpTimer <= JumpTimeLimit)
-					player.get<Transform>().SetLocalPosition(LERP(currentPosition, JumpPosition, 0.05f));
+					player.get<Transform>().SetLocalPosition(LERP(currentPosition, JumpPosition, 0.08f));
 
 			}
 			else
