@@ -758,9 +758,11 @@ int main() {
 
 	float PhantomTimer = 0.0f;
 	float PhantomTimer2 = 0.0f;
+	float JumpTimer = 0.0f;
 
 	float PhantomTimeLimit = 1.0f;
 	float PhantomTimeLimit2 = 2.0f;
+	float JumpTimeLimit = 0.2f;
 
 	bool PhantomMove = true;
 	bool PhantomMove2 = true;
@@ -1262,6 +1264,14 @@ int main() {
 			Mound3.get<Transform>().SetLocalScale(1.5f, 1.5f, 1.0f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Mound3);
 			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+
+			GameObject Mound4 = scene->CreateEntity("Mound4");
+			Mound4.emplace<RendererComponent>().SetMesh(MoundVAO).SetMaterial(material5);
+			Mound4.get<Transform>().SetLocalPosition(-13.0f, -23.5f, -4.0f);
+			Mound4.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
+			Mound4.get<Transform>().SetLocalScale(2.5f, 1.5f, 2.5f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Mound4);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
 		}
 
 		GameObject WishingWell = scene->CreateEntity("Wishing Well");
@@ -1417,16 +1427,16 @@ int main() {
 			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
 		}
 
-		/*GameObject House = scene->CreateEntity("House");
+		GameObject House = scene->CreateEntity("House");
 		{
-			VertexArrayObject::sptr HouseVAO = ObjLoader::LoadFromFile("models/House.obj");
+			VertexArrayObject::sptr HouseVAO = ObjLoader::LoadFromFile("models/CompletedHouse.obj");
 			House.emplace<RendererComponent>().SetMesh(HouseVAO).SetMaterial(material20);
-			House.get<Transform>().SetLocalPosition(-10.0f, -15.5f, -2.7f);
-			House.get<Transform>().SetLocalRotation(90.0f, 0.0f, 60.0f);
-			House.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
+			House.get<Transform>().SetLocalPosition(-13.0f, -23.5f, -1.1f);
+			House.get<Transform>().SetLocalRotation(90.0f, 0.0f, 225.0f);
+			House.get<Transform>().SetLocalScale(0.45f, 0.8f, 0.8f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(House);
 			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
-		}*/
+		}
 
 
 
@@ -1829,7 +1839,7 @@ int main() {
 			//Gravity
 			if (!(player.get<Transform>().GetLocalPosition().z <= planeHeight))
 			{
-				player.get<Transform>().SetLocalPosition(player.get<Transform>().GetLocalPosition() - glm::vec3(0.0f, 0.0f, 2.0f * dt));
+				player.get<Transform>().SetLocalPosition(player.get<Transform>().GetLocalPosition() - glm::vec3(0.0f, 0.0f, 5.0f * dt));
 			}
 			else
 			{
@@ -1976,6 +1986,28 @@ int main() {
 					//Phantom.get<Transform>().SetLocalScale(Phantom.get<Transform>().GetLocalScale() * glm::vec3(1.0f, 1.0f, -1.0f));
 				}
 			}
+
+
+
+			//Jump Stuff
+			
+			glm::vec3 currentPosition = player.get<Transform>().GetLocalPosition();
+
+			glm::vec3 offset = glm::vec3(0.0f, 0.0f, 2.0f);
+			glm::vec3 JumpPosition = player.get<Transform>().GetLocalPosition() + offset;
+
+			if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && (player.get<Transform>().GetLocalPosition().z <= 2.0f)) {
+				JumpTimer += dt;
+				if (JumpTimer <= JumpTimeLimit)
+					player.get<Transform>().SetLocalPosition(LERP(currentPosition, JumpPosition, 0.05f));
+
+			}
+			else
+			{
+
+				JumpTimer = 0.0f;
+			}
+				
 
 
 			//LerpMove(Phantom, PhantomTimer, tPos, PhantomAttrib, endPos, startPos);
