@@ -888,6 +888,7 @@ int main() {
 		Texture2D::sptr diffuseMp18 = Texture2D::LoadFromFile("images/StoneTexture.png");
 		Texture2D::sptr diffuseMp19 = Texture2D::LoadFromFile("images/MailboxColor.png");
 		Texture2D::sptr diffuseMp20 = Texture2D::LoadFromFile("images/flowerTexture.png");
+		Texture2D::sptr diffuseMp21 = Texture2D::LoadFromFile("images/HouseColors.png");
 
 		Texture2DData::sptr specularMp02 = Texture2DData::LoadFromFile("images/Stone_001_Specular.png");
 
@@ -1036,6 +1037,12 @@ int main() {
 		material19->Set("s_Diffuse", diffuseMp20);
 		material19->Set("u_Shininess", 8.0f);
 		material19->Set("u_OutlineThickness", 0.15f);
+
+		ShaderMaterial::sptr material20 = ShaderMaterial::Create();
+		material20->Shader = shader;
+		material20->Set("s_Diffuse", diffuseMp21);
+		material20->Set("u_Shininess", 8.0f);
+		material20->Set("u_OutlineThickness", 0.15f);
 
 
 		/////////////////////////////////////////////////////////////////////////////
@@ -1410,6 +1417,16 @@ int main() {
 			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
 		}
 
+		/*GameObject House = scene->CreateEntity("House");
+		{
+			VertexArrayObject::sptr HouseVAO = ObjLoader::LoadFromFile("models/House.obj");
+			House.emplace<RendererComponent>().SetMesh(HouseVAO).SetMaterial(material20);
+			House.get<Transform>().SetLocalPosition(-10.0f, -15.5f, -2.7f);
+			House.get<Transform>().SetLocalRotation(90.0f, 0.0f, 60.0f);
+			House.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(House);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}*/
 
 
 
@@ -2023,6 +2040,7 @@ int main() {
 			
 
 			GetDistance(player, Coin, CoinDistance);
+
 			MoveWizard(player, Wizard, WizardDistance, CoinCount);
 
 
