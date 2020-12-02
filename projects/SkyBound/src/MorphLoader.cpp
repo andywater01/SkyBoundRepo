@@ -10,7 +10,9 @@
 
 
 
-MeshBuilder<VertexPosNormTexCol> MorphLoader::LoadFromFile(const std::string& filename, const glm::vec4& inColor)
+
+/*
+Frames MorphLoader::LoadFromFile(const std::string& filename, const glm::vec4& inColor)
 {
 	// Open our file in binary mode
 	std::ifstream file;
@@ -132,9 +134,10 @@ MeshBuilder<VertexPosNormTexCol> MorphLoader::LoadFromFile(const std::string& fi
 	// You'll need to keep track of these and create vertex entries for each vertex in the face
 	// If you want to get fancy, you can track which vertices you've already added
 
-	
-	return mesh;
+
+	return mesh.Bake();
 }
+*/
 
 MorphLoader::~MorphLoader()
 {

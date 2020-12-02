@@ -142,7 +142,7 @@ public:
 	}
 
 	
-	VertexArrayObject::sptr Bake2() {
+	VertexArrayObject::sptr Bake2(std::vector<VertexBuffer::sptr> vbo) {
 		VertexBuffer::sptr vbo = VertexBuffer::Create();
 		vbo->LoadData(GetVertexDataPtr(), _vertices.size());
 
