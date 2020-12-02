@@ -32,7 +32,7 @@ VertexArrayObject::sptr ObjLoader::LoadFromFile(const std::string& filename, con
 	// We'll leverage the mesh builder class
 	MeshBuilder<VertexPosNormTexCol> mesh;
 	//std::vector<MeshBuilder<VertexPosNormTexCol>> mesh;
-
+	
 
 	// Temporaries for loading data
 	glm::vec3 temp;
