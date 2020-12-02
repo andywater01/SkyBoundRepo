@@ -28,6 +28,7 @@
 #include "Gameplay/Application.h"
 #include "Gameplay/RendererComponent.h"
 #include "Gameplay/GameObjectTag.h"
+#include "Gameplay/Texture.h"
 
 #include "Behaviours/SimpleMoveBehaviour.h"
 
@@ -97,10 +98,15 @@ bool isRotate = true;
 bool isLeft = true;
 int CoinCount = 0;
 
+//Scene number
+int RenderGroupBool = 1;
+int PlayerHealth = 3;
+
 bool canMoveForward = true;
 bool canMoveLeft = true;
 bool canMoveBack = true;
 bool canMoveRight = true;
+
 
 bool MovingForward = true;
 
@@ -382,7 +388,7 @@ void MoveWizard(GameObject player, GameObject wizard, glm::vec3 distance2, int c
 	if (distance2.x <= 2.0f && distance2.y <= 2.0f && coinCount >= 1 && glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS && gotCoin == true)
 	{
 		CoinCount = 0;
-		wizard.get<Transform>().SetLocalPosition(wizard.get<Transform>().GetLocalPosition() + glm::vec3(-35.0f, 4.0f, 0.0f));
+		wizard.get<Transform>().SetLocalPosition(wizard.get<Transform>().GetLocalPosition() + glm::vec3(-33.0f, 5.0f, 0.0f));
 	}
 }
 
@@ -390,13 +396,13 @@ void MoveWizard(GameObject player, GameObject wizard, glm::vec3 distance2, int c
 
 
 
-void CheckCollision(GameObject player, GameObject other, float xRangePos, float xRangeNeg, float yRangePos, float yRangeNeg)
+void CheckCollision(GameObject player, GameObject otherObject, float xRangePos, float xRangeNeg, float yRangePos, float yRangeNeg)
 {
 	//Forward
-	if (player.get<Transform>().GetLocalPosition().x - xRangePos <= other.get<Transform>().GetLocalPosition().x + xRangeNeg &&
-		player.get<Transform>().GetLocalPosition().x >= other.get<Transform>().GetLocalPosition().x - xRangeNeg &&
-		player.get<Transform>().GetLocalPosition().y <= other.get<Transform>().GetLocalPosition().y + yRangePos &&
-		player.get<Transform>().GetLocalPosition().y >= other.get<Transform>().GetLocalPosition().y - yRangeNeg)
+	if (player.get<Transform>().GetLocalPosition().x - xRangePos <= otherObject.get<Transform>().GetLocalPosition().x + xRangeNeg &&
+		player.get<Transform>().GetLocalPosition().x >= otherObject.get<Transform>().GetLocalPosition().x - xRangeNeg &&
+		player.get<Transform>().GetLocalPosition().y <= otherObject.get<Transform>().GetLocalPosition().y + yRangePos &&
+		player.get<Transform>().GetLocalPosition().y >= otherObject.get<Transform>().GetLocalPosition().y - yRangeNeg)
 	{
 		std::cout << "Can't move forwards" << std::endl;
 		canMoveForward = false;
@@ -407,10 +413,10 @@ void CheckCollision(GameObject player, GameObject other, float xRangePos, float 
 		MovingForward = false;
 	}
 	//Backward
-	if (player.get<Transform>().GetLocalPosition().x + xRangePos >= other.get<Transform>().GetLocalPosition().x - xRangePos &&
-		player.get<Transform>().GetLocalPosition().x <= other.get<Transform>().GetLocalPosition().x + xRangeNeg &&
-		player.get<Transform>().GetLocalPosition().y <= other.get<Transform>().GetLocalPosition().y + yRangePos &&
-		player.get<Transform>().GetLocalPosition().y >= other.get<Transform>().GetLocalPosition().y - yRangeNeg)
+	if (player.get<Transform>().GetLocalPosition().x + xRangePos >= otherObject.get<Transform>().GetLocalPosition().x - xRangePos &&
+		player.get<Transform>().GetLocalPosition().x <= otherObject.get<Transform>().GetLocalPosition().x + xRangeNeg &&
+		player.get<Transform>().GetLocalPosition().y <= otherObject.get<Transform>().GetLocalPosition().y + yRangePos &&
+		player.get<Transform>().GetLocalPosition().y >= otherObject.get<Transform>().GetLocalPosition().y - yRangeNeg)
 	{
 		canMoveBack = false;
 		std::cout << "Can't move backwards" << std::endl;
@@ -422,10 +428,10 @@ void CheckCollision(GameObject player, GameObject other, float xRangePos, float 
 	}
 
 	//Left
-	if (player.get<Transform>().GetLocalPosition().y - yRangeNeg <= other.get<Transform>().GetLocalPosition().y + yRangePos &&
-		player.get<Transform>().GetLocalPosition().y >= other.get<Transform>().GetLocalPosition().y - yRangePos &&
-		player.get<Transform>().GetLocalPosition().x <= other.get<Transform>().GetLocalPosition().x + xRangeNeg &&
-		player.get<Transform>().GetLocalPosition().x >= other.get<Transform>().GetLocalPosition().x - xRangePos)
+	if (player.get<Transform>().GetLocalPosition().y - yRangeNeg <= otherObject.get<Transform>().GetLocalPosition().y + yRangePos &&
+		player.get<Transform>().GetLocalPosition().y >= otherObject.get<Transform>().GetLocalPosition().y - yRangePos &&
+		player.get<Transform>().GetLocalPosition().x <= otherObject.get<Transform>().GetLocalPosition().x + xRangeNeg &&
+		player.get<Transform>().GetLocalPosition().x >= otherObject.get<Transform>().GetLocalPosition().x - xRangePos)
 	{
 		canMoveLeft = false;
 		std::cout << "Can't move Left" << std::endl;
@@ -435,10 +441,10 @@ void CheckCollision(GameObject player, GameObject other, float xRangePos, float 
 		canMoveLeft = true;
 	}
 
-	if (player.get<Transform>().GetLocalPosition().y + yRangeNeg >= other.get<Transform>().GetLocalPosition().y - yRangePos &&
-		player.get<Transform>().GetLocalPosition().y <= other.get<Transform>().GetLocalPosition().y + yRangePos &&
-		player.get<Transform>().GetLocalPosition().x <= other.get<Transform>().GetLocalPosition().x + xRangeNeg &&
-		player.get<Transform>().GetLocalPosition().x >= other.get<Transform>().GetLocalPosition().x - xRangePos)
+	if (player.get<Transform>().GetLocalPosition().y + yRangeNeg >= otherObject.get<Transform>().GetLocalPosition().y - yRangePos &&
+		player.get<Transform>().GetLocalPosition().y <= otherObject.get<Transform>().GetLocalPosition().y + yRangePos &&
+		player.get<Transform>().GetLocalPosition().x <= otherObject.get<Transform>().GetLocalPosition().x + xRangeNeg &&
+		player.get<Transform>().GetLocalPosition().x >= otherObject.get<Transform>().GetLocalPosition().x - xRangePos)
 	{
 		canMoveRight = false;
 	}
@@ -451,7 +457,64 @@ void CheckCollision(GameObject player, GameObject other, float xRangePos, float 
 
 
 
+void CheckPhantomCollision(GameObject player, GameObject other, float xRangePos, float xRangeNeg, float yRangePos, float yRangeNeg)
+{
+	//Forward
+	if (player.get<Transform>().GetLocalPosition().x - xRangePos <= other.get<Transform>().GetLocalPosition().x + xRangeNeg &&
+		player.get<Transform>().GetLocalPosition().x >= other.get<Transform>().GetLocalPosition().x - xRangeNeg &&
+		player.get<Transform>().GetLocalPosition().y <= other.get<Transform>().GetLocalPosition().y + yRangePos &&
+		player.get<Transform>().GetLocalPosition().y >= other.get<Transform>().GetLocalPosition().y - yRangeNeg)
+	{
+		PlayerHealth--;
+		player.get<Transform>().SetLocalPosition(0.0f, 0.0f, 0.8f);
+	}
+	else
+	{
+		
+	}
+	//Backward
+	if (player.get<Transform>().GetLocalPosition().x + xRangePos >= other.get<Transform>().GetLocalPosition().x - xRangePos &&
+		player.get<Transform>().GetLocalPosition().x <= other.get<Transform>().GetLocalPosition().x + xRangeNeg &&
+		player.get<Transform>().GetLocalPosition().y <= other.get<Transform>().GetLocalPosition().y + yRangePos &&
+		player.get<Transform>().GetLocalPosition().y >= other.get<Transform>().GetLocalPosition().y - yRangeNeg)
+	{
+		PlayerHealth--;
+		player.get<Transform>().SetLocalPosition(0.0f, 0.0f, 0.8f);
+	}
+	else
+	{
+		
 
+	}
+
+	//Left
+	if (player.get<Transform>().GetLocalPosition().y - yRangeNeg <= other.get<Transform>().GetLocalPosition().y + yRangePos &&
+		player.get<Transform>().GetLocalPosition().y >= other.get<Transform>().GetLocalPosition().y - yRangePos &&
+		player.get<Transform>().GetLocalPosition().x <= other.get<Transform>().GetLocalPosition().x + xRangeNeg &&
+		player.get<Transform>().GetLocalPosition().x >= other.get<Transform>().GetLocalPosition().x - xRangePos)
+	{
+		PlayerHealth--;
+		player.get<Transform>().SetLocalPosition(0.0f, 0.0f, 0.8f);
+	}
+	else
+	{
+		
+	}
+
+	if (player.get<Transform>().GetLocalPosition().y + yRangeNeg >= other.get<Transform>().GetLocalPosition().y - yRangePos &&
+		player.get<Transform>().GetLocalPosition().y <= other.get<Transform>().GetLocalPosition().y + yRangePos &&
+		player.get<Transform>().GetLocalPosition().x <= other.get<Transform>().GetLocalPosition().x + xRangeNeg &&
+		player.get<Transform>().GetLocalPosition().x >= other.get<Transform>().GetLocalPosition().x - xRangePos)
+	{
+		PlayerHealth--;
+		player.get<Transform>().SetLocalPosition(0.0f, 0.0f, 0.8f);
+	}
+	else
+	{
+		
+	}
+
+}
 
 
 
@@ -475,7 +538,7 @@ int main() {
 		return 1;
 
 	//BG music
-	//PlaySound(TEXT("Music/Island1Music.wav"), NULL, SND_ASYNC | SND_FILENAME | SND_LOOP);
+	PlaySound(TEXT("Music/Island1Music.wav"), NULL, SND_ASYNC | SND_FILENAME | SND_LOOP);
 
 
 
@@ -563,18 +626,33 @@ int main() {
 	glm::vec3 endPos = glm::vec3(-35.0f, -9.5f, -1.0f);
 	glm::vec3 startPos = glm::vec3(-35.0f, 9.5f, -1.0f);
 
+	glm::vec3 endPos2 = glm::vec3(-30.0f, 9.5f, -1.0f);
+	glm::vec3 startPos2 = glm::vec3(-30.0f, -9.5f, -1.0f);
+
 	float PhantomTimer = 0.0f;
-	float PhantomTimeLimit = 4.0f;
+	float PhantomTimer2 = 0.0f;
+
+	float PhantomTimeLimit = 2.0f;
+	float PhantomTimeLimit2 = 2.0f;
+
 	bool PhantomMove = true;
+	bool PhantomMove2 = true;
 
 	//Phantom Rotation Lerp
 	glm::quat startPhantomRot = glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
 	glm::quat endPhantomRot = glm::angleAxis(glm::radians(180.0f), glm::vec3(1.0f, 1.0f, 1.0f));
 
+	glm::quat startPhantomRot2 = glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+	glm::quat endPhantomRot2 = glm::angleAxis(glm::radians(180.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+
 	float PhantomRotTimer = 0.0f;
 	float PhantomRotTimeLimit = 4.0f;
+
 	bool PhantomRot = true;
+	bool PhantomRot2 = true;
+
 	bool flipPhantom = false;
+	bool flipPhantom2 = false;
 
 	//////////////////////////////////////////////////////////////////////////////////////
 
@@ -634,18 +712,61 @@ int main() {
 		shader->SetUniform("u_OutlineThickness", outlineThickness);
 
 
+		/*Shader::sptr shader2 = Shader::Create();
+		shader2->LoadShaderPartFromFile("shaders/vertex_shader.glsl", GL_VERTEX_SHADER);
+		shader2->LoadShaderPartFromFile("shaders/frag_blinn_phong_textured.glsl", GL_FRAGMENT_SHADER);
+		shader2->Link();
+
+		glm::vec3 lightPos2 = glm::vec3(-30.0f, 0.0f, 6.0f);
+		glm::vec3 lightCol2 = glm::vec3(0.9f, 0.85f, 0.5f);
+		float     lightAmbientPow2 = 0.05f;
+		float     lightSpecularPow2 = 1.0f;
+		glm::vec3 ambientCol2 = glm::vec3(1.0f);
+		float     ambientPow2 = 0.8f;
+		float     textureMix2 = 0.2f;
+		float     shininess2 = 4.0f;
+		float     lightLinearFalloff2 = 0.09f;
+		float     lightQuadraticFalloff2 = 0.032f;
+		float     outlineThickness2 = 0.15;
+
+		// These are our application / scene level uniforms that don't necessarily update
+		// every frame
+		shader2->SetUniform("u_LightPos", lightPos2);
+		shader2->SetUniform("u_LightCol", lightCol2);
+		shader2->SetUniform("u_AmbientLightStrength", lightAmbientPow2);
+		shader2->SetUniform("u_SpecularLightStrength", lightSpecularPow2);
+		shader2->SetUniform("u_AmbientCol", ambientCol2);
+		shader2->SetUniform("u_AmbientStrength", ambientPow2);
+		shader2->SetUniform("u_TextureMix", textureMix2);
+		shader2->SetUniform("u_Shininess", shininess2);*/
+
 
 		Texture2D::sptr PlayerDiffuse = Texture2D::LoadFromFile("images/SkyBoundCharUV2.png");
-		Texture2D::sptr diffuseMp02 = Texture2D::LoadFromFile("images/GrassIslandColours.png");
+		Texture2D::sptr diffuseMp02 = Texture2D::LoadFromFile("images/plains_island_texture.png");
 		Texture2D::sptr diffuseMp03 = Texture2D::LoadFromFile("images/WizardColours.png");
 		Texture2D::sptr diffuseMp04 = Texture2D::LoadFromFile("images/PhantomColours.png");
 		Texture2D::sptr diffuseMp05 = Texture2D::LoadFromFile("images/CoinTex.png");
+		Texture2D::sptr diffuseMp06 = Texture2D::LoadFromFile("images/MoundColours.png");
+		Texture2D::sptr diffuseMp07 = Texture2D::LoadFromFile("images/WishingWellColours.png");
+		Texture2D::sptr diffuseMp08 = Texture2D::LoadFromFile("images/FlowerUVsColor.png");
+		Texture2D::sptr diffuseMp09 = Texture2D::LoadFromFile("images/portal_texture.png");
+		Texture2D::sptr diffuseMp10 = Texture2D::LoadFromFile("images/crystal_texture.png");
+		Texture2D::sptr diffuseMp11 = Texture2D::LoadFromFile("images/taiga_island_texture.png");
+		Texture2D::sptr diffuseMp12 = Texture2D::LoadFromFile("images/BushColour.png");
+		Texture2D::sptr diffuseMp13 = Texture2D::LoadFromFile("images/BlackColour.png");
+		Texture2D::sptr diffuseMp14 = Texture2D::LoadFromFile("images/brown.png");
+		Texture2D::sptr diffuseMp15 = Texture2D::LoadFromFile("images/SignTexture.png");
+		Texture2D::sptr diffuseMp16 = Texture2D::LoadFromFile("images/TreeTexture.png");
+		Texture2D::sptr diffuseMp17 = Texture2D::LoadFromFile("images/PlatformTexture.png");
+		Texture2D::sptr diffuseMp18 = Texture2D::LoadFromFile("images/StoneTexture.png");
+		Texture2D::sptr diffuseMp19 = Texture2D::LoadFromFile("images/MailboxColor.png");
+		Texture2D::sptr diffuseMp20 = Texture2D::LoadFromFile("images/flowerTexture.png");
 
 		Texture2DData::sptr specularMp02 = Texture2DData::LoadFromFile("images/Stone_001_Specular.png");
 
 		// Load the cube map
 		//TextureCubeMap::sptr environmentMap = TextureCubeMap::LoadFromImages("images/cubemaps/skybox/sample.jpg");
-		TextureCubeMap::sptr environmentMap = TextureCubeMap::LoadFromImages("images/cubemaps/skybox/ocean.jpg");
+		TextureCubeMap::sptr environmentMap = TextureCubeMap::LoadFromImages("images/cubemaps/skybox/Sky.jpg");
 
 
 
@@ -699,14 +820,104 @@ int main() {
 		material4->Set("u_Shininess", 8.0f);
 		material4->Set("u_OutlineThickness", 0.65f);
 
+		ShaderMaterial::sptr material5 = ShaderMaterial::Create();
+		material5->Shader = shader;
+		material5->Set("s_Diffuse", diffuseMp06);
+		material5->Set("u_Shininess", 8.0f);
+		material5->Set("u_OutlineThickness", 0.18f);
+
+		ShaderMaterial::sptr material6 = ShaderMaterial::Create();
+		material6->Shader = shader;
+		material6->Set("s_Diffuse", diffuseMp07);
+		material6->Set("u_Shininess", 8.0f);
+		material6->Set("u_OutlineThickness", 0.22f);
+
+		ShaderMaterial::sptr material7 = ShaderMaterial::Create();
+		material7->Shader = shader;
+		material7->Set("s_Diffuse", diffuseMp08);
+		material7->Set("u_Shininess", 8.0f);
+		material7->Set("u_OutlineThickness", 0.08f);
+
+		ShaderMaterial::sptr material8 = ShaderMaterial::Create();
+		material8->Shader = shader;
+		material8->Set("s_Diffuse", diffuseMp09);
+		material8->Set("u_Shininess", 8.0f);
+		material8->Set("u_OutlineThickness", 0.08f);
+
+		ShaderMaterial::sptr material9 = ShaderMaterial::Create();
+		material9->Shader = shader;
+		material9->Set("s_Diffuse", diffuseMp10);
+		material9->Set("u_Shininess", 8.0f);
+		material9->Set("u_OutlineThickness", 0.08f);
+
+		ShaderMaterial::sptr material10 = ShaderMaterial::Create();
+		material10->Shader = shader;
+		material10->Set("s_Diffuse", diffuseMp11);
+		material10->Set("u_Shininess", 8.0f);
+		material10->Set("u_OutlineThickness", 0.08f);
+
+		ShaderMaterial::sptr material11 = ShaderMaterial::Create();
+		material11->Shader = shader;
+		material11->Set("s_Diffuse", diffuseMp12);
+		material11->Set("u_Shininess", 8.0f);
+		material11->Set("u_OutlineThickness", 0.42f);
+
+		ShaderMaterial::sptr material12 = ShaderMaterial::Create();
+		material12->Shader = shader;
+		material12->Set("s_Diffuse", diffuseMp13);
+		material12->Set("u_Shininess", 8.0f);
+		material12->Set("u_OutlineThickness", 0.12f);
+
+		ShaderMaterial::sptr material13 = ShaderMaterial::Create();
+		material13->Shader = shader;
+		material13->Set("s_Diffuse", diffuseMp14);
+		material13->Set("u_Shininess", 8.0f);
+		material13->Set("u_OutlineThickness", 0.4f);
+
+		ShaderMaterial::sptr material14 = ShaderMaterial::Create();
+		material14->Shader = shader;
+		material14->Set("s_Diffuse", diffuseMp15);
+		material14->Set("u_Shininess", 8.0f);
+		material14->Set("u_OutlineThickness", 0.15f);
+
+		ShaderMaterial::sptr material15 = ShaderMaterial::Create();
+		material15->Shader = shader;
+		material15->Set("s_Diffuse", diffuseMp16);
+		material15->Set("u_Shininess", 8.0f);
+		material15->Set("u_OutlineThickness", 0.35f);
+
+		ShaderMaterial::sptr material16 = ShaderMaterial::Create();
+		material16->Shader = shader;
+		material16->Set("s_Diffuse", diffuseMp17);
+		material16->Set("u_Shininess", 8.0f);
+		material16->Set("u_OutlineThickness", 0.15f);
+
+		ShaderMaterial::sptr material17 = ShaderMaterial::Create();
+		material17->Shader = shader;
+		material17->Set("s_Diffuse", diffuseMp18);
+		material17->Set("u_Shininess", 8.0f);
+		material17->Set("u_OutlineThickness", 0.15f);
+
+		ShaderMaterial::sptr material18 = ShaderMaterial::Create();
+		material18->Shader = shader;
+		material18->Set("s_Diffuse", diffuseMp19);
+		material18->Set("u_Shininess", 8.0f);
+		material18->Set("u_OutlineThickness", 0.15f);
+
+		ShaderMaterial::sptr material19 = ShaderMaterial::Create();
+		material19->Shader = shader;
+		material19->Set("s_Diffuse", diffuseMp20);
+		material19->Set("u_Shininess", 8.0f);
+		material19->Set("u_OutlineThickness", 0.15f);
+
+
+		/////////////////////////////////////////////////////////////////////////////
+
 		//X = In and Out
 		//Y = Left and Right
 		//Z = up and down
 
 
-
-
-		
 
 		GameObject player = scene->CreateEntity("player");
 		{
@@ -714,7 +925,7 @@ int main() {
 			
 
 			player.emplace<RendererComponent>().SetMesh(PlayerVAO).SetMaterial(material0);
-			player.get<Transform>().SetLocalPosition(0.5f, 0.5f, 1.5f);
+			player.get<Transform>().SetLocalPosition(0.5f, 0.0f, 1.5f);
 			player.get<Transform>().SetLocalRotation(90.0f, 0.0f, 180.0f);
 			player.get<Transform>().SetLocalScale(0.5f, 0.5f, 0.5f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(player);
@@ -767,11 +978,11 @@ int main() {
 
 		GameObject island1 = scene->CreateEntity("Island1");
 		{
-			VertexArrayObject::sptr Island1VAO = ObjLoader::LoadFromFile("models/Island1ObjectTex.obj");
+			VertexArrayObject::sptr Island1VAO = ObjLoader::LoadFromFile("models/plains_island.obj");
 			island1.emplace<RendererComponent>().SetMesh(Island1VAO).SetMaterial(material1);
-			island1.get<Transform>().SetLocalPosition(0.0f, 0.0f, -10.0f);
+			island1.get<Transform>().SetLocalPosition(0.0f, 0.0f, -4.5f);
 			island1.get<Transform>().SetLocalRotation(-90.0f, 180.0f, 0.0f);
-			island1.get<Transform>().SetLocalScale(2.0f, 2.0f, 2.0f);
+			island1.get<Transform>().SetLocalScale(1.5f, 1.5f, 1.5f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(island1);
 			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
 
@@ -806,9 +1017,9 @@ int main() {
 		
 		
 			island2.emplace<RendererComponent>().SetMesh(Island1VAO).SetMaterial(material1);
-			island2.get<Transform>().SetLocalPosition(-35.0f, 0.0f, -10.0f);
+			island2.get<Transform>().SetLocalPosition(-35.0f, 0.0f, -4.5f);
 			island2.get<Transform>().SetLocalRotation(-90.0f, 180.0f, 0.0f);
-			island2.get<Transform>().SetLocalScale(2.0f, 2.0f, 2.0f);
+			island2.get<Transform>().SetLocalScale(1.5f, 1.5f, 1.5f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(island2);
 			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
 		}
@@ -818,7 +1029,7 @@ int main() {
 		{
 			VertexArrayObject::sptr WizardVAO = ObjLoader::LoadFromFile("models/BridgeKeeper.obj");
 			Wizard.emplace<RendererComponent>().SetMesh(WizardVAO).SetMaterial(material2);
-			Wizard.get<Transform>().SetLocalPosition(-8.0f, 0.5f, -2.5f);
+			Wizard.get<Transform>().SetLocalPosition(-14.5f, 0.0f, -2.5f);
 			Wizard.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
 			Wizard.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Wizard);
@@ -869,6 +1080,17 @@ int main() {
 			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
 		}
 
+		GameObject Phantom2 = scene->CreateEntity("Phantom2");
+		{
+			VertexArrayObject::sptr PhantomVAO = ObjLoader::LoadFromFile("models/Phantom2.obj");
+			Phantom2.emplace<RendererComponent>().SetMesh(PhantomVAO).SetMaterial(material3);
+			Phantom2.get<Transform>().SetLocalPosition(-30.0f, -9.5f, -1.0f);
+			Phantom2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 180.0f);
+			Phantom2.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Phantom2);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
 
 		GameObject Coin = scene->CreateEntity("Coin");
 		{
@@ -880,6 +1102,190 @@ int main() {
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Coin);
 			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
 		}
+
+		GameObject Mound = scene->CreateEntity("Mound");
+		{
+			VertexArrayObject::sptr MoundVAO = ObjLoader::LoadFromFile("models/Mound.obj");
+			Mound.emplace<RendererComponent>().SetMesh(MoundVAO).SetMaterial(material5);
+			Mound.get<Transform>().SetLocalPosition(-13.0f, 17.0f, -4.0f);
+			Mound.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
+			Mound.get<Transform>().SetLocalScale(1.5f, 1.5f, 1.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Mound);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+
+			GameObject Mound2 = scene->CreateEntity("Mound2");
+			Mound2.emplace<RendererComponent>().SetMesh(MoundVAO).SetMaterial(material5);
+			Mound2.get<Transform>().SetLocalPosition(-46.5f, -17.5f, -4.0f);
+			Mound2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
+			Mound2.get<Transform>().SetLocalScale(1.5f, 1.5f, 1.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Mound2);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+
+			GameObject Mound3 = scene->CreateEntity("Mound3");
+			Mound3.emplace<RendererComponent>().SetMesh(MoundVAO).SetMaterial(material5);
+			Mound3.get<Transform>().SetLocalPosition(-17.5f, -9.5f, -4.0f);
+			Mound3.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
+			Mound3.get<Transform>().SetLocalScale(1.5f, 1.5f, 1.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Mound3);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
+		GameObject WishingWell = scene->CreateEntity("Wishing Well");
+		{
+			VertexArrayObject::sptr WishingWellVAO = ObjLoader::LoadFromFile("models/Wishing Well.obj");
+			WishingWell.emplace<RendererComponent>().SetMesh(WishingWellVAO).SetMaterial(material6);
+			WishingWell.get<Transform>().SetLocalPosition(-13.0f, 17.0f, -0.85f);
+			WishingWell.get<Transform>().SetLocalRotation(90.0f, 0.0f, 125.0f);
+			WishingWell.get<Transform>().SetLocalScale(0.4f, 0.4f, 0.4f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(WishingWell);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
+		GameObject Flower = scene->CreateEntity("flower");
+		{
+			VertexArrayObject::sptr FlowerVAO = ObjLoader::LoadFromFile("models/flower.obj");
+			Flower.emplace<RendererComponent>().SetMesh(FlowerVAO).SetMaterial(material7);
+			Flower.get<Transform>().SetLocalPosition(-5.8f, -4.2f, -2.3f);
+			Flower.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
+			Flower.get<Transform>().SetLocalScale(1.6f, 1.6f, 1.6f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Flower);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+
+			GameObject Flower2 = scene->CreateEntity("flower2");
+
+			Flower2.emplace<RendererComponent>().SetMesh(FlowerVAO).SetMaterial(material7);
+			Flower2.get<Transform>().SetLocalPosition(-6.3f, -4.4f, -2.3f);
+			Flower2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
+			Flower2.get<Transform>().SetLocalScale(1.6f, 1.6f, 1.6f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Flower2);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+
+			GameObject Flower3 = scene->CreateEntity("flower3");
+
+			Flower3.emplace<RendererComponent>().SetMesh(FlowerVAO).SetMaterial(material7);
+			Flower3.get<Transform>().SetLocalPosition(-5.6f, -3.6f, -2.3f);
+			Flower3.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
+			Flower3.get<Transform>().SetLocalScale(1.6f, 1.6f, 1.6f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Flower3);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+
+			GameObject Flower4 = scene->CreateEntity("flower4");
+
+			VertexArrayObject::sptr FlowerVAO2 = ObjLoader::LoadFromFile("models/hossain/flower.obj");
+			Flower4.emplace<RendererComponent>().SetMesh(FlowerVAO2).SetMaterial(material7);
+			Flower4.get<Transform>().SetLocalPosition(-45.0f, -16.5f, -1.0f);
+			Flower4.get<Transform>().SetLocalRotation(90.0f, 0.0f, -20.0f);
+			Flower4.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Flower4);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+			
+
+		}
+
+		GameObject Portal = scene->CreateEntity("Portal");
+		{
+			VertexArrayObject::sptr PortalVAO = ObjLoader::LoadFromFile("models/portal.obj");
+			Portal.emplace<RendererComponent>().SetMesh(PortalVAO).SetMaterial(material8);
+			Portal.get<Transform>().SetLocalPosition(-48.0f, -0.0f, 1.0f);
+			Portal.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
+			Portal.get<Transform>().SetLocalScale(3.0f, 3.0f, 3.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Portal);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
+		GameObject Crystal = scene->CreateEntity("Crystal");
+		{
+			VertexArrayObject::sptr CrystalVAO = ObjLoader::LoadFromFile("models/crystal.obj");
+			Crystal.emplace<RendererComponent>().SetMesh(CrystalVAO).SetMaterial(material9);
+			Crystal.get<Transform>().SetLocalPosition(-46.0f, -0.0f, -0.8f);
+			Crystal.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
+			Crystal.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Crystal);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
+		GameObject Bridge = scene->CreateEntity("Bridge");
+		{
+			VertexArrayObject::sptr BridgeVAO = ObjLoader::LoadFromFile("models/hossain/NewBridge.obj");
+			Bridge.emplace<RendererComponent>().SetMesh(BridgeVAO).SetMaterial(material13);
+			Bridge.get<Transform>().SetLocalPosition(-18.0f, -0.0f, -3.0f);
+			Bridge.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
+			Bridge.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Bridge);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
+
+		GameObject Cacti = scene->CreateEntity("Cactus");
+		{
+
+			VertexArrayObject::sptr CactiVAO = ObjLoader::LoadFromFile("models/hossain/cacti.obj");
+			Cacti.emplace<RendererComponent>().SetMesh(CactiVAO).SetMaterial(material11);
+			Cacti.get<Transform>().SetLocalPosition(-46.5f, -17.5f, -1.0f);
+			Cacti.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
+			Cacti.get<Transform>().SetLocalScale(0.5f, 0.5f, 0.5f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Cacti);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
+		GameObject Bush = scene->CreateEntity("Bush");
+		{
+			VertexArrayObject::sptr BushVAO = ObjLoader::LoadFromFile("models/Bush.obj");
+			Bush.emplace<RendererComponent>().SetMesh(BushVAO).SetMaterial(material11);
+			Bush.get<Transform>().SetLocalPosition(6.0f, 11.0f, -2.7f);
+			Bush.get<Transform>().SetLocalRotation(90.0f, 0.0f, 40.0f);
+			Bush.get<Transform>().SetLocalScale(2.0f, 2.0f, 2.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Bush);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
+		GameObject Sign = scene->CreateEntity("Sign");
+		{
+			VertexArrayObject::sptr SignVAO = ObjLoader::LoadFromFile("models/Fardeen/Sign.obj");
+			Sign.emplace<RendererComponent>().SetMesh(SignVAO).SetMaterial(material14);
+			Sign.get<Transform>().SetLocalPosition(-6.0f, -5.0f, -2.7f);
+			Sign.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
+			Sign.get<Transform>().SetLocalScale(0.8f, 0.8f, 0.8f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Sign);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
+		GameObject Tree = scene->CreateEntity("Tree");
+		{
+			VertexArrayObject::sptr TreeVAO = ObjLoader::LoadFromFile("models/Fardeen/Tree.obj");
+			Tree.emplace<RendererComponent>().SetMesh(TreeVAO).SetMaterial(material15);
+			Tree.get<Transform>().SetLocalPosition(-17.5f, -9.5f, -2.7f);
+			Tree.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
+			Tree.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Tree);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
+		GameObject Platform = scene->CreateEntity("Platform");
+		{
+			VertexArrayObject::sptr PlatformVAO = ObjLoader::LoadFromFile("models/Fardeen/Platform.obj");
+			Platform.emplace<RendererComponent>().SetMesh(PlatformVAO).SetMaterial(material16);
+			Platform.get<Transform>().SetLocalPosition(9.5f, 9.5f, -2.7f);
+			Platform.get<Transform>().SetLocalRotation(90.0f, 0.0f, -60.0f);
+			Platform.get<Transform>().SetLocalScale(2.0f, 2.0f, 2.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Platform);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
+		GameObject Mailbox = scene->CreateEntity("mailbox");
+		{
+			VertexArrayObject::sptr MailboxVAO = ObjLoader::LoadFromFile("models/hossain/mailbox.obj");
+			Mailbox.emplace<RendererComponent>().SetMesh(MailboxVAO).SetMaterial(material18);
+			Mailbox.get<Transform>().SetLocalPosition(11.0f, 7.5f, -2.7f);
+			Mailbox.get<Transform>().SetLocalRotation(90.0f, 0.0f, -60.0f);
+			Mailbox.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Mailbox);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
+
+
+
 		
 		// Load a second material for our reflective material!
 		Shader::sptr reflectiveShader = Shader::Create();
@@ -918,18 +1324,87 @@ int main() {
 
 
 
-		GameObject obj5 = scene2->CreateEntity("cube");
+		GameObject TaigaGround = scene2->CreateEntity("Taiga");
 		{
-			MeshBuilder<VertexPosNormTexCol> builder = MeshBuilder<VertexPosNormTexCol>();
-			MeshFactory::AddCube(builder, glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f));
-			VertexArrayObject::sptr vao = builder.Bake();
 
-			obj5.emplace<RendererComponent>().SetMesh(vao).SetMaterial(reflectiveMat);
-			obj5.get<Transform>().SetLocalPosition(-4.0f, 0.0f, 2.0f);
-			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(obj5);
+			VertexArrayObject::sptr TaigaVAO = ObjLoader::LoadFromFile("models/taiga_island.obj");
+			TaigaGround.emplace<RendererComponent>().SetMesh(TaigaVAO).SetMaterial(material10);
+			TaigaGround.get<Transform>().SetLocalPosition(-10.0f, -0.0f, -5.0f);
+			TaigaGround.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
+			TaigaGround.get<Transform>().SetLocalScale(1.5f, 1.5f, 1.5f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(TaigaGround);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
 		}
 
+		GameObject FenceEnd = scene2->CreateEntity("Fence End");
+		{
+
+			VertexArrayObject::sptr FenceEndVAO = ObjLoader::LoadFromFile("models/hossain/Fence end.obj");
+			FenceEnd.emplace<RendererComponent>().SetMesh(FenceEndVAO).SetMaterial(material13);
+			FenceEnd.get<Transform>().SetLocalPosition(-16.0f, -6.7f, -0.8f);
+			FenceEnd.get<Transform>().SetLocalRotation(90.0f, 0.0f, 32.0f);
+			FenceEnd.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(FenceEnd);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
+		GameObject Rock = scene2->CreateEntity("Rock");
+		{
+
+			VertexArrayObject::sptr RockVAO = ObjLoader::LoadFromFile("models/Fardeen/Rock.obj");
+			Rock.emplace<RendererComponent>().SetMesh(RockVAO).SetMaterial(material17);
+			Rock.get<Transform>().SetLocalPosition(-12.0f, 6.7f, -0.8f);
+			Rock.get<Transform>().SetLocalRotation(90.0f, 0.0f, 70.0f);
+			Rock.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Rock);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
+		/*GameObject Bush2 = scene2->CreateEntity("Bush2");
+		{
+
+			VertexArrayObject::sptr BushVAO2 = ObjLoader::LoadFromFile("models/hossain/bush_and_shrubs.obj");
+			Bush2.emplace<RendererComponent>().SetMesh(BushVAO2).SetMaterial(material4);
+			Bush2.get<Transform>().SetLocalPosition(-6.0f, 4.7f, -0.8f);
+			Bush2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
+			Bush2.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Bush2);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}*/
+
+
 		#pragma endregion
+
+
+		#pragma region DeathScene
+
+		GameScene::RegisterComponentType<RendererComponent>();
+		GameScene::RegisterComponentType<BehaviourBinding>();
+		GameScene::RegisterComponentType<Camera>();
+
+		GameScene::sptr scene3 = GameScene::Create("Scene 3");
+		Application::Instance().ActiveScene = scene3;
+
+		auto renderGroup3 = scene3->Registry().group<RendererComponent, Transform>();
+
+
+
+		GameObject GameOver = scene3->CreateEntity("Game Over");
+		{
+
+			VertexArrayObject::sptr GameOverVAO = ObjLoader::LoadFromFile("models/YouDied.obj");
+			GameOver.emplace<RendererComponent>().SetMesh(GameOverVAO).SetMaterial(material12);
+			GameOver.get<Transform>().SetLocalPosition(-5.0f, 0.0f, 0.0f);
+			GameOver.get<Transform>().SetLocalRotation(90.0f, 0.0f, -90.0f);
+			GameOver.get<Transform>().SetLocalScale(3.0f, 3.0f, 3.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(GameOver);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
+
+
+		#pragma endregion
+		
 		//////////////////////////////////////////////////////////////////////////////////////////
 
 		{
@@ -956,6 +1431,10 @@ int main() {
 			GameObject skyboxObj = scene->CreateEntity("skybox");
 			skyboxObj.get<Transform>().SetLocalPosition(0.0f, 0.0f, 0.0f);
 			skyboxObj.get_or_emplace<RendererComponent>().SetMesh(meshVao).SetMaterial(skyboxMat);
+
+			GameObject skyboxObj2 = scene2->CreateEntity("skybox2");
+			skyboxObj2.get<Transform>().SetLocalPosition(0.0f, 0.0f, 0.0f);
+			skyboxObj2.get_or_emplace<RendererComponent>().SetMesh(meshVao).SetMaterial(skyboxMat);
 		}
 
 
@@ -1088,7 +1567,7 @@ int main() {
 		camera->SetPosition(glm::vec3(4.0f, 1.2f, 2.0f)); // Set initial position
 		camera->SetUp(glm::vec3(0, 0, 1)); // Use a z-up coordinate system
 		camera->LookAt(glm::vec3(0.0f)); // Look at center of the screen
-		camera->SetFovDegrees(90.0f); // Set an initial FOV
+		camera->SetFovDegrees(84.0f); // Set an initial FOV
 		camera->SetOrthoHeight(3.0f);
 
 		// We'll use a vector to store all our key press events for now
@@ -1163,6 +1642,17 @@ int main() {
 				player.get<Transform>().SetLocalPosition(player.get<Transform>().GetLocalPosition() - glm::vec3(0.0f, 0.0f, 2.0f * dt));
 			}
 
+			if (player.get<Transform>().GetLocalPosition().x <= -49 && gotCoin == true)
+			{
+				player.get<Transform>().SetLocalPosition(0.0f, 0.0f, 0.0f);
+				RenderGroupBool = 2;
+			}
+			if (PlayerHealth <= 0)
+			{
+				player.get<Transform>().SetLocalPosition(0.0f, 0.0f, 0.0f);
+				RenderGroupBool = 3;
+			}
+
 			//player.get<Transform>().SetLocalPosition(player.get<Transform>().GetLocalPosition() - glm::vec3(0.0f, 0.0f, 2.0f * dt));
 			
 
@@ -1199,6 +1689,9 @@ int main() {
 
 			
 			CheckCollision(player, Wizard, 0.85f, 0.85f, 0.85f, 0.85f);
+			//CheckCollision(player, Sign, 0.6f, 0.6f, 0.6f, 0.6f);
+			CheckPhantomCollision(player, Phantom, 0.8f, 0.8f, 0.8f, 0.8f);
+			CheckPhantomCollision(player, Phantom2, 0.8f, 0.8f, 0.8f, 0.8f);
 
 
 			
@@ -1245,6 +1738,48 @@ int main() {
 			}
 
 
+
+			PhantomTimer2 += dt;
+
+			if (PhantomTimer2 >= PhantomTimeLimit2)
+			{
+				PhantomTimer2 = 0.0f;
+				PhantomMove2 = !PhantomMove2;
+			}
+
+			float phantomTPos2 = PhantomTimer2 / PhantomTimeLimit2;
+
+			if (PhantomMove2 == true)
+			{
+				Phantom2.get<Transform>().SetLocalPosition(LERP(startPos2, endPos2, phantomTPos2));
+			}
+			else if (PhantomMove2 == false)
+			{
+				Phantom2.get<Transform>().SetLocalPosition(LERP(endPos2, startPos2, phantomTPos2));
+			}
+
+
+			if (Phantom2.get<Transform>().GetLocalPosition() == startPos2)
+			{
+				if (flipPhantom2)
+				{
+					Phantom2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 180.0f);
+					//Phantom.get<Transform>().SetLocalScale(Phantom.get<Transform>().GetLocalScale() * glm::vec3(1.0f, 1.0f, -1.0f));
+				}
+			}
+
+			if (Phantom2.get<Transform>().GetLocalPosition() == endPos2)
+			{
+				flipPhantom2 = true;
+
+				if (flipPhantom2)
+				{
+					Phantom2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
+					//Phantom.get<Transform>().SetLocalScale(Phantom.get<Transform>().GetLocalScale() * glm::vec3(1.0f, 1.0f, -1.0f));
+				}
+			}
+
+
 			//LerpMove(Phantom, PhantomTimer, tPos, PhantomAttrib, endPos, startPos);
 			//std::cout << (endPos.y) << std::endl;
 			//std::cout << (Phantom.get<Transform>().GetLocalPosition().y) << std::endl;
@@ -1274,7 +1809,7 @@ int main() {
 				{
 					if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
 					{
-						speed = 12.0f;
+						speed = 9.0f;
 
 						speedTimer += dt;
 
@@ -1311,7 +1846,7 @@ int main() {
 
 
 
-			glClearColor(0.08f, 0.17f, 0.31f, 1.0f);
+			glClearColor(0.99f, 0.0f, 0.0f, 1.0f);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			shader->Bind();
@@ -1378,42 +1913,122 @@ int main() {
 
 			// Sort the renderers by shader and material, we will go for a minimizing context switches approach here,
 			// but you could for instance sort front to back to optimize for fill rate if you have intensive fragment shaders
-			renderGroup.sort<RendererComponent>([](const RendererComponent& l, const RendererComponent& r) {
-				// Sort by render layer first, higher numbers get drawn last
-				if (l.Material->RenderLayer < r.Material->RenderLayer) return true;
-				if (l.Material->RenderLayer > r.Material->RenderLayer) return false;
+			if (RenderGroupBool == 1)
+			{
+				renderGroup.sort<RendererComponent>([](const RendererComponent& l, const RendererComponent& r) {
+					// Sort by render layer first, higher numbers get drawn last
+					if (l.Material->RenderLayer < r.Material->RenderLayer) return true;
+					if (l.Material->RenderLayer > r.Material->RenderLayer) return false;
 
-				// Sort by shader pointer next (so materials using the same shader run sequentially where possible)
-				if (l.Material->Shader < r.Material->Shader) return true;
-				if (l.Material->Shader > r.Material->Shader) return false;
+					// Sort by shader pointer next (so materials using the same shader run sequentially where possible)
+					if (l.Material->Shader < r.Material->Shader) return true;
+					if (l.Material->Shader > r.Material->Shader) return false;
 
-				// Sort by material pointer last (so we can minimize switching between materials)
-				if (l.Material < r.Material) return true;
-				if (l.Material > r.Material) return false;
+					// Sort by material pointer last (so we can minimize switching between materials)
+					if (l.Material < r.Material) return true;
+					if (l.Material > r.Material) return false;
 
-				return false;
-				});
+					return false;
+					});
+			}
+			else if (RenderGroupBool == 2)
+			{
+				renderGroup2.sort<RendererComponent>([](const RendererComponent& l, const RendererComponent& r) {
+					// Sort by render layer first, higher numbers get drawn last
+					if (l.Material->RenderLayer < r.Material->RenderLayer) return true;
+					if (l.Material->RenderLayer > r.Material->RenderLayer) return false;
+
+					// Sort by shader pointer next (so materials using the same shader run sequentially where possible)
+					if (l.Material->Shader < r.Material->Shader) return true;
+					if (l.Material->Shader > r.Material->Shader) return false;
+
+					// Sort by material pointer last (so we can minimize switching between materials)
+					if (l.Material < r.Material) return true;
+					if (l.Material > r.Material) return false;
+
+					return false;
+					});
+			}
+			else if (RenderGroupBool == 3)
+			{
+				renderGroup3.sort<RendererComponent>([](const RendererComponent& l, const RendererComponent& r) {
+					// Sort by render layer first, higher numbers get drawn last
+					if (l.Material->RenderLayer < r.Material->RenderLayer) return true;
+					if (l.Material->RenderLayer > r.Material->RenderLayer) return false;
+
+					// Sort by shader pointer next (so materials using the same shader run sequentially where possible)
+					if (l.Material->Shader < r.Material->Shader) return true;
+					if (l.Material->Shader > r.Material->Shader) return false;
+
+					// Sort by material pointer last (so we can minimize switching between materials)
+					if (l.Material < r.Material) return true;
+					if (l.Material > r.Material) return false;
+
+					return false;
+					});
+			}
+			
 
 			// Start by assuming no shader or material is applied
 			Shader::sptr current = nullptr;
 			ShaderMaterial::sptr currentMat = nullptr;
 
 			// Iterate over the render group components and draw them
-			renderGroup.each([&](entt::entity, RendererComponent& renderer, Transform& transform) {
-				// If the shader has changed, bind it and set up it's uniforms
-				if (current != renderer.Material->Shader) {
-					current = renderer.Material->Shader;
-					current->Bind();
-					SetupShaderForFrame(current, view, projection);
-				}
-				// If the material has changed, apply it
-				if (currentMat != renderer.Material) {
-					currentMat = renderer.Material;
-					currentMat->Apply();
-				}
-				// Render the mesh
-				RenderVAO(renderer.Material->Shader, renderer.Mesh, viewProjection, transform);
-			});
+			if (RenderGroupBool == 1)
+			{
+				renderGroup.each([&](entt::entity, RendererComponent& renderer, Transform& transform) {
+					// If the shader has changed, bind it and set up it's uniforms
+					if (current != renderer.Material->Shader) {
+						current = renderer.Material->Shader;
+						current->Bind();
+						SetupShaderForFrame(current, view, projection);
+					}
+					// If the material has changed, apply it
+					if (currentMat != renderer.Material) {
+						currentMat = renderer.Material;
+						currentMat->Apply();
+					}
+					// Render the mesh
+					RenderVAO(renderer.Material->Shader, renderer.Mesh, viewProjection, transform);
+					});
+			}
+			else if (RenderGroupBool == 2)
+			{
+				renderGroup2.each([&](entt::entity, RendererComponent& renderer, Transform& transform) {
+					// If the shader has changed, bind it and set up it's uniforms
+					if (current != renderer.Material->Shader) {
+						current = renderer.Material->Shader;
+						current->Bind();
+						SetupShaderForFrame(current, view, projection);
+					}
+					// If the material has changed, apply it
+					if (currentMat != renderer.Material) {
+						currentMat = renderer.Material;
+						currentMat->Apply();
+					}
+					// Render the mesh
+					RenderVAO(renderer.Material->Shader, renderer.Mesh, viewProjection, transform);
+					});
+			}
+			else if (RenderGroupBool == 3)
+			{
+				renderGroup3.each([&](entt::entity, RendererComponent& renderer, Transform& transform) {
+					// If the shader has changed, bind it and set up it's uniforms
+					if (current != renderer.Material->Shader) {
+						current = renderer.Material->Shader;
+						current->Bind();
+						SetupShaderForFrame(current, view, projection);
+					}
+					// If the material has changed, apply it
+					if (currentMat != renderer.Material) {
+						currentMat = renderer.Material;
+						currentMat->Apply();
+					}
+					// Render the mesh
+					RenderVAO(renderer.Material->Shader, renderer.Mesh, viewProjection, transform);
+					});
+			}
+			
 			
 			
 			/// Do some simulations
