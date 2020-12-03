@@ -48,7 +48,7 @@ namespace nou
 		virtual void Draw();
 
 		protected:
-
+		
 		Entity* m_owner;
 		Material* m_mat;
 		std::unique_ptr<VertexArray> m_vao;

@@ -167,7 +167,7 @@ public:
 		return vao;
 	}
 	
-	VertexArrayObject::sptr returnVBO() {
+	VertexBuffer::sptr returnVBO() {
 
 		VertexBuffer::sptr vbo = VertexBuffer::Create();
 		vbo->LoadData(GetVertexDataPtr(), _vertices.size());

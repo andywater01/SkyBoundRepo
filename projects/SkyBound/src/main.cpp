@@ -52,6 +52,7 @@
 #include "Utilities/ObjLoader.h"
 #include "MorphLoader.h"
 #include "Utilities/VertexTypes.h"
+#include "MorphRenderer.h"
 #include "bullet/btBulletCollisionCommon.h"
 #include "bullet/btBulletDynamicsCommon.h"
 
@@ -456,66 +457,11 @@ void CheckCollision(GameObject player, GameObject other, float xRangePos, float 
 
 
 
-//Variables
-float m_t = 0;
-float m_speed = 1;
-float m_timer = 0;
-
-
-int frameIndex;
-
-size_t m_p0 = 0;
-size_t m_p1 = 0;
-size_t m_index = 0;
 
 
 
 
-void MorphLoader::Update(VertexBuffer::sptr vboPos1, VertexBuffer::sptr vboPos2, VertexBuffer::sptr vboNorm1, VertexBuffer::sptr vboNorm2, float dt)
-{
-	float t;
 
-	if (m_anim->m_frameTime > 0.0f)
-	{
-		m_timer += dt;
-
-		if (m_timer > m_anim->m_frameTime)
-		{
-			m_timer -= m_anim->m_frameTime;
-
-			m_anim->frameIndex += 1;
-
-			if (m_anim->frameIndex >= m_anim->frames.size())
-				m_anim->frameIndex = 0;
-		}
-
-		m_timer = fmod(m_timer, m_anim->m_frameTime);
-
-		t = m_timer / m_anim->m_frameTime;
-	}
-	else
-	{
-		t = 0.0f;
-	}
-
-	size_t f0Index;
-	size_t f1Index;
-
-	f1Index = m_anim->frameIndex;
-
-	if (f1Index == 0)
-	{
-		f0Index = m_anim->frames.size() - 1;
-	}
-	else
-	{
-		f0Index = f1Index - 1;
-	}
-
-	
-	
-
-}
 
 
 int main() {
@@ -715,6 +661,7 @@ int main() {
 
 
 		GameScene::sptr scene = GameScene::Create("test");
+		GameScene::sptr scene3 = GameScene::Create("test");
 		Application::Instance().ActiveScene = scene;
 
 		auto renderGroup = scene->Registry().group<RendererComponent, Transform>();
@@ -771,41 +718,41 @@ int main() {
 
 		
 
+
+
+		std::string prefix = "models/morph0";
+		std::string filename;
+
+
+		GameObject box = scene->CreateEntity("box");
+
+		MorphRenderer render;
+
+		//auto& render = box.emplace<MorphRenderer>(box);
+		
+
+		for (int i = 0; i < 2; i++)
+		{
+			filename = prefix + std::to_string(i + 1) + ".obj";
+
+			render.addFrame(MorphLoader::LoadFromFile(filename));
+
+		}
+
+		render.SetFrameTime(0.2f);
+
+		box.get<Transform>().SetLocalPosition(0.5f, 0.5f, 1.5f);
+
+		Transform boxTransform;
+
+		boxTransform.SetLocalPosition(0.5f, 0.5f, 1.5f);
+
 		GameObject player = scene->CreateEntity("player");
 		{
 
 			VertexArrayObject::sptr PlayerVAO = ObjLoader::LoadFromFile("models/SkyBoundGuyCol.obj");
 
-			VertexBuffer::sptr vboPos;
-			VertexBuffer::sptr vboNorm;
-			VertexBuffer::sptr vboUV;
-
-			MorphLoader::Frames vbos1;
-
-			MorphLoader::Frames vbos2;
-
-
-			VertexArrayObject::sptr boxVao = VertexArrayObject::Create();
-
 			
-			MorphLoader::LoadFromFile("models/morph01.obj", vbos1);
-
-			vboPos = vbos1.pos;
-			vboNorm = vbos1.normal;
-			vboUV = vbos1.UVs;
-
-
-			VertexBuffer::sptr vboPos2;
-			VertexBuffer::sptr vboNorm2;
-			VertexBuffer::sptr vboUV2;
-
-
-			MorphLoader::LoadFromFile("models/morph02.obj", vbos2);
-
-			vboPos2 = vbos2.pos;
-			vboNorm2 = vbos2.normal;
-			vboUV2 = vbos2.UVs;
-
 			
 
 			
@@ -1130,6 +1077,12 @@ int main() {
 		// We'll store all our VAOs into a nice array for easy access
 		VertexArrayObject::sptr vaos[4];
 		vaos[3] = vao3;
+
+
+		Shader::sptr morphShader = Shader::Create();
+		shader->LoadShaderPartFromFile("shaders/morphvertex_shader.glsl", GL_VERTEX_SHADER);
+		shader->LoadShaderPartFromFile("shaders/frag_blinn_phong_textured.glsl", GL_FRAGMENT_SHADER);
+		shader->Link();
 
 
 
@@ -1471,6 +1424,7 @@ int main() {
 			glm::mat4 projection = camera->GetProjection();
 			glm::mat4 viewProjection = projection * view;
 
+			
 			// Sort the renderers by shader and material, we will go for a minimizing context switches approach here,
 			// but you could for instance sort front to back to optimize for fill rate if you have intensive fragment shaders
 			renderGroup.sort<RendererComponent>([](const RendererComponent& l, const RendererComponent& r) {
@@ -1493,6 +1447,7 @@ int main() {
 			Shader::sptr current = nullptr;
 			ShaderMaterial::sptr currentMat = nullptr;
 
+			
 			// Iterate over the render group components and draw them
 			renderGroup.each([&](entt::entity, RendererComponent& renderer, Transform& transform) {
 				// If the shader has changed, bind it and set up it's uniforms
@@ -1510,6 +1465,10 @@ int main() {
 				RenderVAO(renderer.Material->Shader, renderer.Mesh, viewProjection, transform);
 			});
 			
+
+			box.get<MorphRenderer>().nextFrame(dt);
+
+			box.get<MorphRenderer>().render(morphShader, viewProjection, boxTransform);
 			
 			/// Do some simulations
 			/*
