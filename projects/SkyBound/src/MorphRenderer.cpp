@@ -10,6 +10,7 @@ MorphRenderer::AnimData::AnimData()
 
 MorphRenderer::MorphRenderer()
 {
+	m_anim = std::make_unique<AnimData>();
 	m_t = 0;
 	m_timer = 0;
 }
