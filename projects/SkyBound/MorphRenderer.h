@@ -8,7 +8,13 @@ class MorphRenderer
 public:
 	VertexArrayObject::sptr vao;
 
-	VertexBuffer::sptr vbo;
+	std::vector<VertexBuffer> vbo;
+
+	void addFrame(std::shared_ptr<MeshBuilder<VertexPosNormTexCol>> mesh)
+	{
+		vbo.push_back(mesh->returnVBO());
+	}
+
 
 	
 
