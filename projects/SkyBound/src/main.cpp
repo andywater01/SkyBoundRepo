@@ -762,7 +762,7 @@ int main() {
 
 	float PhantomTimeLimit = 1.0f;
 	float PhantomTimeLimit2 = 2.0f;
-	float JumpTimeLimit = 0.2f;
+	float JumpTimeLimit = 0.12f;
 
 	bool PhantomMove = true;
 	bool PhantomMove2 = true;
@@ -1839,7 +1839,7 @@ int main() {
 			//Gravity
 			if (!(player.get<Transform>().GetLocalPosition().z <= planeHeight))
 			{
-				player.get<Transform>().SetLocalPosition(player.get<Transform>().GetLocalPosition() - glm::vec3(0.0f, 0.0f, 5.0f * dt));
+				player.get<Transform>().SetLocalPosition(player.get<Transform>().GetLocalPosition() - glm::vec3(0.0f, 0.0f, 3.5f * dt));
 			}
 			else
 			{
@@ -1995,11 +1995,12 @@ int main() {
 
 			glm::vec3 offset = glm::vec3(0.0f, 0.0f, 2.0f);
 			glm::vec3 JumpPosition = player.get<Transform>().GetLocalPosition() + offset;
+			float tPos = JumpTimer / JumpTimeLimit;
 
-			if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && (player.get<Transform>().GetLocalPosition().z <= 2.5f)) {
+			if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
 				JumpTimer += dt;
 				if (JumpTimer <= JumpTimeLimit)
-					player.get<Transform>().SetLocalPosition(LERP(currentPosition, JumpPosition, 0.08f));
+					player.get<Transform>().SetLocalPosition(LERP(currentPosition, JumpPosition, 0.03f));
 
 			}
 			else
