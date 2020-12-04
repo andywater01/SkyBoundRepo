@@ -51,6 +51,8 @@
 #include "Utilities/MeshFactory.h"
 #include "Utilities/NotObjLoader.h"
 #include "Utilities/ObjLoader.h"
+#include "MorphLoader.h"
+#include "MorphRenderer.h"
 #include "Utilities/VertexTypes.h"
 #include "bullet/btBulletCollisionCommon.h"
 #include "bullet/btBulletDynamicsCommon.h"
@@ -281,7 +283,7 @@ inline btVector3 glm2bt(const glm::vec3& vec)
 
 
 
-void PlayerInput(GameObject& transform, float dt, float speed, btRigidBody* body, btTransform phyTransform) {
+void PlayerInput(GameObject& transform, float dt, float speed) {
 if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS && canMoveLeft == true) {
 	//transform->MoveLocal(0.0f, 0.0f, -1.0f * dt * speed);
 	//transform.MoveLocalFixed(0.0f, -1.0f * dt * speed, 0.0f);
@@ -801,13 +803,15 @@ int main() {
 		MeshFactory::AddCube(builder, glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), glm::vec4(1.0f, 0.5f, 0.5f, 1.0f));
 		VertexArrayObject::sptr vao3 = builder.Bake();
 
-		VertexArrayObject::sptr playerVao = ObjLoader::LoadFromFile("models/SkyBoundGuyCol.obj");
+		//VertexArrayObject::sptr playerVao = ObjLoader::LoadFromFile("models/SkyBoundGuyCol.obj");
 
-		VertexArrayObject::sptr islandVao = ObjLoader::LoadFromFile("models/Island1ObjectTex.obj");
+		//VertexArrayObject::sptr islandVao = ObjLoader::LoadFromFile("models/Island1ObjectTex.obj");
 
 
 
 		// Load our shaders
+
+		//Default Shader (Static Mesh Shader)
 		Shader::sptr shader = Shader::Create();
 		shader->LoadShaderPartFromFile("shaders/vertex_shader.glsl", GL_VERTEX_SHADER);
 		shader->LoadShaderPartFromFile("shaders/frag_blinn_phong_textured.glsl", GL_FRAGMENT_SHADER);
@@ -841,33 +845,25 @@ int main() {
 		shader->SetUniform("u_OutlineThickness", outlineThickness);
 
 
-		/*Shader::sptr shader2 = Shader::Create();
-		shader2->LoadShaderPartFromFile("shaders/vertex_shader.glsl", GL_VERTEX_SHADER);
-		shader2->LoadShaderPartFromFile("shaders/frag_blinn_phong_textured.glsl", GL_FRAGMENT_SHADER);
-		shader2->Link();
+		//Morph Shader (Animated Shader)
+		Shader::sptr morphShader = Shader::Create();
+		morphShader->LoadShaderPartFromFile("shaders/morphvertex_shader.glsl", GL_VERTEX_SHADER);
+		morphShader->LoadShaderPartFromFile("shaders/frag_blinn_phong_textured.glsl", GL_FRAGMENT_SHADER);
+		morphShader->Link();
 
-		glm::vec3 lightPos2 = glm::vec3(-30.0f, 0.0f, 6.0f);
-		glm::vec3 lightCol2 = glm::vec3(0.9f, 0.85f, 0.5f);
-		float     lightAmbientPow2 = 0.05f;
-		float     lightSpecularPow2 = 1.0f;
-		glm::vec3 ambientCol2 = glm::vec3(1.0f);
-		float     ambientPow2 = 0.8f;
-		float     textureMix2 = 0.2f;
-		float     shininess2 = 4.0f;
-		float     lightLinearFalloff2 = 0.09f;
-		float     lightQuadraticFalloff2 = 0.032f;
-		float     outlineThickness2 = 0.15;
 
-		// These are our application / scene level uniforms that don't necessarily update
-		// every frame
-		shader2->SetUniform("u_LightPos", lightPos2);
-		shader2->SetUniform("u_LightCol", lightCol2);
-		shader2->SetUniform("u_AmbientLightStrength", lightAmbientPow2);
-		shader2->SetUniform("u_SpecularLightStrength", lightSpecularPow2);
-		shader2->SetUniform("u_AmbientCol", ambientCol2);
-		shader2->SetUniform("u_AmbientStrength", ambientPow2);
-		shader2->SetUniform("u_TextureMix", textureMix2);
-		shader2->SetUniform("u_Shininess", shininess2);*/
+		morphShader->SetUniform("u_LightPos", lightPos);
+		morphShader->SetUniform("u_LightCol", lightCol);
+		morphShader->SetUniform("u_AmbientLightStrength", lightAmbientPow);
+		morphShader->SetUniform("u_SpecularLightStrength", lightSpecularPow);
+		morphShader->SetUniform("u_AmbientCol", ambientCol);
+		morphShader->SetUniform("u_AmbientStrength", ambientPow);
+		morphShader->SetUniform("u_TextureMix", textureMix);
+		morphShader->SetUniform("u_Shininess", shininess);
+		morphShader->SetUniform("u_LightAttenuationConstant", 1.0f);
+		morphShader->SetUniform("u_LightAttenuationLinear", lightLinearFalloff);
+		morphShader->SetUniform("u_LightAttenuationQuadratic", lightQuadraticFalloff);
+		morphShader->SetUniform("u_OutlineThickness", outlineThickness);
 
 
 		Texture2D::sptr PlayerDiffuse = Texture2D::LoadFromFile("images/SkyBoundCharUV2.png");
@@ -916,12 +912,12 @@ int main() {
 		auto renderGroup = scene->Registry().group<RendererComponent, Transform>();
 
 		ShaderMaterial::sptr material0 = ShaderMaterial::Create();
-		material0->Shader = shader;
+		material0->Shader = morphShader;
 		material0->Set("s_Diffuse", PlayerDiffuse);
 		//material0->Set("s_Diffuse2", Boxdiffuse2);
 		//material0->Set("s_Specular", Boxspecular);
 		material0->Set("u_Shininess", 8.0f);
-		material0->Set("u_OutlineThickness", 0.53f);
+		material0->Set("u_OutlineThickness", 0.00000001f);
 		//material0->Set("u_TextureMix", 0.5f);
 		//material0->Set("u_Reflectivity", 0.6f);
 
@@ -1057,16 +1053,31 @@ int main() {
 
 		GameObject player = scene->CreateEntity("player");
 		{
-			VertexArrayObject::sptr PlayerVAO = ObjLoader::LoadFromFile("models/SkyBoundGuyCol.obj");
+			player.emplace<MorphRenderer>();
+
+			std::string walkPrefix = "models/Player/Walk/SkyBoundCharacterW0";
+			std::string walkFileName;
+
+			for (int i = 0; i < 5; i++)
+			{
+				walkFileName = walkPrefix + std::to_string(i) + ".obj";
+
+				player.get<MorphRenderer>().addFrame(MorphLoader::LoadFromFile(walkFileName));
+
+			}
+
+			player.get<MorphRenderer>().SetFrameTime(0.2f);
 			
 
-			player.emplace<RendererComponent>().SetMesh(PlayerVAO).SetMaterial(material0);
-			player.get<Transform>().SetLocalPosition(0.5f, 0.0f, 2.0f);
+			player.get<MorphRenderer>().SetMesh(player.get<MorphRenderer>().vao).SetMaterial(material0);
+			
+			
+			player.get<Transform>().SetLocalPosition(0.5f, 0.0f, 5.0f);
 			player.get<Transform>().SetLocalRotation(90.0f, 0.0f, 180.0f);
 			player.get<Transform>().SetLocalScale(0.5f, 0.5f, 0.5f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(player);
 
-			
+			/*
 			//Collision Stuff
 			collisionShapes.push_back(playerShape);
 
@@ -1108,7 +1119,7 @@ int main() {
 
 			//add the body to the dynamics world
 			//dynamicsWorld->addRigidBody(playerBody);
-
+			*/
 			
 		}
 
@@ -1750,7 +1761,7 @@ int main() {
 		playerMaterial.Albedo = diffuse;
 		playerMaterial.Specular = specular;
 		playerMaterial.Shininess = 4.0f;
-		playerMaterial.OutlineThickness = 0.50f;
+		playerMaterial.OutlineThickness = 0.0001f;
 
 		islandMaterial.Albedo = diffuse2;
 		islandMaterial.Specular = specular;
@@ -2030,7 +2041,7 @@ int main() {
 
 				// We'll run some basic input to move our transform around
 				//ManipulateTransformWithInput(transforms[selectedVao], dt);
-				PlayerInput(player, dt, speed, playerBody, playerTransform);
+				PlayerInput(player, dt, speed);
 				
 
 				//Sprinting Function
@@ -2264,6 +2275,15 @@ int main() {
 					});
 			}
 			
+
+			//Update Animation
+			player.get<MorphRenderer>().nextFrame(dt);
+
+			
+			SetupShaderForFrame(morphShader, view, projection);
+			player.get<MorphRenderer>().render(morphShader, viewProjection, player.get<Transform>());
+
+
 			
 			
 			/// Do some simulations

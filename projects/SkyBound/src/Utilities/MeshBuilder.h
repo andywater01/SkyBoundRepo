@@ -81,6 +81,18 @@ public:
 	/// </summary>
 	size_t GetTriangleCount() const { return _indices.size() > 0 ? _indices.size() / 3 : _vertices.size() / 3; }
 
+
+	AttribUsage GetCurrentAttrib()
+	{
+		AttribUsage usage;
+
+		return usage;
+	}
+
+
+	float m_t;
+
+
 	VertexArrayObject::sptr Bake() {
 		VertexBuffer::sptr vbo = VertexBuffer::Create();
 		vbo->LoadData(GetVertexDataPtr(), _vertices.size());
@@ -89,11 +101,39 @@ public:
 		ebo->LoadData(GetIndexDataPtr(), _indices.size());
 
 		VertexArrayObject::sptr result = VertexArrayObject::Create();
+		
 		result->AddVertexBuffer(vbo, VertType::V_DECL);
+
 		result->SetIndexBuffer(ebo);
+
 
 		return result;
 	}
+	
+
+	VertexArrayObject::sptr createVAO() {
+
+		VertexArrayObject::sptr vao = VertexArrayObject::Create();
+
+		return vao;
+	}
+	
+	VertexBuffer::sptr returnVBO() {
+
+		VertexBuffer::sptr vbo = VertexBuffer::Create();
+		vbo->LoadData(GetVertexDataPtr(), _vertices.size());
+
+		return vbo;
+	}
+
+	IndexBuffer::sptr returnEBO() {
+
+		IndexBuffer::sptr ebo = IndexBuffer::Create();
+		ebo->LoadData(GetIndexDataPtr(), _indices.size());
+
+		return ebo;
+	}
+
 	
 	/// <summary>
 	/// Gets a pointer to the underlying vertex data in the mesh, valid only
