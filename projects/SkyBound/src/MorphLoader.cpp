@@ -8,13 +8,6 @@
 #include "Utilities/StringUtils.h"
 
 
-
-
-
-
-
-
-
 std::shared_ptr<MeshBuilder<VertexPosNormTexCol>> MorphLoader::LoadFromFile(const std::string& filename, const glm::vec4& inColor)
 {
 	// Open our file in binary mode
@@ -101,25 +94,21 @@ std::shared_ptr<MeshBuilder<VertexPosNormTexCol>> MorphLoader::LoadFromFile(cons
 					// Find the index associated with the combination of attributes
 					auto it = indexMap.find(key);
 
-					// If it exists, we push the index to our indices
-					//if (it != indexMap.end()) {
-						//edges[ix] = it->second;
-					//}
-					//else {
-						// Construct a new vertex using the indices for the vertex
-						VertexPosNormTexCol vertex;
-						vertex.Position = positions[vertexIndices.x - 1];
-						vertex.UV = vertexIndices.y != 0 ? textureCoords[vertexIndices.y - 1] : glm::vec2(0.0f);
-						vertex.Normal = vertexIndices.z != 0 ? normals[vertexIndices.z - 1] : glm::vec3(0.0f, 0.0f, 1.0f);
-						vertex.Color = inColor;
+					
+					// Construct a new vertex using the indices for the vertex
+					VertexPosNormTexCol vertex;
+					vertex.Position = positions[vertexIndices.x - 1];
+					vertex.UV = vertexIndices.y != 0 ? textureCoords[vertexIndices.y - 1] : glm::vec2(0.0f);
+					vertex.Normal = vertexIndices.z != 0 ? normals[vertexIndices.z - 1] : glm::vec3(0.0f, 0.0f, 1.0f);
+					vertex.Color = inColor;
 
-						// Add to the mesh, get index of the added vertex
-						uint32_t index = mesh->AddVertex(vertex);
-						// Cache the index based on our key
-						indexMap[key] = index;
-						// Add index to mesh, and add to edges list for if we are using quads
-						edges[ix] = index;
-					//}
+					// Add to the mesh, get index of the added vertex
+					uint32_t index = mesh->AddVertex(vertex);
+					// Cache the index based on our key
+					indexMap[key] = index;
+					// Add index to mesh, and add to edges list for if we are using quads
+					edges[ix] = index;
+					
 				}
 				else {
 					break;
@@ -127,11 +116,6 @@ std::shared_ptr<MeshBuilder<VertexPosNormTexCol>> MorphLoader::LoadFromFile(cons
 			}
 			// Handling for trangle faces
 			if (ix == 3) {
-
-				//copiedPositions.push_back(positions[edges[0]]);
-				//copiedPositions.push_back(positions[edges[1]]);
-				//copiedPositions.push_back(positions[edges[2]]);
-
 				mesh->AddIndexTri(edges[0], edges[1], edges[2]);
 			}
 			// Handling for quad faces
@@ -144,116 +128,4 @@ std::shared_ptr<MeshBuilder<VertexPosNormTexCol>> MorphLoader::LoadFromFile(cons
 	
 
 	return mesh;
-}
-
-MorphLoader::~MorphLoader()
-{
-}
-
-void MorphLoader::UpdateData(int frameIndex0, int frameIndex1, float t)
-{
-	m_vao = VertexArrayObject::Create();
-
-
-
-	//VertexBuffer::sptr vboPos = VertexBuffer::Create();
-	//vboPos->LoadData(loadedPositions.data(), loadedPositions.size());
-
-	//VertexBuffer::sptr vboNorm = VertexBuffer::Create();
-	//vboNorm->LoadData(loadedNormals.data(), loadedNormals.size());
-
-	//VertexBuffer::sptr vboUV = VertexBuffer::Create();
-	//vboUV->LoadData(loadedNormals.data(), loadedNormals.size());
-
-
-}
-
-
-
-void MorphLoader::blendTo(const std::string& fileName, float delay, int frame)
-{
-}
-
-void MorphLoader::Init()
-{
-	//m_shader = Shader::Create();
-	//m_shader->LoadShaderPartFromFile("shaders/vertex_shader.glsl", GL_VERTEX_SHADER);
-	//m_shader->LoadShaderPartFromFile("shaders/frag_blinn_phong_textured.glsl", GL_FRAGMENT_SHADER);
-	//m_shader->Link();
-}
-
-void MorphLoader::Unload()
-{
-}
-
-void MorphLoader::beginDraw()
-{
-}
-
-void MorphLoader::Update(VertexBuffer::sptr vboPos1, VertexBuffer::sptr vboPos2, VertexBuffer::sptr vboNorm1, VertexBuffer::sptr vboNorm2, float dt)
-{
-	float t;
-
-	if (m_anim->m_frameTime > 0.0f)
-	{
-		m_timer += dt;
-
-		if (m_timer > m_anim->m_frameTime)
-		{
-			m_timer -= m_anim->m_frameTime;
-
-			m_anim->frameIndex += 1;
-
-			if (m_anim->frameIndex >= m_anim->frames.size())
-				m_anim->frameIndex = 0;
-		}
-
-		m_timer = fmod(m_timer, m_anim->m_frameTime);
-
-		t = m_timer / m_anim->m_frameTime;
-	}
-	else
-	{
-		t = 0.0f;
-	}
-
-	size_t f0Index;
-	size_t f1Index;
-
-	f1Index = m_anim->frameIndex;
-
-	if (f1Index == 0)
-	{
-		f0Index = m_anim->frames.size() - 1;
-	}
-	else
-	{
-		f0Index = f1Index - 1;
-	}
-
-
-}
-
-void MorphLoader::Draw(const glm::mat4& model)
-{
-	
-	//m_defaultQueue.push_back({ m_t, m_vao, model, 0 });
-	
-}
-
-void MorphLoader::SetFrames(const std::vector<std::unique_ptr<MeshBuilder<VertexPosNormTexCol>>>& frames)
-{
-	m_anim->frames.clear();
-	m_anim->frames.reserve(frames.size());
-
-	for (int x = 0; x < frames.size(); x++)
-	{
-
-		//m_anim->frames.push_back();
-	}
-}
-
-void MorphLoader::SetFrameTime(float frameTime)
-{
-
 }

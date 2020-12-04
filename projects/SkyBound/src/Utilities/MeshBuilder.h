@@ -93,37 +93,6 @@ public:
 	float m_t;
 
 
-	/*
-	void UpdateData(const MeshBuilder<VertexPosNormTexColAnim1>& frame0, const MeshBuilder<VertexPosNormTexColAnim2>& frame1, float t)
-	{
-		VertexBuffer::sptr vbo = VertexBuffer::Create();
-		vbo->LoadData(GetVertexDataPtr(), _vertices.size());
-
-		IndexBuffer::sptr ebo = IndexBuffer::Create();
-		ebo->LoadData(GetIndexDataPtr(), _indices.size());
-
-		VertexArrayObject::sptr result = VertexArrayObject::Create();
-
-		if (vbo = frame0.GetCurrentAttrib() = AttribUsage::Position)
-		{
-			result->AddVertexBuffer(vbo, VertType::V_Anim1);
-		}
-
-		if (vbo = frame1.GetCurrentAttrib() = AttribUsage::Position2)
-		{
-			result->AddVertexBuffer(vbo, VertType::V_Anim2);
-		}
-		
-	}
-	
-
-	void UpdateData(float t)
-	{
-		m_t = t;
-	}
-	*/
-	
-
 	VertexArrayObject::sptr Bake() {
 		VertexBuffer::sptr vbo = VertexBuffer::Create();
 		vbo->LoadData(GetVertexDataPtr(), _vertices.size());
@@ -134,24 +103,6 @@ public:
 		VertexArrayObject::sptr result = VertexArrayObject::Create();
 		
 		result->AddVertexBuffer(vbo, VertType::V_DECL);
-
-		result->SetIndexBuffer(ebo);
-
-
-		return result;
-	}
-
-	
-	VertexArrayObject::sptr Bake2(std::vector<VertexBuffer::sptr> vbo) {
-		VertexBuffer::sptr vbo = VertexBuffer::Create();
-		vbo->LoadData(GetVertexDataPtr(), _vertices.size());
-
-		IndexBuffer::sptr ebo = IndexBuffer::Create();
-		ebo->LoadData(GetIndexDataPtr(), _indices.size());
-
-		VertexArrayObject::sptr result = VertexArrayObject::Create();
-
-		result->AddVertexBuffer(vbo, VertType::V_Anim1);
 
 		result->SetIndexBuffer(ebo);
 

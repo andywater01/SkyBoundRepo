@@ -127,9 +127,6 @@ VertexArrayObject::sptr ObjLoader::LoadFromFile(const std::string& filename, con
 		}
 	}
 
-	// Note: with actual OBJ files you're going to run into the issue where faces are composited of different indices
-	// You'll need to keep track of these and create vertex entries for each vertex in the face
-	// If you want to get fancy, you can track which vertices you've already added
 
 	return mesh.Bake();
 }

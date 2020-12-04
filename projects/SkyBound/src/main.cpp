@@ -701,7 +701,7 @@ int main() {
 		//boxMat->Set("s_Diffuse2", Boxdiffuse2);
 		//boxMat->Set("s_Specular", Boxspecular);
 		boxMat->Set("u_Shininess", 8.0f);
-		boxMat->Set("u_OutlineThickness", 0.00000000000000000000000000000000000001f);
+		boxMat->Set("u_OutlineThickness", 0.51f);
 		//material0->Set("u_TextureMix", 0.5f);
 		//material0->Set("u_Reflectivity", 0.6f);
 
