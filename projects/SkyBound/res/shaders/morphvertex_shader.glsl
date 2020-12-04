@@ -26,7 +26,12 @@ void main() {
 
 	
 	// Pass vertex pos in world space to frag shader
-	outPos = (u_Model * mix(vec4(inPosition, 1.0), vec4(inPosition2, 1.0), t)).xyz;
+	vec3 modelPos = mix(inPosition, inPosition2, t);
+
+	outPos = (u_Model * vec4(modelPos, 1.0)).xyz;
+
+	//outPos = mix(vec4(inPosition, 1.0), vec4(inPosition2, 1.0), t)).xyz;
+
 
 	// Normals
 	outNormal = u_NormalMatrix * mix(inNormal, inNormal2, t);
@@ -37,7 +42,7 @@ void main() {
 	///////////
 	outColor = inColor;
 
-	gl_Position = u_ModelViewProjection * vec4(outPos, 1.0);
+	gl_Position = u_ModelViewProjection * vec4(modelPos, 1.0);
 
 }
 

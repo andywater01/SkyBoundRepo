@@ -37,7 +37,7 @@ public:
 	void render(
 		const Shader::sptr& shader,
 		const glm::mat4& viewProjection,
-		Transform& transform);
+		Transform& transform, const glm::mat4& view, const glm::mat4& projection);
 
 
 	MorphRenderer& SetMesh(const VertexArrayObject::sptr& mesh) { vao = mesh; return *this; }

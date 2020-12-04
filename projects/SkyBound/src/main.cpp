@@ -288,12 +288,12 @@ if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS && canMoveLeft == true) {
 	//transform->MoveLocal(0.0f, 0.0f, -1.0f * dt * speed);
 	//transform.MoveLocalFixed(0.0f, -1.0f * dt * speed, 0.0f);
 	transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(0.0f, -1.0f * dt * speed, 0.0f));
-	transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 270.0f);
+	transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
 	//transform.SetLocalRotation(90.0f, 0.0f, 282.0f);
 }
 if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS && canMoveRight == true) {
 	transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(0.0f, 1.0f * dt * speed, 0.0f));
-	transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
+	transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 270.0f);
 	//body->activate(true);
 	//body->setLinearVelocity(btVector3(0, 4, 0));
 	//body->applyForce(btVector3(0, 1000, 0), btVector3(0, 1000, 0));
@@ -304,7 +304,7 @@ if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS && canMoveForward == true) {
 	//transform->MoveLocal(1.0f * dt * speed, 0.0f, 0.0f);
 	//transform.MoveLocalFixed(-1.0f * dt * speed, 0.0f, 0.0f);
 	transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(-1.0f * dt * speed, 0.0f, 0.0f));
-	transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 180.0f);
+	transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
 	//transform.SetLocalRotation(90.0f, 0.0f, 192.0f);
 	//camera->SetPosition(camera->GetPosition() + glm::vec3(-1.0f, 0.0f, 0.0f) * dt);
 }
@@ -313,7 +313,7 @@ if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS && canMoveBack == true) {
 	//transform.MoveLocalFixed(1.0f * dt * speed, 0.0f, 0.0f);
 
 	transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(1.0f * dt * speed, 0.0f, 0.0f));
-	transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
+	transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 180.0f);
 	//transform.SetLocalRotation(90.0f, 0.0f, 12.0f);
 	//camera->SetPosition(camera->GetPosition() + glm::vec3(1.0f, 0.0f, 0.0f) * dt);
 }
@@ -917,7 +917,7 @@ int main() {
 		//material0->Set("s_Diffuse2", Boxdiffuse2);
 		//material0->Set("s_Specular", Boxspecular);
 		material0->Set("u_Shininess", 8.0f);
-		material0->Set("u_OutlineThickness", 0.00000001f);
+		material0->Set("u_OutlineThickness", 0.53f);
 		//material0->Set("u_TextureMix", 0.5f);
 		//material0->Set("u_Reflectivity", 0.6f);
 
@@ -1073,7 +1073,7 @@ int main() {
 			
 			
 			player.get<Transform>().SetLocalPosition(0.5f, 0.0f, 5.0f);
-			player.get<Transform>().SetLocalRotation(90.0f, 0.0f, 180.0f);
+			player.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
 			player.get<Transform>().SetLocalScale(0.5f, 0.5f, 0.5f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(player);
 
@@ -2280,10 +2280,10 @@ int main() {
 			player.get<MorphRenderer>().nextFrame(dt);
 
 			
-			SetupShaderForFrame(morphShader, view, projection);
-			player.get<MorphRenderer>().render(morphShader, viewProjection, player.get<Transform>());
+			// SetupShaderForFrame(morphShader, view, projection);
+			player.get<MorphRenderer>().render(morphShader, viewProjection, player.get<Transform>(), view, viewProjection);
 
-
+			
 			
 			
 			/// Do some simulations

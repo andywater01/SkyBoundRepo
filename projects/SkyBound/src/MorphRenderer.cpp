@@ -16,6 +16,9 @@ MorphRenderer::MorphRenderer()
 
 void MorphRenderer::addFrame(std::shared_ptr<MeshBuilder<VertexPosNormTexCol>> mesh)
 {
+
+
+
 	if (m_anim->frame.size() == 0)
 	{
 		vao->SetIndexBuffer(mesh->returnEBO());
@@ -113,11 +116,16 @@ void MorphRenderer::SetFrameTime(float frameTime)
 void MorphRenderer::render(
 	const Shader::sptr& shader,
 	const glm::mat4& viewProjection,
-	Transform& transform)
+	Transform& transform, const glm::mat4& view, const glm::mat4& projection)
 {
 	
 	shader->Bind();
 	Material->Apply();
+	shader->SetUniformMatrix("u_View", view);
+	shader->SetUniformMatrix("u_ViewProjection", projection * view);
+	shader->SetUniformMatrix("u_SkyboxMatrix", projection * glm::mat4(glm::mat3(view)));
+	glm::vec3 camPos = glm::inverse(view) * glm::vec4(0, 0, 0, 1);
+	shader->SetUniform("u_CamPos", camPos);
 	shader->SetUniformMatrix("u_ModelViewProjection", viewProjection * transform.LocalTransform());
 	shader->SetUniformMatrix("u_Model", transform.LocalTransform());
 	shader->SetUniformMatrix("u_NormalMatrix", transform.NormalMatrix());
