@@ -25,10 +25,8 @@ uniform float t;
 void main() {
 
 	
-
-	// Lecture 5
 	// Pass vertex pos in world space to frag shader
-	outPos = u_Model * mix(inPosition, inPosition2, t);
+	outPos = (u_Model * mix(vec4(inPosition, 1.0), vec4(inPosition2, 1.0), t)).xyz;
 
 	// Normals
 	outNormal = u_NormalMatrix * mix(inNormal, inNormal2, t);

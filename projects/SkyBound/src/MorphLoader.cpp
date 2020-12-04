@@ -31,6 +31,10 @@ std::shared_ptr<MeshBuilder<VertexPosNormTexCol>> MorphLoader::LoadFromFile(cons
 	std::vector<glm::vec3> normals;
 	std::vector<glm::vec2> textureCoords;
 
+	std::vector<glm::vec3> copiedPositions;
+	std::vector<glm::vec3> copiedNormals;
+	std::vector<glm::vec2> copiedTextureCoords;
+
 	// We'll use bitmask keys and a map to avoid duplicate vertices
 	std::unordered_map<uint64_t, uint32_t> indexMap;
 
@@ -98,10 +102,10 @@ std::shared_ptr<MeshBuilder<VertexPosNormTexCol>> MorphLoader::LoadFromFile(cons
 					auto it = indexMap.find(key);
 
 					// If it exists, we push the index to our indices
-					if (it != indexMap.end()) {
-						edges[ix] = it->second;
-					}
-					else {
+					//if (it != indexMap.end()) {
+						//edges[ix] = it->second;
+					//}
+					//else {
 						// Construct a new vertex using the indices for the vertex
 						VertexPosNormTexCol vertex;
 						vertex.Position = positions[vertexIndices.x - 1];
@@ -115,7 +119,7 @@ std::shared_ptr<MeshBuilder<VertexPosNormTexCol>> MorphLoader::LoadFromFile(cons
 						indexMap[key] = index;
 						// Add index to mesh, and add to edges list for if we are using quads
 						edges[ix] = index;
-					}
+					//}
 				}
 				else {
 					break;
@@ -123,6 +127,11 @@ std::shared_ptr<MeshBuilder<VertexPosNormTexCol>> MorphLoader::LoadFromFile(cons
 			}
 			// Handling for trangle faces
 			if (ix == 3) {
+
+				//copiedPositions.push_back(positions[edges[0]]);
+				//copiedPositions.push_back(positions[edges[1]]);
+				//copiedPositions.push_back(positions[edges[2]]);
+
 				mesh->AddIndexTri(edges[0], edges[1], edges[2]);
 			}
 			// Handling for quad faces
@@ -132,6 +141,7 @@ std::shared_ptr<MeshBuilder<VertexPosNormTexCol>> MorphLoader::LoadFromFile(cons
 			}
 		}
 	}
+	
 
 	return mesh;
 }

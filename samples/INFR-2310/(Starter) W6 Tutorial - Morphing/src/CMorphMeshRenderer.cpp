@@ -50,6 +50,7 @@ namespace nou
 		if ((vbo = frame1.GetVBO(Mesh::Attrib::NORMAL)))
 			m_vao->BindAttrib(*vbo, static_cast<GLint>(Attrib::NORMAL_1));
 
+
 		m_t = t;
 	}
 

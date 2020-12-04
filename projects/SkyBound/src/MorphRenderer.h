@@ -7,7 +7,9 @@
 class MorphRenderer
 {
 public:
-	VertexArrayObject::sptr vao;
+	VertexArrayObject::sptr vao = VertexArrayObject::Create();
+
+	ShaderMaterial::sptr Material;
 
 	//std::vector<VertexBuffer::sptr> vbo;
 	MorphRenderer();
@@ -36,6 +38,10 @@ public:
 		const Shader::sptr& shader,
 		const glm::mat4& viewProjection,
 		Transform& transform);
+
+
+	MorphRenderer& SetMesh(const VertexArrayObject::sptr& mesh) { vao = mesh; return *this; }
+	MorphRenderer& SetMaterial(const ShaderMaterial::sptr& material) { Material = material; return *this; }
 
 
 	protected:

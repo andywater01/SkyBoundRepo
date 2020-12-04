@@ -175,6 +175,14 @@ public:
 		return vbo;
 	}
 
+	IndexBuffer::sptr returnEBO() {
+
+		IndexBuffer::sptr ebo = IndexBuffer::Create();
+		ebo->LoadData(GetIndexDataPtr(), _indices.size());
+
+		return ebo;
+	}
+
 	
 	/// <summary>
 	/// Gets a pointer to the underlying vertex data in the mesh, valid only
