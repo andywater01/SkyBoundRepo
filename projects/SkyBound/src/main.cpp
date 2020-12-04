@@ -281,6 +281,8 @@ inline btVector3 glm2bt(const glm::vec3& vec)
 	return { vec.x, vec.y, vec.z };
 }
 
+int firstFrame = 0;
+int lastFrame = 4;
 
 
 void PlayerInput(GameObject& transform, float dt, float speed) {
@@ -289,11 +291,15 @@ if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS && canMoveLeft == true) {
 	//transform.MoveLocalFixed(0.0f, -1.0f * dt * speed, 0.0f);
 	transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(0.0f, -1.0f * dt * speed, 0.0f));
 	transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
+	firstFrame = 0;
+	lastFrame = 4;
 	//transform.SetLocalRotation(90.0f, 0.0f, 282.0f);
 }
 if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS && canMoveRight == true) {
 	transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(0.0f, 1.0f * dt * speed, 0.0f));
 	transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 270.0f);
+	firstFrame = 0;
+	lastFrame = 4;
 	//body->activate(true);
 	//body->setLinearVelocity(btVector3(0, 4, 0));
 	//body->applyForce(btVector3(0, 1000, 0), btVector3(0, 1000, 0));
@@ -305,6 +311,8 @@ if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS && canMoveForward == true) {
 	//transform.MoveLocalFixed(-1.0f * dt * speed, 0.0f, 0.0f);
 	transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(-1.0f * dt * speed, 0.0f, 0.0f));
 	transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
+	firstFrame = 0;
+	lastFrame = 4;
 	//transform.SetLocalRotation(90.0f, 0.0f, 192.0f);
 	//camera->SetPosition(camera->GetPosition() + glm::vec3(-1.0f, 0.0f, 0.0f) * dt);
 }
@@ -314,6 +322,8 @@ if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS && canMoveBack == true) {
 
 	transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(1.0f * dt * speed, 0.0f, 0.0f));
 	transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 180.0f);
+	firstFrame = 0;
+	lastFrame = 4;
 	//transform.SetLocalRotation(90.0f, 0.0f, 12.0f);
 	//camera->SetPosition(camera->GetPosition() + glm::vec3(1.0f, 0.0f, 0.0f) * dt);
 }
@@ -322,6 +332,12 @@ if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
 }
 if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
 	//transform.MoveLocal(0.0f, 0.0f, -1.0f * dt);
+}
+
+else 
+{
+	firstFrame = 5;
+	lastFrame = 7;
 }
 
 //body->setWorldTransform(phyTransform);
@@ -406,12 +422,12 @@ void UpdateCatmull(std::vector<glm::vec3> points, GameObject object, float delta
 
 	if (m_segmentIndex == 2)
 	{
-		object.get<Transform>().SetLocalRotation(90.0f, 0.0f, 180.0f);
+		object.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
 	}
 
 	if (m_segmentIndex == 5)
 	{
-		object.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
+		object.get<Transform>().SetLocalRotation(90.0f, 0.0f, 180.0f);
 	}
 
 
@@ -928,13 +944,13 @@ int main() {
 		material1->Set("u_OutlineThickness", 0.08f);
 		
 		ShaderMaterial::sptr material2 = ShaderMaterial::Create();
-		material2->Shader = shader;
+		material2->Shader = morphShader;
 		material2->Set("s_Diffuse", diffuseMp03);
 		material2->Set("u_Shininess", 8.0f);
 		material2->Set("u_OutlineThickness", 0.5f);
 
 		ShaderMaterial::sptr material3 = ShaderMaterial::Create();
-		material3->Shader = shader;
+		material3->Shader = morphShader;
 		material3->Set("s_Diffuse", diffuseMp04);
 		material3->Set("u_Shininess", 8.0f);
 		material3->Set("u_OutlineThickness", 0.5f);
@@ -1058,7 +1074,7 @@ int main() {
 			std::string walkPrefix = "models/Player/Walk/SkyBoundCharacterW0";
 			std::string walkFileName;
 
-			for (int i = 0; i < 5; i++)
+			for (int i = firstFrame; i < lastFrame; i++)
 			{
 				walkFileName = walkPrefix + std::to_string(i) + ".obj";
 
@@ -1174,10 +1190,25 @@ int main() {
 
 		GameObject Wizard = scene->CreateEntity("Wizard");
 		{
-			VertexArrayObject::sptr WizardVAO = ObjLoader::LoadFromFile("models/BridgeKeeper.obj");
-			Wizard.emplace<RendererComponent>().SetMesh(WizardVAO).SetMaterial(material2);
+			Wizard.emplace<MorphRenderer>();
+
+			std::string IdlePrefix = "models/Wizard/WizardIdle0";
+			std::string IdleFileName;
+
+			for (int i = 0; i < 2; i++)
+			{
+				IdleFileName = IdlePrefix + std::to_string(i) + ".obj";
+
+				Wizard.get<MorphRenderer>().addFrame(MorphLoader::LoadFromFile(IdleFileName));
+
+			}
+
+			Wizard.get<MorphRenderer>().SetFrameTime(0.7f);
+
+
+			Wizard.get<MorphRenderer>().SetMesh(Wizard.get<MorphRenderer>().vao).SetMaterial(material2);
 			Wizard.get<Transform>().SetLocalPosition(-14.5f, 0.0f, -2.5f);
-			Wizard.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
+			Wizard.get<Transform>().SetLocalRotation(90.0f, 0.0f, 270.0f);
 			Wizard.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Wizard);
 			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
@@ -1218,8 +1249,23 @@ int main() {
 
 		GameObject Phantom = scene->CreateEntity("Phantom");
 		{
-			VertexArrayObject::sptr PhantomVAO = ObjLoader::LoadFromFile("models/Phantom2.obj");
-			Phantom.emplace<RendererComponent>().SetMesh(PhantomVAO).SetMaterial(material3);
+			Phantom.emplace<MorphRenderer>();
+
+			std::string PhantomPrefix = "models/Phantom/Phantom0";
+			std::string PhantomFileName;
+
+			for (int i = 0; i < 4; i++)
+			{
+				PhantomFileName = PhantomPrefix + std::to_string(i) + ".obj";
+
+				Phantom.get<MorphRenderer>().addFrame(MorphLoader::LoadFromFile(PhantomFileName));
+
+			}
+
+			Phantom.get<MorphRenderer>().SetFrameTime(0.3f);
+
+
+			Phantom.get<MorphRenderer>().SetMesh(Phantom.get<MorphRenderer>().vao).SetMaterial(material3);
 			Phantom.get<Transform>().SetLocalPosition(-35.0f, 9.5f, -1.0f);
 			Phantom.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
 			Phantom.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
@@ -1229,8 +1275,23 @@ int main() {
 
 		GameObject Phantom2 = scene->CreateEntity("Phantom2");
 		{
-			VertexArrayObject::sptr PhantomVAO = ObjLoader::LoadFromFile("models/Phantom2.obj");
-			Phantom2.emplace<RendererComponent>().SetMesh(PhantomVAO).SetMaterial(material3);
+			Phantom2.emplace<MorphRenderer>();
+
+			std::string Phantom2Prefix = "models/Phantom/Phantom0";
+			std::string Phantom2FileName;
+
+			for (int i = 0; i < 4; i++)
+			{
+				Phantom2FileName = Phantom2Prefix + std::to_string(i) + ".obj";
+
+				Phantom2.get<MorphRenderer>().addFrame(MorphLoader::LoadFromFile(Phantom2FileName));
+
+			}
+
+			Phantom2.get<MorphRenderer>().SetFrameTime(0.3f);
+
+
+			Phantom2.get<MorphRenderer>().SetMesh(Phantom2.get<MorphRenderer>().vao).SetMaterial(material3);
 			Phantom2.get<Transform>().SetLocalPosition(-30.0f, -9.5f, -1.0f);
 			Phantom2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 180.0f);
 			Phantom2.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
@@ -1494,7 +1555,7 @@ int main() {
 
 			VertexArrayObject::sptr TaigaVAO = ObjLoader::LoadFromFile("models/taiga_island.obj");
 			TaigaGround.emplace<RendererComponent>().SetMesh(TaigaVAO).SetMaterial(material10);
-			TaigaGround.get<Transform>().SetLocalPosition(-10.0f, -0.0f, -5.0f);
+			TaigaGround.get<Transform>().SetLocalPosition(-10.0f, -0.0f, -6.8f);
 			TaigaGround.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
 			TaigaGround.get<Transform>().SetLocalScale(1.5f, 1.5f, 1.5f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(TaigaGround);
@@ -1506,7 +1567,7 @@ int main() {
 
 			VertexArrayObject::sptr FenceEndVAO = ObjLoader::LoadFromFile("models/hossain/Fence end.obj");
 			FenceEnd.emplace<RendererComponent>().SetMesh(FenceEndVAO).SetMaterial(material13);
-			FenceEnd.get<Transform>().SetLocalPosition(-16.0f, -6.7f, -0.8f);
+			FenceEnd.get<Transform>().SetLocalPosition(-16.0f, -6.7f, -2.6f);
 			FenceEnd.get<Transform>().SetLocalRotation(90.0f, 0.0f, 32.0f);
 			FenceEnd.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(FenceEnd);
@@ -1518,7 +1579,7 @@ int main() {
 
 			VertexArrayObject::sptr RockVAO = ObjLoader::LoadFromFile("models/Fardeen/Rock.obj");
 			Rock.emplace<RendererComponent>().SetMesh(RockVAO).SetMaterial(material17);
-			Rock.get<Transform>().SetLocalPosition(-12.0f, 6.7f, -0.8f);
+			Rock.get<Transform>().SetLocalPosition(-12.0f, 6.7f, -2.6f);
 			Rock.get<Transform>().SetLocalRotation(90.0f, 0.0f, 70.0f);
 			Rock.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Rock);
@@ -1982,7 +2043,7 @@ int main() {
 			{
 				if (flipPhantom2)
 				{
-					Phantom2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 180.0f);
+					Phantom2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
 					//Phantom.get<Transform>().SetLocalScale(Phantom.get<Transform>().GetLocalScale() * glm::vec3(1.0f, 1.0f, -1.0f));
 				}
 			}
@@ -1993,7 +2054,7 @@ int main() {
 
 				if (flipPhantom2)
 				{
-					Phantom2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
+					Phantom2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 180.0f);
 					//Phantom.get<Transform>().SetLocalScale(Phantom.get<Transform>().GetLocalScale() * glm::vec3(1.0f, 1.0f, -1.0f));
 				}
 			}
@@ -2284,6 +2345,29 @@ int main() {
 			// SetupShaderForFrame(morphShader, view, projection);
 			player.get<MorphRenderer>().render(morphShader, viewProjection, player.get<Transform>(), view, viewProjection);
 
+
+			//Update Animation
+			Wizard.get<MorphRenderer>().nextFrame(dt);
+
+
+			// SetupShaderForFrame(morphShader, view, projection);
+			Wizard.get<MorphRenderer>().render(morphShader, viewProjection, Wizard.get<Transform>(), view, viewProjection);
+
+
+			//Update Animation
+			Phantom.get<MorphRenderer>().nextFrame(dt);
+
+
+			// SetupShaderForFrame(morphShader, view, projection);
+			Phantom.get<MorphRenderer>().render(morphShader, viewProjection, Phantom.get<Transform>(), view, viewProjection);
+
+
+			//Update Animation
+			Phantom2.get<MorphRenderer>().nextFrame(dt);
+
+
+			// SetupShaderForFrame(morphShader, view, projection);
+			Phantom2.get<MorphRenderer>().render(morphShader, viewProjection, Phantom2.get<Transform>(), view, viewProjection);
 			
 			
 			
