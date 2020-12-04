@@ -1354,7 +1354,7 @@ int main() {
 
 				// We'll run some basic input to move our transform around
 				//ManipulateTransformWithInput(transforms[selectedVao], dt);
-				PlayerInput(player, dt, speed, playerBody, playerTransform);
+				PlayerInput(box, dt, speed, playerBody, playerTransform);
 				
 
 				//Sprinting Function
