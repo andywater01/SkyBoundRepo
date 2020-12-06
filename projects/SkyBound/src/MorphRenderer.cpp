@@ -16,9 +16,6 @@ MorphRenderer::MorphRenderer()
 
 void MorphRenderer::addFrame(std::shared_ptr<MeshBuilder<VertexPosNormTexCol>> mesh)
 {
-
-
-
 	if (m_anim->frame.size() == 0)
 	{
 		vao->SetIndexBuffer(mesh->returnEBO());
@@ -81,7 +78,7 @@ void MorphRenderer::nextFrame(float dt)
 
 void MorphRenderer::UpdateData(VertexBuffer::sptr frame0, VertexBuffer::sptr frame1, float t)
 {
-	VertexPosNormTexCol* VPNTC = nullptr;
+	//VertexPosNormTexCol* VPNTC = nullptr;
 
 	vao->AddVertexBuffer(frame0, { //Colour
 								   BufferAttribute(1, 3, GL_FLOAT, false, sizeof(VertexPosNormTexCol), (size_t)&VPNTC->Color, AttribUsage::Color),

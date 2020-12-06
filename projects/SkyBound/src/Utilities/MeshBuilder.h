@@ -82,15 +82,6 @@ public:
 	size_t GetTriangleCount() const { return _indices.size() > 0 ? _indices.size() / 3 : _vertices.size() / 3; }
 
 
-	AttribUsage GetCurrentAttrib()
-	{
-		AttribUsage usage;
-
-		return usage;
-	}
-
-
-	float m_t;
 
 
 	VertexArrayObject::sptr Bake() {

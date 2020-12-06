@@ -780,7 +780,7 @@ int main() {
 
 	float PhantomTimeLimit = 1.0f;
 	float PhantomTimeLimit2 = 2.0f;
-	float JumpTimeLimit = 0.12f;
+	float JumpTimeLimit = 0.1f;
 
 	bool PhantomMove = true;
 	bool PhantomMove2 = true;
@@ -960,7 +960,7 @@ int main() {
 		material4->Shader = shader;
 		material4->Set("s_Diffuse", diffuseMp05);
 		material4->Set("u_Shininess", 8.0f);
-		material4->Set("u_OutlineThickness", 0.65f);
+		material4->Set("u_OutlineThickness", 0.4f);
 
 		ShaderMaterial::sptr material5 = ShaderMaterial::Create();
 		material5->Shader = shader;
@@ -1071,7 +1071,7 @@ int main() {
 		{
 			player.emplace<MorphRenderer>();
 
-			std::string walkPrefix = "models/Player/Walk/SkyBoundCharacterW0";
+			std::string walkPrefix = "models/Player/Walk/SkyBoundCharacter0";
 			std::string walkFileName;
 
 			for (int i = firstFrame; i < lastFrame; i++)
@@ -1192,7 +1192,7 @@ int main() {
 		{
 			Wizard.emplace<MorphRenderer>();
 
-			std::string IdlePrefix = "models/Wizard/WizardIdle0";
+			std::string IdlePrefix = "models/BridgeKeeper/Wizard0";
 			std::string IdleFileName;
 
 			for (int i = 0; i < 2; i++)
@@ -1293,7 +1293,7 @@ int main() {
 
 			Phantom2.get<MorphRenderer>().SetMesh(Phantom2.get<MorphRenderer>().vao).SetMaterial(material3);
 			Phantom2.get<Transform>().SetLocalPosition(-30.0f, -9.5f, -1.0f);
-			Phantom2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 180.0f);
+			Phantom2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
 			Phantom2.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Phantom2);
 			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
@@ -1302,11 +1302,27 @@ int main() {
 
 		GameObject Coin = scene->CreateEntity("Coin");
 		{
-			VertexArrayObject::sptr CoinVAO = ObjLoader::LoadFromFile("models/Coin/GameCoin.obj");
-			Coin.emplace<RendererComponent>().SetMesh(CoinVAO).SetMaterial(material4);
-			Coin.get<Transform>().SetLocalPosition(6.0f, -7.0f, -2.0f);
+			Coin.emplace<MorphRenderer>();
+
+			std::string coinPrefix = "models/Coin/Coin0";
+			std::string coinFileName;
+
+			for (int i = 0; i < 4; i++)
+			{
+				coinFileName = coinPrefix + std::to_string(i) + ".obj";
+
+				Coin.get<MorphRenderer>().addFrame(MorphLoader::LoadFromFile(coinFileName));
+
+			}
+			
+			Coin.get<MorphRenderer>().SetFrameTime(0.5f);
+			
+			
+			Coin.get<MorphRenderer>().SetMesh(Coin.get<MorphRenderer>().vao).SetMaterial(material4);
+
+			Coin.get<Transform>().SetLocalPosition(6.0f, -7.0f, 0.0f);
 			Coin.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
-			Coin.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
+			Coin.get<Transform>().SetLocalScale(0.5f, 0.5f, 0.5f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Coin);
 			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
 		}
@@ -1812,7 +1828,7 @@ int main() {
 		Texture2D::sptr texture2 = Texture2D::Create(desc);
 		texture2->Clear();
 
-
+		
 
 		// We'll use a temporary lil structure to store some info about our material (we'll expand this later)
 		Material materials[4];
@@ -1876,6 +1892,25 @@ int main() {
 		bool canSprint = true;
 		glm::vec3 CoinDistance = glm::vec3();
 		glm::vec3 WizardDistance = glm::vec3();
+
+		//Jump Variables
+		bool canJump = true;
+		//float jumpTimeLimit
+
+
+		glm::vec3 currentPosition = player.get<Transform>().GetLocalPosition();
+
+		glm::vec3 offset = glm::vec3(0.0f, 0.0f, 3.0f);
+		glm::vec3 JumpPosition = player.get<Transform>().GetLocalPosition() + offset;
+
+		//Key Watcher for changing camera modes
+		bool jumpSwitch = true;
+		KeyPressWatcher jumpWatcher = KeyPressWatcher(GLFW_KEY_SPACE, [&]() {
+			jumpSwitch = !jumpSwitch;
+			player.get<Transform>().SetLocalPosition(LERP(currentPosition, JumpPosition, 0.05f));
+			});
+
+
 		
 		///// Game loop /////
 		while (!glfwWindowShouldClose(window)) {
@@ -1884,6 +1919,9 @@ int main() {
 			// Calculate the time since our last frame (dt)
 			double thisFrame = glfwGetTime();
 			float dt = static_cast<float>(thisFrame - lastFrame);
+
+			//Jump Check
+			jumpWatcher.Poll(window);
 
 			std::cout << std::to_string(CoinCount) << std::endl;
 
@@ -2041,45 +2079,75 @@ int main() {
 
 			if (Phantom2.get<Transform>().GetLocalPosition() == startPos2)
 			{
-				if (flipPhantom2)
-				{
+				//if (flipPhantom2)
+				//{
 					Phantom2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
 					//Phantom.get<Transform>().SetLocalScale(Phantom.get<Transform>().GetLocalScale() * glm::vec3(1.0f, 1.0f, -1.0f));
-				}
+				//}
 			}
 
 			if (Phantom2.get<Transform>().GetLocalPosition() == endPos2)
 			{
 				flipPhantom2 = true;
 
-				if (flipPhantom2)
-				{
+				//if (flipPhantom2)
+				//{
 					Phantom2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 180.0f);
 					//Phantom.get<Transform>().SetLocalScale(Phantom.get<Transform>().GetLocalScale() * glm::vec3(1.0f, 1.0f, -1.0f));
-				}
+				//}
 			}
 
 
 
 			//Jump Stuff
 			
-			glm::vec3 currentPosition = player.get<Transform>().GetLocalPosition();
+			//glm::vec3 currentPosition = player.get<Transform>().GetLocalPosition();
 
-			glm::vec3 offset = glm::vec3(0.0f, 0.0f, 2.0f);
-			glm::vec3 JumpPosition = player.get<Transform>().GetLocalPosition() + offset;
-			float tPos = JumpTimer / JumpTimeLimit;
+			//glm::vec3 offset = glm::vec3(0.0f, 0.0f, 3.0f);
+			//glm::vec3 JumpPosition = player.get<Transform>().GetLocalPosition() + offset;
+			//float tPos = JumpTimer / JumpTimeLimit;
 
-			if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-				JumpTimer += dt;
-				if (JumpTimer <= JumpTimeLimit)
-					player.get<Transform>().SetLocalPosition(LERP(currentPosition, JumpPosition, 0.03f));
+			///*if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+			//	JumpTimer += dt;
+			//	if (JumpTimer >= JumpTimeLimit)
+			//		player.get<Transform>().SetLocalPosition(LERP(currentPosition, JumpPosition, 0.05f));
 
-			}
-			else
-			{
+			//}
+			//else
+			//{
 
-				JumpTimer = 0.0f;
-			}
+			//	JumpTimer = 0.0f;
+			//}*/
+
+			//if (canJump)
+			//{
+			//	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+			//	{
+			//		//speed = 9.0f;
+			//		player.get<Transform>().SetLocalPosition(LERP(currentPosition, JumpPosition, 0.05f));
+
+			//		//JumpTimer += dt;
+
+			//		canJump = false;
+
+			//		//if (JumpTimer >= JumpTimeLimit)
+			//		//{
+			//		//	//speed = 3.0f;
+			//		//	canJump = false;
+			//		//}
+			//	}
+			//}
+
+			//if (!canJump)
+			//{
+			//	JumpTimer -= dt;
+
+			//	if (JumpTimer <= -1.0f)
+			//	{
+			//		JumpTimer == 0.0f;
+			//		canJump = true;
+			//	}
+			//}
 				
 
 
@@ -2368,6 +2436,13 @@ int main() {
 
 			// SetupShaderForFrame(morphShader, view, projection);
 			Phantom2.get<MorphRenderer>().render(morphShader, viewProjection, Phantom2.get<Transform>(), view, viewProjection);
+
+			//Update Animation
+			Coin.get<MorphRenderer>().nextFrame(dt);
+
+
+			// SetupShaderForFrame(morphShader, view, projection);
+			Coin.get<MorphRenderer>().render(morphShader, viewProjection, Coin.get<Transform>(), view, viewProjection);
 			
 			
 			

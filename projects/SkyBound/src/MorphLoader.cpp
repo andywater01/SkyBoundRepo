@@ -119,7 +119,7 @@ std::shared_ptr<MeshBuilder<VertexPosNormTexCol>> MorphLoader::LoadFromFile(cons
 				mesh->AddIndexTri(edges[0], edges[1], edges[2]);
 			}
 			// Handling for quad faces
-			else if (ix == 4) {
+			if (ix == 4) {
 				mesh->AddIndexTri(edges[0], edges[1], edges[2]);
 				mesh->AddIndexTri(edges[0], edges[2], edges[3]);
 			}

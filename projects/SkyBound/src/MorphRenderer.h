@@ -68,6 +68,9 @@ public:
 
 	float m_t;
 
+private:
+	VertexPosNormTexCol* VPNTC = nullptr;
+
 
 };
 
