@@ -24,9 +24,6 @@ std::shared_ptr<MeshBuilder<VertexPosNormTexCol>> MorphLoader::LoadFromFile(cons
 	std::vector<glm::vec3> normals;
 	std::vector<glm::vec2> textureCoords;
 
-	std::vector<glm::vec3> copiedPositions;
-	std::vector<glm::vec3> copiedNormals;
-	std::vector<glm::vec2> copiedTextureCoords;
 
 	// We'll use bitmask keys and a map to avoid duplicate vertices
 	std::unordered_map<uint64_t, uint32_t> indexMap;

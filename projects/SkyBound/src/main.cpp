@@ -478,6 +478,38 @@ void UpdateCatmull(std::vector<glm::vec3> points, GameObject object, float delta
 
 
 
+float Distance(GameObject obj1, GameObject obj2)
+{
+	float product = glm::pow((obj1.get<Transform>().GetLocalPosition().x - obj2.get<Transform>().GetLocalPosition().x), 2) +
+					glm::pow((obj1.get<Transform>().GetLocalPosition().y - obj2.get<Transform>().GetLocalPosition().y), 2) +
+					glm::pow((obj1.get<Transform>().GetLocalPosition().z - obj2.get<Transform>().GetLocalPosition().z), 2);
+
+	float distance = glm::sqrt(product);
+
+	return distance;
+}
+
+
+
+bool DistanceCheck(GameObject obj1, GameObject obj2)
+{
+	bool check;
+	//glm::vec3 distance = glm::distance<glm::vec3>(obj1.get<Transform>().GetLocalPosition(), obj2.get<Transform>().GetLocalPosition());
+
+	float distance = Distance(obj1, obj2);
+
+	if (distance <= 18)
+	{
+		check = false;
+	}
+	else
+	{
+		check = true;
+	}
+
+	return check;
+
+}
 
 
 
@@ -687,7 +719,7 @@ int main() {
 		return 1;
 
 	//BG music
-	PlaySound(TEXT("Music/Island1Music.wav"), NULL, SND_ASYNC | SND_FILENAME | SND_LOOP);
+	//PlaySound(TEXT("Music/Island1Music.wav"), NULL, SND_ASYNC | SND_FILENAME | SND_LOOP);
 
 
 
@@ -1075,6 +1107,32 @@ int main() {
 		{
 			player.emplace<MorphRenderer>();
 
+
+			std::string walkPrefix = "models/Player/Walk/SkyBoundCharacter0";
+			std::string walkFileName;
+
+
+
+			for (int i = 0; i < 5; i++)
+			{
+				walkFileName = walkPrefix + std::to_string(i) + ".obj";
+
+				player.get<MorphRenderer>().addFrame(MorphLoader::LoadFromFile(walkFileName));
+
+			}
+
+			player.get<MorphRenderer>().SetFrameTime(0.25);
+
+			player.get<MorphRenderer>().SetMesh(player.get<MorphRenderer>().vao).SetMaterial(material0);
+
+
+
+
+
+
+			/*
+			player.emplace<MorphRenderer>();
+
 			std::string walkPrefix = "models/Player/Walk/SkyBoundCharacter0";
 			std::string walkFileName;
 
@@ -1090,6 +1148,7 @@ int main() {
 			
 
 			player.get<MorphRenderer>().SetMesh(player.get<MorphRenderer>().vao).SetMaterial(material0);
+			*/
 			
 			
 			player.get<Transform>().SetLocalPosition(0.5f, 0.0f, 5.0f);
@@ -2242,15 +2301,38 @@ int main() {
 			}
 			
 
-			
-			//Gravity
-			if (!(player.get<Transform>().GetLocalPosition().z <= planeHeight))
+
+			bool playerFall = DistanceCheck(player, island1);
+
+
+
+
+			if (playerFall)
 			{
-				player.get<Transform>().SetLocalPosition(player.get<Transform>().GetLocalPosition() - glm::vec3(0.0f, 0.0f, 3.5f * dt));
+				player.get<Transform>().SetLocalPosition(player.get<Transform>().GetLocalPosition() - glm::vec3(0.0f, 0.0f, 9.8f * dt));
+
+				if (Distance(player, island1) >= 20)
+				{
+					canMoveBack = false;
+					canMoveForward = false;
+					canMoveLeft = false;
+					canMoveRight = false;
+				}
 			}
 			else
 			{
 				player.get<Transform>().SetLocalPosition(player.get<Transform>().GetLocalPosition().x, player.get<Transform>().GetLocalPosition().y, 0.1f);
+			}
+
+			
+			//Gravity
+			if (!(player.get<Transform>().GetLocalPosition().z <= planeHeight))
+			{
+				//player.get<Transform>().SetLocalPosition(player.get<Transform>().GetLocalPosition() - glm::vec3(0.0f, 0.0f, 3.5f * dt));
+			}
+			else
+			{
+				//player.get<Transform>().SetLocalPosition(player.get<Transform>().GetLocalPosition().x, player.get<Transform>().GetLocalPosition().y, 0.1f);
 			}
 
 
@@ -2590,9 +2672,11 @@ int main() {
 			CheckPhantomCollision(player, Phantom, 0.8f, 0.8f, 0.8f, 0.8f);
 			CheckPhantomCollision(player, Phantom2, 0.8f, 0.8f, 0.8f, 0.8f);
 
-			checkPosition(player);
+			//checkPosition(player);
 			//inputChecker();
 			
+
+			std::cout << "Distance: " << Distance(player, island1) << std::endl;
 
 			//Transform& camTransform = cameraObject.get<Transform>();
 			glm::mat4 view = (camera->GetView());
@@ -2674,6 +2758,7 @@ int main() {
 					return false;
 					});
 			}
+			
 			
 
 			// Start by assuming no shader or material is applied
@@ -2757,43 +2842,56 @@ int main() {
 			}
 			
 
-			//Update Animation
-			player.get<MorphRenderer>().nextFrame(dt);
 
-			
-			// SetupShaderForFrame(morphShader, view, projection);
-			player.get<MorphRenderer>().render(morphShader, viewProjection, player.get<Transform>(), view, viewProjection);
-
+			//Menu = scene 0
+			//Level 1 = scene 1
+			//Level 2 = scene 2
+			//Game over = scene 3
 
 			//Update Animation
-			Wizard.get<MorphRenderer>().nextFrame(dt);
+			if (RenderGroupBool != 3)
+			{
+				player.get<MorphRenderer>().nextFrame(dt);
 
 
-			// SetupShaderForFrame(morphShader, view, projection);
-			Wizard.get<MorphRenderer>().render(morphShader, viewProjection, Wizard.get<Transform>(), view, viewProjection);
+				// SetupShaderForFrame(morphShader, view, projection);
+				player.get<MorphRenderer>().render(morphShader, viewProjection, player.get<Transform>(), view, viewProjection);
+			}
 
-
-			//Update Animation
-			Phantom.get<MorphRenderer>().nextFrame(dt);
-
-
-			// SetupShaderForFrame(morphShader, view, projection);
-			Phantom.get<MorphRenderer>().render(morphShader, viewProjection, Phantom.get<Transform>(), view, viewProjection);
 
 
 			//Update Animation
-			Phantom2.get<MorphRenderer>().nextFrame(dt);
+			if (RenderGroupBool == 1 || RenderGroupBool == 0)
+			{
+				Wizard.get<MorphRenderer>().nextFrame(dt);
 
 
-			// SetupShaderForFrame(morphShader, view, projection);
-			Phantom2.get<MorphRenderer>().render(morphShader, viewProjection, Phantom2.get<Transform>(), view, viewProjection);
-
-			//Update Animation
-			Coin.get<MorphRenderer>().nextFrame(dt);
+				// SetupShaderForFrame(morphShader, view, projection);
+				Wizard.get<MorphRenderer>().render(morphShader, viewProjection, Wizard.get<Transform>(), view, viewProjection);
 
 
-			// SetupShaderForFrame(morphShader, view, projection);
-			Coin.get<MorphRenderer>().render(morphShader, viewProjection, Coin.get<Transform>(), view, viewProjection);
+
+				Phantom.get<MorphRenderer>().nextFrame(dt);
+
+
+				// SetupShaderForFrame(morphShader, view, projection);
+				Phantom.get<MorphRenderer>().render(morphShader, viewProjection, Phantom.get<Transform>(), view, viewProjection);
+
+				//Update Animation
+				Phantom2.get<MorphRenderer>().nextFrame(dt);
+
+
+				// SetupShaderForFrame(morphShader, view, projection);
+				Phantom2.get<MorphRenderer>().render(morphShader, viewProjection, Phantom2.get<Transform>(), view, viewProjection);
+
+
+
+				Coin.get<MorphRenderer>().nextFrame(dt);
+
+
+				// SetupShaderForFrame(morphShader, view, projection);
+				Coin.get<MorphRenderer>().render(morphShader, viewProjection, Coin.get<Transform>(), view, viewProjection);
+			}
 			
 			
 			

@@ -11,7 +11,6 @@ public:
 
 	ShaderMaterial::sptr Material;
 
-	//std::vector<VertexBuffer::sptr> vbo;
 	MorphRenderer();
 	
 
