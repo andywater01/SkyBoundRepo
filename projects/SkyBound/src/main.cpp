@@ -39,6 +39,7 @@
 
 #include <fmod.h>
 
+#include "Graphics/TextureImage.h"
 
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
@@ -947,6 +948,10 @@ int main() {
 		TextureCubeMap::sptr environmentMap = TextureCubeMap::LoadFromImages("images/cubemaps/skybox/Sky.jpg");
 
 
+		//Image Textures
+		//Texture2D health = Image2D("MoundColours.png", true);
+
+
 
 		///////////////////////////////////// Scene Generation //////////////////////////////////////////////////
 		#pragma region Scene Generation
@@ -1238,11 +1243,13 @@ int main() {
 			//add the body to the dynamics world
 			dynamicsWorld->addRigidBody(body);
 		*/
+		}
 
-			GameObject island2 = scene->CreateEntity("Island2");
-		
-		
-			island2.emplace<RendererComponent>().SetMesh(Island1VAO).SetMaterial(material1);
+		GameObject island2 = scene->CreateEntity("Island2");
+		{
+
+			VertexArrayObject::sptr Island2VAO = ObjLoader::LoadFromFile("models/plains_island.obj");
+			island2.emplace<RendererComponent>().SetMesh(Island2VAO).SetMaterial(material1);
 			island2.get<Transform>().SetLocalPosition(-35.0f, 0.0f, -4.5f);
 			island2.get<Transform>().SetLocalRotation(-90.0f, 180.0f, 0.0f);
 			island2.get<Transform>().SetLocalScale(1.5f, 1.5f, 1.5f);
@@ -1634,9 +1641,9 @@ int main() {
 
 			VertexArrayObject::sptr TaigaVAO = ObjLoader::LoadFromFile("models/taiga_island.obj");
 			TaigaGround.emplace<RendererComponent>().SetMesh(TaigaVAO).SetMaterial(material10);
-			TaigaGround.get<Transform>().SetLocalPosition(-10.0f, -0.0f, -6.8f);
+			TaigaGround.get<Transform>().SetLocalPosition(-6.0f, -0.0f, -12.8f);
 			TaigaGround.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
-			TaigaGround.get<Transform>().SetLocalScale(1.5f, 1.5f, 1.5f);
+			TaigaGround.get<Transform>().SetLocalScale(3.0f, 3.0f, 3.0f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(TaigaGround);
 			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
 		}
@@ -2303,15 +2310,15 @@ int main() {
 
 
 			bool playerFall = DistanceCheck(player, island1);
+			bool playerFall2 = DistanceCheck(player, island2);
 
 
 
-
-			if (playerFall)
+			if (playerFall && playerFall2)
 			{
 				player.get<Transform>().SetLocalPosition(player.get<Transform>().GetLocalPosition() - glm::vec3(0.0f, 0.0f, 9.8f * dt));
 
-				if (Distance(player, island1) >= 20)
+				if (Distance(player, island1) >= 20 && Distance(player, island2) >= 20)
 				{
 					canMoveBack = false;
 					canMoveForward = false;
@@ -2323,6 +2330,8 @@ int main() {
 			{
 				player.get<Transform>().SetLocalPosition(player.get<Transform>().GetLocalPosition().x, player.get<Transform>().GetLocalPosition().y, 0.1f);
 			}
+
+			
 
 			
 			//Gravity
@@ -2339,6 +2348,13 @@ int main() {
 			/*if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
 				player.get<Transform>().SetLocalPosition(LERP(currentPosition, JumpPosition, 0.02f) * dt);
 			}*/
+
+			if (player.get<Transform>().GetLocalPosition().z <= -7.0f)
+			{
+				player.get<Transform>().SetLocalPosition(0.5f, 0.0f, 5.0f);
+				PlayerHealth--;
+			}
+			
 
 
 			//Switching scenes when player reaches a certain point
