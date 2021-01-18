@@ -1597,6 +1597,15 @@ int main() {
 		}
 
 
+		//Sprite Render
+		Shader::sptr spriteShader = Shader::Create();
+		spriteShader->LoadShaderPartFromFile("shaders/spritevertex_shader.glsl", GL_VERTEX_SHADER);
+		spriteShader->LoadShaderPartFromFile("shaders/spritefrag_reflection.frag.glsl", GL_FRAGMENT_SHADER);
+		spriteShader->Link();
+
+		
+
+
 
 		
 		// Load a second material for our reflective material!
