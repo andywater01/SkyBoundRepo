@@ -8,6 +8,7 @@
 #include <json.hpp>
 #include <fstream>
 
+
 #include <Attributes.h>
 
 #include <GLM/glm.hpp>
@@ -30,6 +31,8 @@
 #include "Gameplay/GameObjectTag.h"
 #include "Gameplay/Texture.h"
 
+
+
 #include "Behaviours/SimpleMoveBehaviour.h"
 
 #include <Windows.h>
@@ -39,7 +42,7 @@
 
 #include <fmod.h>
 
-#include "Graphics/TextureImage.h"
+
 
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
@@ -282,9 +285,13 @@ inline btVector3 glm2bt(const glm::vec3& vec)
 	return { vec.x, vec.y, vec.z };
 }
 
+
+
+
+
 int firstFrame = 0;
 int lastFrame = 4;
-
+bool pauseGame = false;
 
 void PlayerInput(GameObject& transform, float dt, float speed) {
 if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS && canMoveLeft == true && RenderGroupBool != 0) {
@@ -338,6 +345,16 @@ if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS && RenderGroupBool !
 if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS && RenderGroupBool == 0) {
 	RenderGroupBool = 1;
 }
+
+
+//if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+//	pauseGame = true;
+//	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS && pauseGame == true)
+//	{
+//		pauseGame = false;
+//	}
+//
+//}
 
 else 
 {
@@ -949,7 +966,7 @@ int main() {
 
 
 		//Image Textures
-		//Texture2D health = Image2D("MoundColours.png", true);
+		//Image2D health = Image2D("MoundColours.png", true);
 
 
 
@@ -1118,7 +1135,7 @@ int main() {
 
 
 
-			for (int i = 0; i < 5; i++)
+			for (int i = 0; i < 4; i++)
 			{
 				walkFileName = walkPrefix + std::to_string(i) + ".obj";
 
@@ -1650,10 +1667,22 @@ int main() {
 
 			VertexArrayObject::sptr TaigaVAO = ObjLoader::LoadFromFile("models/taiga_island.obj");
 			TaigaGround.emplace<RendererComponent>().SetMesh(TaigaVAO).SetMaterial(material10);
-			TaigaGround.get<Transform>().SetLocalPosition(-6.0f, -0.0f, -12.8f);
+			TaigaGround.get<Transform>().SetLocalPosition(4.0f, -0.0f, -11.5f);
 			TaigaGround.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
 			TaigaGround.get<Transform>().SetLocalScale(3.0f, 3.0f, 3.0f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(TaigaGround);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
+		GameObject TaigaGround2 = scene2->CreateEntity("Taiga2");
+		{
+
+			VertexArrayObject::sptr Taiga2VAO = ObjLoader::LoadFromFile("models/taiga_island.obj");
+			TaigaGround2.emplace<RendererComponent>().SetMesh(Taiga2VAO).SetMaterial(material10);
+			TaigaGround2.get<Transform>().SetLocalPosition(-35.0f, 0.0f, -11.5f);
+			TaigaGround2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
+			TaigaGround2.get<Transform>().SetLocalScale(3.0f, 3.0f, 3.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(TaigaGround2);
 			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
 		}
 
@@ -1662,7 +1691,7 @@ int main() {
 
 			VertexArrayObject::sptr FenceEndVAO = ObjLoader::LoadFromFile("models/hossain/Fence end.obj");
 			FenceEnd.emplace<RendererComponent>().SetMesh(FenceEndVAO).SetMaterial(material13);
-			FenceEnd.get<Transform>().SetLocalPosition(-16.0f, -6.7f, -2.6f);
+			FenceEnd.get<Transform>().SetLocalPosition(-10.0f, -6.7f, -2.5f);
 			FenceEnd.get<Transform>().SetLocalRotation(90.0f, 0.0f, 32.0f);
 			FenceEnd.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(FenceEnd);
@@ -1674,24 +1703,34 @@ int main() {
 
 			VertexArrayObject::sptr RockVAO = ObjLoader::LoadFromFile("models/Fardeen/Rock.obj");
 			Rock.emplace<RendererComponent>().SetMesh(RockVAO).SetMaterial(material17);
-			Rock.get<Transform>().SetLocalPosition(-12.0f, 6.7f, -2.6f);
+			Rock.get<Transform>().SetLocalPosition(-6.0f, 6.7f, -2.5f);
 			Rock.get<Transform>().SetLocalRotation(90.0f, 0.0f, 70.0f);
 			Rock.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Rock);
 			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
 		}
 
-		/*GameObject Bush2 = scene2->CreateEntity("Bush2");
+		GameObject Portal2 = scene2->CreateEntity("Portal2");
 		{
-
-			VertexArrayObject::sptr BushVAO2 = ObjLoader::LoadFromFile("models/hossain/bush_and_shrubs.obj");
-			Bush2.emplace<RendererComponent>().SetMesh(BushVAO2).SetMaterial(material4);
-			Bush2.get<Transform>().SetLocalPosition(-6.0f, 4.7f, -0.8f);
-			Bush2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
-			Bush2.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
-			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Bush2);
+			VertexArrayObject::sptr Portal2VAO = ObjLoader::LoadFromFile("models/portal.obj");
+			Portal2.emplace<RendererComponent>().SetMesh(Portal2VAO).SetMaterial(material8);
+			Portal2.get<Transform>().SetLocalPosition(-52.0f, -0.0f, 1.0f);
+			Portal2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
+			Portal2.get<Transform>().SetLocalScale(3.0f, 3.0f, 3.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Portal2);
 			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
-		}*/
+		}
+
+		GameObject Bridge2 = scene2->CreateEntity("Bridge2");
+		{
+			VertexArrayObject::sptr Bridge2VAO = ObjLoader::LoadFromFile("models/hossain/NewBridge.obj");
+			Bridge2.emplace<RendererComponent>().SetMesh(Bridge2VAO).SetMaterial(material13);
+			Bridge2.get<Transform>().SetLocalPosition(-18.0f, -0.0f, -3.0f);
+			Bridge2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
+			Bridge2.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Bridge2);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
 
 
 		#pragma endregion
@@ -2235,6 +2274,10 @@ int main() {
 		// use std::bind
 		keyToggles.emplace_back(GLFW_KEY_T, [&]() { camera->ToggleOrtho(); });
 
+
+		
+
+
 		int selectedVao = 3; // select cube by default
 		keyToggles.emplace_back(GLFW_KEY_KP_ADD, [&]() {
 			selectedVao++;
@@ -2280,6 +2323,9 @@ int main() {
 
 
 		
+
+
+		
 		///// Game loop /////
 		while (!glfwWindowShouldClose(window)) {
 			glfwPollEvents();
@@ -2291,6 +2337,9 @@ int main() {
 			// Calculate the time since our last frame (dt)
 			double thisFrame = glfwGetTime();
 			float dt = static_cast<float>(thisFrame - lastFrame);
+
+			
+
 
 			//Jump Check
 			jumpWatcher.Poll(window);
@@ -2317,28 +2366,65 @@ int main() {
 			}
 			
 
+			if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS && RenderGroupBool == 3) {
+				PlayerHealth = 3;
+				RenderGroupBool = 1;
+				CoinCount = 0;
+				gotCoin = false;
+
+				Wizard.get<Transform>().SetLocalPosition(-14.5f, 0.0f, -2.5f);
+				Coin.get<Transform>().SetLocalPosition(6.0f, -7.0f, 0.0f);
+
+			}
+
 
 			bool playerFall = DistanceCheck(player, island1);
 			bool playerFall2 = DistanceCheck(player, island2);
 
+			bool playerFall3 = DistanceCheck(player, TaigaGround);
+			bool playerFall4 = DistanceCheck(player, TaigaGround2);
 
 
-			if (playerFall && playerFall2)
+			if (RenderGroupBool == 1 || RenderGroupBool == 0)
 			{
-				player.get<Transform>().SetLocalPosition(player.get<Transform>().GetLocalPosition() - glm::vec3(0.0f, 0.0f, 9.8f * dt));
-
-				if (Distance(player, island1) >= 20 && Distance(player, island2) >= 20)
+				if (playerFall && playerFall2)
 				{
-					canMoveBack = false;
-					canMoveForward = false;
-					canMoveLeft = false;
-					canMoveRight = false;
+					player.get<Transform>().SetLocalPosition(player.get<Transform>().GetLocalPosition() - glm::vec3(0.0f, 0.0f, 9.8f * dt));
+
+					if (Distance(player, island1) >= 20 && Distance(player, island2) >= 20)
+					{
+						canMoveBack = false;
+						canMoveForward = false;
+						canMoveLeft = false;
+						canMoveRight = false;
+					}
+				}
+				else
+				{
+					player.get<Transform>().SetLocalPosition(player.get<Transform>().GetLocalPosition().x, player.get<Transform>().GetLocalPosition().y, 0.1f);
 				}
 			}
-			else
+			
+			/*else if (RenderGroupBool == 2)
 			{
-				player.get<Transform>().SetLocalPosition(player.get<Transform>().GetLocalPosition().x, player.get<Transform>().GetLocalPosition().y, 0.1f);
+				if (playerFall3 && playerFall4)
+				{
+					player.get<Transform>().SetLocalPosition(player.get<Transform>().GetLocalPosition() - glm::vec3(0.0f, 0.0f, 9.8f * dt));
+
+					if (Distance(player, TaigaGround) >= 28 && Distance(player, TaigaGround2) >= 28)
+					{
+						canMoveBack = false;
+						canMoveForward = false;
+						canMoveLeft = false;
+						canMoveRight = false;
+					}
+				}
+				else
+				{
+					player.get<Transform>().SetLocalPosition(player.get<Transform>().GetLocalPosition().x, player.get<Transform>().GetLocalPosition().y, 0.1f);
+				}
 			}
+			std::cout << Distance(player, TaigaGround) << std::endl;*/
 
 			
 
@@ -2367,11 +2453,22 @@ int main() {
 
 
 			//Switching scenes when player reaches a certain point
-			if (player.get<Transform>().GetLocalPosition().x <= -49 && gotCoin == true)
+			if (player.get<Transform>().GetLocalPosition().x <= -49 && gotCoin == true && RenderGroupBool == 1)
 			{
-				player.get<Transform>().SetLocalPosition(0.0f, 0.0f, 0.0f);
+				player.get<Transform>().SetLocalPosition(0.0f, 0.0f, 0.1f);
 				RenderGroupBool = 2;
 			}
+			else
+			{
+
+			}
+			//if (player.get<Transform>().GetLocalPosition().x <= -59 && gotCoin == true && RenderGroupBool == 2)
+			//{
+			//	//player.get<Transform>().SetLocalPosition(0.0f, 0.0f, 0.0f);
+			//	//RenderGroupBool = 2;
+			//}
+
+
 			if (PlayerHealth <= 0)
 			{
 				player.get<Transform>().SetLocalPosition(0.0f, 0.0f, 0.0f);
@@ -2415,7 +2512,8 @@ int main() {
 
 			PhantomTimer = 1.0f;
 
-			UpdateCatmull(phantomWaypoints, Phantom, dt);
+			if (RenderGroupBool == 0 || RenderGroupBool == 1)
+				UpdateCatmull(phantomWaypoints, Phantom, dt);
 
 			
 			
@@ -2463,46 +2561,54 @@ int main() {
 			}
 			*/
 
-
-			PhantomTimer2 += dt;
-
-			if (PhantomTimer2 >= PhantomTimeLimit2)
+			if (RenderGroupBool == 1 || RenderGroupBool == 0)
 			{
-				PhantomTimer2 = 0.0f;
-				PhantomMove2 = !PhantomMove2;
-			}
+				PhantomTimer2 += dt;
 
-			float phantomTPos2 = PhantomTimer2 / PhantomTimeLimit2;
+				if (PhantomTimer2 >= PhantomTimeLimit2)
+				{
+					PhantomTimer2 = 0.0f;
+					PhantomMove2 = !PhantomMove2;
+				}
 
-			if (PhantomMove2 == true)
-			{
-				Phantom2.get<Transform>().SetLocalPosition(LERP(startPos2, endPos2, phantomTPos2));
-			}
-			else if (PhantomMove2 == false)
-			{
-				Phantom2.get<Transform>().SetLocalPosition(LERP(endPos2, startPos2, phantomTPos2));
-			}
+				float phantomTPos2 = PhantomTimer2 / PhantomTimeLimit2;
+
+				if (PhantomMove2 == true)
+				{
+					Phantom2.get<Transform>().SetLocalPosition(LERP(startPos2, endPos2, phantomTPos2));
+				}
+				else if (PhantomMove2 == false)
+				{
+					Phantom2.get<Transform>().SetLocalPosition(LERP(endPos2, startPos2, phantomTPos2));
+				}
 
 
-			if (Phantom2.get<Transform>().GetLocalPosition() == startPos2)
-			{
-				//if (flipPhantom2)
-				//{
+				if (Phantom2.get<Transform>().GetLocalPosition() == startPos2)
+				{
+					//if (flipPhantom2)
+					//{
 					Phantom2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
 					//Phantom.get<Transform>().SetLocalScale(Phantom.get<Transform>().GetLocalScale() * glm::vec3(1.0f, 1.0f, -1.0f));
 				//}
-			}
+				}
 
-			if (Phantom2.get<Transform>().GetLocalPosition() == endPos2)
-			{
-				flipPhantom2 = true;
+				if (Phantom2.get<Transform>().GetLocalPosition() == endPos2)
+				{
+					flipPhantom2 = true;
 
-				//if (flipPhantom2)
-				//{
+					//if (flipPhantom2)
+					//{
 					Phantom2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 180.0f);
 					//Phantom.get<Transform>().SetLocalScale(Phantom.get<Transform>().GetLocalScale() * glm::vec3(1.0f, 1.0f, -1.0f));
 				//}
+				}
 			}
+			else if (RenderGroupBool == 2)
+			{
+				Phantom.get<Transform>().SetLocalPosition(100, 100, 100);
+				Phantom2.get<Transform>().SetLocalPosition(100, 100, 100);
+			}
+			
 
 
 
@@ -2518,13 +2624,10 @@ int main() {
 				JumpTimer += dt;
 				if (JumpTimer <= JumpTimeLimit)
 					player.get<Transform>().SetLocalPosition(LERP(currentPosition, JumpPosition, 0.08f));
+				
 
 			}
-			else
-			{
-
-				//JumpTimer = 0.0f;
-			}
+			
 
 			if (player.get<Transform>().GetLocalPosition().z <= planeHeight + 0.01)
 			{
