@@ -1,8 +1,9 @@
 //------------------------------------------------------------------------
 // Game.cpp
 //------------------------------------------------------------------------
+#include <iostream>
 
-#include "Sound/AudioEngine.h"
+#include "AudioEngine.h"
 
 float gameTime;
 
@@ -19,7 +20,7 @@ void Init()
 
 	AudioEvent& music = engine.CreateEvent("music", "{b56cb9d2-1d47-4099-b80e-7d257b99a823}");
 
-	music.Play();
+	//music.Play();
 
 }
 
@@ -52,13 +53,14 @@ void Update(float deltaTime)
 		musicBus.SetPaused(true);
 	}
 
-	if (gameTime > 10.0f)
+	/*if (gameTime > 10.0f)
 	{
 		engine.SetGlobalParameter("Timewarp", 1.0f);
 
 		musicBus.SetPaused(false);
-	}
+	}*/
 
+	std::cout << "AUDIO IS WORKING" << std::endl;
 
 	engine.Update();
 }

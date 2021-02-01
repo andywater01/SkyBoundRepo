@@ -1222,7 +1222,7 @@ int main() {
 			//playerBody->isActive();
 			//playerBody->getMotionState()->getWorldTransform(playerTransform);
 			//float matrix[16];
-			//playerTransform.setFromOpenGLMatrix(matrix);
+			//playerTransform.setFromOpenGLMatrix(matrix);mi
 			
 
 			//add the body to the dynamics world
@@ -2319,7 +2319,8 @@ int main() {
 			//player.get<Transform>().SetLocalPosition(LERP(currentPosition, JumpPosition, 0.5f));
 			});
 
-
+		//Game.cpp init//
+		Init();
 		
 
 
@@ -2337,7 +2338,9 @@ int main() {
 			float dt = static_cast<float>(thisFrame - lastFrame);
 
 			
-
+			//Game.cpp Update & Render//
+			Update(dt);
+			Render();
 
 			//Jump Check
 			jumpWatcher.Poll(window);
@@ -3060,7 +3063,8 @@ int main() {
 			glfwSwapBuffers(window);
 			lastFrame = thisFrame;    
 		}
-		
+		// Shut down game.cpp//
+		Shutdown();
 		
 		//deletePhysics();
 		///-----cleanup_start-----
