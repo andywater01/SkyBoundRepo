@@ -40,7 +40,6 @@
 
 #pragma comment(lib, "winmm.lib")
 
-#include <fmod.h>
 
 
 
@@ -50,6 +49,7 @@
 #include "Gameplay/Transform.h"
 #include "Graphics/Texture2D.h"
 #include "Graphics/Texture2DData.h"
+#include "Graphics/Sprite.h"
 #include "Utilities/InputHelpers.h"
 #include "Utilities/MeshBuilder.h"
 #include "Utilities/MeshFactory.h"
@@ -57,7 +57,7 @@
 #include "Utilities/ObjLoader.h"
 #include "MorphLoader.h"
 #include "MorphRenderer.h"
-#include "Utilities/VertexTypes.h"
+//#include "Utilities/VertexTypes.h"
 #include "bullet/btBulletCollisionCommon.h"
 #include "bullet/btBulletDynamicsCommon.h"
 
@@ -98,6 +98,7 @@ void GlDebugMessage(GLenum source, GLenum type, GLuint id, GLenum severity, GLsi
 
 GLFWwindow* window;
 Camera::sptr camera = nullptr;
+Camera::sptr orthoCamera = nullptr;
 
 Attributes PhantomAttrib;
 bool isRotate = true;
@@ -118,6 +119,7 @@ bool canMoveRight = true;
 void GlfwWindowResizedCallback(GLFWwindow* window, int width, int height) {
 	glViewport(0, 0, width, height);
 	camera->ResizeWindow(width, height);
+	orthoCamera->ResizeWindow(width, height);
 }
 
 bool initGLFW() {
@@ -239,18 +241,22 @@ void ManipulateTransformWithInput(Transform& transform, float dt) {
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
 		transform.MoveLocal(0.0f, -1.0f * dt, 0.0f);
 		camera->SetPosition(glm::vec3(0.0f, -1.0f * dt, 0.0f));
+		orthoCamera->SetPosition(glm::vec3(0.0f, -1.0f * dt, 0.0f));
 	}
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) { 
 		transform.MoveLocal(0.0f,  1.0f * dt, 0.0f);
 		camera->SetPosition(glm::vec3(0.0f, 1.0f * dt, 0.0f));
+		orthoCamera->SetPosition(glm::vec3(0.0f, 1.0f * dt, 0.0f));
 	}
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
 		transform.MoveLocal(-1.0f * dt, 0.0f, 0.0f);
 		camera->SetPosition(glm::vec3(-1.0f * dt, 0.0f, 0.0f));
+		orthoCamera->SetPosition(glm::vec3(-1.0f * dt, 0.0f, 0.0f));
 	}
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
 		transform.MoveLocal( 1.0f * dt, 0.0f,  0.0f);
 		camera->SetPosition(glm::vec3(1.0f * dt, 0.0f, 0.0f));
+		orthoCamera->SetPosition(glm::vec3(1.0f * dt, 0.0f, 0.0f));
 	}
 	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
 		transform.MoveLocal(0.0f, 0.0f,  1.0f * dt);
@@ -293,19 +299,23 @@ int firstFrame = 0;
 int lastFrame = 4;
 bool pauseGame = false;
 
-void PlayerInput(GameObject& transform, float dt, float speed) {
+void PlayerInput(GameObject& transform, float dt, float speed, btRigidBody* body) {
 if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS && canMoveLeft == true && RenderGroupBool != 0) {
 	//transform->MoveLocal(0.0f, 0.0f, -1.0f * dt * speed);
 	//transform.MoveLocalFixed(0.0f, -1.0f * dt * speed, 0.0f);
-	transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(0.0f, -1.0f * dt * speed, 0.0f));
+	//transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(0.0f, -1.0f * dt * speed, 0.0f));
 	transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
+	body->activate(true);
+	body->applyForce(btVector3(0.0f, -1800.0f, 0.0f) * dt, btVector3(0.0f, 0.0f, 0.0f));
 	firstFrame = 0;
 	lastFrame = 4;
 	//transform.SetLocalRotation(90.0f, 0.0f, 282.0f);
 }
 if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS && canMoveRight == true && RenderGroupBool != 0) {
-	transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(0.0f, 1.0f * dt * speed, 0.0f));
+	//transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(0.0f, 1.0f * dt * speed, 0.0f));
 	transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 270.0f);
+	body->activate(true);
+	body->applyForce(btVector3(0.0f, 1800.0f, 0.0f) * dt, btVector3(0.0f, 0.0f, 0.0f));
 	firstFrame = 0;
 	lastFrame = 4;
 	//body->activate(true);
@@ -317,8 +327,10 @@ if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS && canMoveRight == true && Rend
 if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS && canMoveForward == true && RenderGroupBool != 0) {
 	//transform->MoveLocal(1.0f * dt * speed, 0.0f, 0.0f);
 	//transform.MoveLocalFixed(-1.0f * dt * speed, 0.0f, 0.0f);
-	transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(-1.0f * dt * speed, 0.0f, 0.0f));
+	//transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(-1.0f * dt * speed, 0.0f, 0.0f));
 	transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
+	body->activate(true);
+	body->applyForce(btVector3(-1800.0f, 0.0f, 0.0f) * dt, btVector3(0.0f, 0.0f, 0.0f));
 	firstFrame = 0;
 	lastFrame = 4;
 	//transform.SetLocalRotation(90.0f, 0.0f, 192.0f);
@@ -327,9 +339,10 @@ if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS && canMoveForward == true && Re
 if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS && canMoveBack == true && RenderGroupBool != 0) {
 	//transform->MoveLocal(-1.0f * dt * speed, 0.0f, 0.0f);
 	//transform.MoveLocalFixed(1.0f * dt * speed, 0.0f, 0.0f);
-
-	transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(1.0f * dt * speed, 0.0f, 0.0f));
+	//transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(1.0f * dt * speed, 0.0f, 0.0f));
 	transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 180.0f);
+	body->activate(true);
+	body->applyForce(btVector3(1800.0f, 0.0f, 0.0f) * dt, btVector3(0.0f, 0.0f, 0.0f));
 	firstFrame = 0;
 	lastFrame = 4;
 	//transform.SetLocalRotation(90.0f, 0.0f, 12.0f);
@@ -599,6 +612,7 @@ void CheckCollision(GameObject player, GameObject otherObject, float xRangePos, 
 		canMoveForward = true;
 		
 	}
+
 	//Backward
 	if (player.get<Transform>().GetLocalPosition().x + xRangePos >= otherObject.get<Transform>().GetLocalPosition().x - xRangePos &&
 		player.get<Transform>().GetLocalPosition().x <= otherObject.get<Transform>().GetLocalPosition().x + xRangeNeg &&
@@ -631,6 +645,7 @@ void CheckCollision(GameObject player, GameObject otherObject, float xRangePos, 
 		
 	}
 
+	//Right
 	if (player.get<Transform>().GetLocalPosition().y + yRangeNeg >= otherObject.get<Transform>().GetLocalPosition().y - yRangePos &&
 		player.get<Transform>().GetLocalPosition().y <= otherObject.get<Transform>().GetLocalPosition().y + yRangePos &&
 		player.get<Transform>().GetLocalPosition().x <= otherObject.get<Transform>().GetLocalPosition().x + xRangeNeg &&
@@ -662,10 +677,7 @@ void CheckPhantomCollision(GameObject player, GameObject other, float xRangePos,
 		PlayerHealth--;
 		player.get<Transform>().SetLocalPosition(0.0f, 0.0f, 0.8f);
 	}
-	else
-	{
-		
-	}
+	
 	//Backward
 	if (player.get<Transform>().GetLocalPosition().x + xRangePos >= other.get<Transform>().GetLocalPosition().x - xRangePos &&
 		player.get<Transform>().GetLocalPosition().x <= other.get<Transform>().GetLocalPosition().x + xRangeNeg &&
@@ -675,11 +687,7 @@ void CheckPhantomCollision(GameObject player, GameObject other, float xRangePos,
 		PlayerHealth--;
 		player.get<Transform>().SetLocalPosition(0.0f, 0.0f, 0.8f);
 	}
-	else
-	{
-		
-
-	}
+	
 
 	//Left
 	if (player.get<Transform>().GetLocalPosition().y - yRangeNeg <= other.get<Transform>().GetLocalPosition().y + yRangePos &&
@@ -690,10 +698,7 @@ void CheckPhantomCollision(GameObject player, GameObject other, float xRangePos,
 		PlayerHealth--;
 		player.get<Transform>().SetLocalPosition(0.0f, 0.0f, 0.8f);
 	}
-	else
-	{
-		
-	}
+	
 
 	if (player.get<Transform>().GetLocalPosition().y + yRangeNeg >= other.get<Transform>().GetLocalPosition().y - yRangePos &&
 		player.get<Transform>().GetLocalPosition().y <= other.get<Transform>().GetLocalPosition().y + yRangePos &&
@@ -703,10 +708,7 @@ void CheckPhantomCollision(GameObject player, GameObject other, float xRangePos,
 		PlayerHealth--;
 		player.get<Transform>().SetLocalPosition(0.0f, 0.0f, 0.8f);
 	}
-	else
-	{
-		
-	}
+	
 
 }
 
@@ -764,7 +766,7 @@ int main() {
 
 	btDiscreteDynamicsWorld* dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
 
-	dynamicsWorld->setGravity(btVector3(0.f, 0.f, 0.f));
+	dynamicsWorld->setGravity(btVector3(0.f, 0.f, -1.f));
 
 
 	//keep track of the shapes, we release memory at exit.
@@ -773,7 +775,7 @@ int main() {
 	
 	float planeHeight = 0.1f;
 
-	/*
+	
 	//Plane
 	btTransform t;
 	t.setIdentity();
@@ -781,9 +783,9 @@ int main() {
 	btStaticPlaneShape* plane = new btStaticPlaneShape(btVector3(0, 0, 1), 0);
 	btMotionState* motion = new btDefaultMotionState(t);
 	btRigidBody::btRigidBodyConstructionInfo info(0.0, motion, plane);
-	btRigidBody* body = new btRigidBody(info);
-	dynamicsWorld->addRigidBody(body);
-	*/
+	btRigidBody* planeBody = new btRigidBody(info);
+	dynamicsWorld->addRigidBody(planeBody);
+	
 
 	//Player Physics
 	btCollisionShape* playerShape = new btBoxShape(btVector3(1.f, 1.f, 1.f));
@@ -957,6 +959,7 @@ int main() {
 		Texture2D::sptr diffuseMp19 = Texture2D::LoadFromFile("images/MailboxColor.png");
 		Texture2D::sptr diffuseMp20 = Texture2D::LoadFromFile("images/flowerTexture.png");
 		Texture2D::sptr diffuseMp21 = Texture2D::LoadFromFile("images/HouseColors.png");
+		Texture2D::sptr spriteDiffuse = Texture2D::LoadFromFile("images/heart.png");
 
 		Texture2DData::sptr specularMp02 = Texture2DData::LoadFromFile("images/Stone_001_Specular.png");
 
@@ -1117,11 +1120,45 @@ int main() {
 		material20->Set("u_OutlineThickness", 0.15f);
 
 
+		ShaderMaterial::sptr spriteMat = ShaderMaterial::Create();
+		spriteMat->Shader = shader;
+		spriteMat->Set("s_Diffuse", spriteDiffuse);
+		spriteMat->Set("u_Shininess", 0.0f);
+		spriteMat->Set("u_OutlineThickness", 0.0001f);
+		spriteMat->RenderLayer = 0;
+
+
 		/////////////////////////////////////////////////////////////////////////////
 
 		//X = In and Out
 		//Y = Left and Right
 		//Z = up and down
+
+
+
+		VertexArrayObject::sptr spriteVao;
+
+		GameObject spriteObj = scene->CreateEntity("HeartSprite");
+		{
+			GLfloat vertices[] = { -1, -1, 0, // bottom left corner
+						   -1,  1, 0, // top left corner
+							1,  1, 0, // top right corner
+							1, -1, 0 }; // bottom right corner
+
+
+			GLuint elements[] = {
+					0, 1, 2,
+					2, 3, 0
+			};
+
+
+			spriteVao = NotObjLoader::LoadFromFile("Sprite.notobj");
+			spriteObj.emplace<Sprite>().SetMesh(spriteVao).SetMaterial(spriteMat);
+			spriteObj.get<Transform>().SetLocalPosition(0.0f, 0.0f, 5.0f);
+			spriteObj.get<Transform>().SetLocalRotation(0.0f, 180.0f, 270.0f);
+			spriteObj.get<Transform>().SetLocalScale(0.5f, 0.5f, 0.5f);
+
+		}
 
 
 
@@ -1178,18 +1215,18 @@ int main() {
 			player.get<Transform>().SetLocalScale(0.5f, 0.5f, 0.5f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(player);
 
-			/*
+			
 			//Collision Stuff
 			collisionShapes.push_back(playerShape);
 
 			
 			playerTransform.setIdentity();
-			playerTransform.setOrigin(btVector3(0.5f, 0.5f, 0.1f));
+			playerTransform.setOrigin(btVector3(0.0f, 0.0f, 30.0f));
 			playerTransform.setRotation(btQuaternion(btVector3(1, 0, 0), btScalar(90.0f)));
 			playerTransform.setRotation(btQuaternion(btVector3(0, 0, 1), btScalar(180.0f)));
 			//playerTransform.setOrigin(glm2bt(player.get<Transform>().GetLocalPosition()));
 			//playerTransform.setIdentity();
-			player.get<Transform>().SetTransform(playerTransform);
+			//player.get<Transform>().SetLocalPosition(playerTransform);
 
 			if (isPlayerDynamic)
 				playerShape->calculateLocalInertia(playerMass, localPlayerInertia);
@@ -1202,7 +1239,7 @@ int main() {
 			btRigidBody::btRigidBodyConstructionInfo rbInfo(playerMass, playerMotionState, playerShape, localPlayerInertia);
 			playerBody = new btRigidBody(rbInfo);
 
-			
+			playerBody->setDamping(0.3f, 0.3f);
 
 
 			//add the body to the dynamics world
@@ -1220,7 +1257,7 @@ int main() {
 
 			//add the body to the dynamics world
 			//dynamicsWorld->addRigidBody(playerBody);
-			*/
+			
 			
 		}
 
@@ -1301,20 +1338,20 @@ int main() {
 			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
 
 			//Collision Stuff
-			collisionShapes.push_back(wizardShape);
+			//collisionShapes.push_back(wizardShape);
 
-			wizardTransform.setIdentity();
-			wizardTransform.setOrigin(glm2bt(Wizard.get<Transform>().GetLocalPosition()));
+			//wizardTransform.setIdentity();
+			//wizardTransform.setOrigin(glm2bt(Wizard.get<Transform>().GetLocalPosition()));
 
-			if (isWizardDynamic)
-				wizardShape->calculateLocalInertia(wizardMass, localWizardInertia);
+			//if (isWizardDynamic)
+				//wizardShape->calculateLocalInertia(wizardMass, localWizardInertia);
 
 			
 
 			//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
-			wizardMotionState = new btDefaultMotionState(wizardTransform);
-			btRigidBody::btRigidBodyConstructionInfo rbInfo(wizardMass, wizardMotionState, wizardShape, localWizardInertia);
-			wizardBody = new btRigidBody(rbInfo);
+			//wizardMotionState = new btDefaultMotionState(wizardTransform);
+			//btRigidBody::btRigidBodyConstructionInfo rbInfo(wizardMass, wizardMotionState, wizardShape, localWizardInertia);
+			//wizardBody = new btRigidBody(rbInfo);
 
 			
 
@@ -1330,7 +1367,7 @@ int main() {
 
 
 			//add the body to the dynamics world
-			dynamicsWorld->addRigidBody(wizardBody);
+			//dynamicsWorld->addRigidBody(wizardBody);
 		}
 
 
@@ -1617,11 +1654,34 @@ int main() {
 		//Sprite Render
 		Shader::sptr spriteShader = Shader::Create();
 		spriteShader->LoadShaderPartFromFile("shaders/spritevertex_shader.glsl", GL_VERTEX_SHADER);
-		spriteShader->LoadShaderPartFromFile("shaders/spritefrag_reflection.frag.glsl", GL_FRAGMENT_SHADER);
+		spriteShader->LoadShaderPartFromFile("shaders/spritefrag_shader.glsl", GL_FRAGMENT_SHADER);
 		spriteShader->Link();
+		
+
+		//MeshBuilder<VertexPosNormTexCol> spriteMesh;
+		//VertexArrayObject::sptr spriteVAO = spriteMesh.Bake();
+
+		//MeshFactory::AddPlane(spriteMesh, glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 0.0, 1.0f), 
+			//				  glm::vec2(100.0f, 100.0f), glm::vec4(0.0f));
+
+		//ShaderMaterial::sptr spriteMat = ShaderMaterial::Create();
+		//spriteMat->Shader = spriteShader;
+		//spriteMat->Set("image", spriteDiffuse);
+
+		//GameObject sprite = scene->CreateEntity("sprite");
+		//sprite.get<Transform>().SetLocalPosition(0.0f, 0.0f, 0.0f);
+		//sprite.emplace<RendererComponent>().SetMesh(spriteVAO).SetMaterial(spriteMat);
 
 		
 
+
+		static const float spritePoints[] = {
+		-1.0f, 1.0f, -1.0f,
+		-1.0f, 1.0f, 1.0f,
+		 1.0f, -1.0f
+		};
+
+		
 
 
 		
@@ -2047,6 +2107,8 @@ int main() {
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(PlayText);
 			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
 		}
+
+
 		
 
 	#pragma endregion
@@ -2259,12 +2321,29 @@ int main() {
 		materials[3].Shininess = 64.0f;
 		materials[3].TextureMix = 0.6f;
 
+
+
+		
+
 		camera = Camera::Create();
 		camera->SetPosition(glm::vec3(4.0f, 1.2f, 2.0f)); // Set initial position
 		camera->SetUp(glm::vec3(0, 0, 1)); // Use a z-up coordinate system
 		camera->LookAt(glm::vec3(0.0f)); // Look at center of the screen
 		camera->SetFovDegrees(84.0f); // Set an initial FOV
 		camera->SetOrthoHeight(3.0f);
+
+
+		orthoCamera = Camera::Create();
+		orthoCamera->SetPosition(glm::vec3(4.0f, 1.2f, 2.0f)); // Set initial position
+		orthoCamera->SetUp(glm::vec3(0, 0, 1)); // Use a z-up coordinate system
+		orthoCamera->LookAt(glm::vec3(0.0f)); // Look at center of the screen
+		orthoCamera->SetFovDegrees(84.0f); // Set an initial FOV
+		orthoCamera->SetOrthoHeight(3.0f);
+		orthoCamera->ToggleOrtho();
+		orthoCamera->SetIsOrtho(true);
+
+
+
 
 		// We'll use a vector to store all our key press events for now
 		std::vector<KeyPressWatcher> keyToggles;
@@ -2686,7 +2765,7 @@ int main() {
 
 				// We'll run some basic input to move our transform around
 				//ManipulateTransformWithInput(transforms[selectedVao], dt);
-				PlayerInput(player, dt, speed);
+				PlayerInput(player, dt, speed, playerBody);
 				
 
 				//Sprinting Function
@@ -2803,13 +2882,34 @@ int main() {
 			//checkPosition(player);
 			//inputChecker();
 			
+			
 
 			std::cout << "Distance: " << Distance(player, island1) << std::endl;
 
 			//Transform& camTransform = cameraObject.get<Transform>();
+
+			//Normal Camera (Perspective)
 			glm::mat4 view = (camera->GetView());
 			glm::mat4 projection = camera->GetProjection();
 			glm::mat4 viewProjection = projection * view;
+
+			//Orthographic Camera
+			glm::mat4 orthoView = orthoCamera->GetView();
+			glm::mat4 orthoProjection = orthoCamera->GetProjection();
+			glm::mat4 orthoViewProjection = orthoProjection * orthoView;
+
+			orthoCamera->SetPosition(camera->GetPosition());
+
+			shader->Bind();
+			SetupShaderForFrame(shader, orthoView, orthoProjection);
+			spriteMat->Apply();
+			RenderVAO(shader, spriteVao, orthoViewProjection, spriteObj.get<Transform>());
+
+			
+
+			//spriteObj.get<Transform>().SetLocalPosition(camera->GetPosition() + glm::vec3(0.0f, -15.0f, 0.0f));
+
+			
 
 			// Sort the renderers by shader and material, we will go for a minimizing context switches approach here,
 			// but you could for instance sort front to back to optimize for fill rate if you have intensive fragment shaders
@@ -2970,6 +3070,13 @@ int main() {
 			}
 			
 
+			playerBody->applyDamping(dt);
+
+			player.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX(), playerBody->getCenterOfMassTransform().getOrigin().getY(), playerBody->getCenterOfMassTransform().getOrigin().getZ());
+
+
+
+
 
 			//Menu = scene 0
 			//Level 1 = scene 1
@@ -3021,14 +3128,14 @@ int main() {
 				Coin.get<MorphRenderer>().render(morphShader, viewProjection, Coin.get<Transform>(), view, viewProjection);
 			}
 			
-			
+			dynamicsWorld->stepSimulation(dt, 1);
 			
 			/// Do some simulations
-			/*
+			
 			///-----stepsimulation_start-----
 			for (int i = 0; i < 150; i++)
 			{
-				dynamicsWorld->stepSimulation(1.f / 60.f, 10);
+				//dynamicsWorld->stepSimulation(dt, 1);
 
 				//print positions of all objects
 				for (int j = dynamicsWorld->getNumCollisionObjects() - 1; j >= 0; j--)
@@ -3047,7 +3154,7 @@ int main() {
 					printf("world pos object %d = %f,%f,%f\n", j, float(trans.getOrigin().getX()), float(trans.getOrigin().getY()), float(trans.getOrigin().getZ()));
 				}
 			}
-			*/
+			
 
 			///-----stepsimulation_end-----
 

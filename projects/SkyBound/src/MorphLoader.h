@@ -1,6 +1,6 @@
 #pragma once
 #include "Utilities/MeshFactory.h"
-#include "Gameplay/Scene.h"
+//#include "Gameplay/Scene.h"
 #include "Graphics/Shader.h"
 
 

@@ -1,0 +1,3 @@
+# Add a plane to this object
+#      x   y   z     nx  ny  nz   tx  ty tz    sx   sy    r   g   b
+plane 0.0 0.0 0.0   0.0 1.0 0.0  1.0 0.0 0.0  10.0 10.0  1.0 1.0 1.0  
