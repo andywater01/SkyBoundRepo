@@ -21,10 +21,12 @@ public:
 		_isLocalDirty(true),
 		_localTransform(glm::mat4(1.0f)),
 		_normalMatrix(glm::mat3(1.0f)),
+
 		_rotation(glm::quat(1.0f, 0.0f, 0.0f, 0.0f)),
 		_rotationEulerDeg(glm::vec3(0.0f)),
 		_position(glm::vec3(0.0f)),
 		_scale(glm::vec3(1.0f))
+
 	{}
 	virtual ~Transform() = default;
 
@@ -184,6 +186,8 @@ private:
 	mutable bool _isLocalDirty;
 	mutable glm::mat4 _localTransform;
 	mutable glm::mat3 _normalMatrix;
+
+
 	
 	glm::quat _rotation;
 	glm::vec3 _rotationEulerDeg;
@@ -192,6 +196,8 @@ private:
 
 	btVector3 _worldPosition;
 	btQuaternion _worldRotation;
+
+
 
 	void _UpdateLocalTransformIfDirty() const;
 };

@@ -2,12 +2,13 @@
 #include <iostream>
 
 #include <glad/glad.h>
-#include <GLFW/glfw3.h>
+
 
 #include <filesystem>
 #include <json.hpp>
 #include <fstream>
 
+#include "SharedVar.h"
 
 #include <Attributes.h>
 
@@ -106,8 +107,12 @@ bool isLeft = true;
 int CoinCount = 0;
 
 //Scene number
-int RenderGroupBool = 0;
+SharedVar renderbool;
+int RenderGroupBool = renderbool.GetRenderGroup();
 int PlayerHealth = 3;
+
+
+
 
 bool canMoveForward = true;
 bool canMoveLeft = true;
@@ -278,6 +283,7 @@ void ManipulateTransformWithInput(Transform& transform, float dt) {
 	if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
 		transform.RotateLocal(0.0f, 0.0f, -45.0f * dt);
 	}
+	
 }
 
 
@@ -295,37 +301,40 @@ int lastFrame = 4;
 bool pauseGame = false;
 
 void PlayerInput(GameObject& transform, float dt, float speed) {
-if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS && canMoveLeft == true && RenderGroupBool != 0) {
+if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS && canMoveLeft == true && renderbool.GetRenderGroup() != 0) {
 	//transform->MoveLocal(0.0f, 0.0f, -1.0f * dt * speed);
 	//transform.MoveLocalFixed(0.0f, -1.0f * dt * speed, 0.0f);
 	transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(0.0f, -1.0f * dt * speed, 0.0f));
 	transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
 	firstFrame = 0;
 	lastFrame = 4;
+	
 	//transform.SetLocalRotation(90.0f, 0.0f, 282.0f);
 }
-if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS && canMoveRight == true && RenderGroupBool != 0) {
+if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS && canMoveRight == true && renderbool.GetRenderGroup() != 0) {
 	transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(0.0f, 1.0f * dt * speed, 0.0f));
 	transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 270.0f);
 	firstFrame = 0;
 	lastFrame = 4;
+	
 	//body->activate(true);
 	//body->setLinearVelocity(btVector3(0, 4, 0));
 	//body->applyForce(btVector3(0, 1000, 0), btVector3(0, 1000, 0));
 	//transform.MoveLocalFixed(0.0f, 1.0f * dt * speed, 0.0f);
 	//transform.SetLocalRotation(90.0f, 0.0f, 102.0f);
 }
-if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS && canMoveForward == true && RenderGroupBool != 0) {
+if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS && canMoveForward == true && renderbool.GetRenderGroup() != 0) {
 	//transform->MoveLocal(1.0f * dt * speed, 0.0f, 0.0f);
 	//transform.MoveLocalFixed(-1.0f * dt * speed, 0.0f, 0.0f);
 	transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(-1.0f * dt * speed, 0.0f, 0.0f));
 	transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
 	firstFrame = 0;
 	lastFrame = 4;
+	
 	//transform.SetLocalRotation(90.0f, 0.0f, 192.0f);
 	//camera->SetPosition(camera->GetPosition() + glm::vec3(-1.0f, 0.0f, 0.0f) * dt);
 }
-if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS && canMoveBack == true && RenderGroupBool != 0) {
+if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS && canMoveBack == true && renderbool.GetRenderGroup() != 0) {
 	//transform->MoveLocal(-1.0f * dt * speed, 0.0f, 0.0f);
 	//transform.MoveLocalFixed(1.0f * dt * speed, 0.0f, 0.0f);
 
@@ -333,19 +342,22 @@ if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS && canMoveBack == true && Rende
 	transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 180.0f);
 	firstFrame = 0;
 	lastFrame = 4;
+	
 	//transform.SetLocalRotation(90.0f, 0.0f, 12.0f);
 	//camera->SetPosition(camera->GetPosition() + glm::vec3(1.0f, 0.0f, 0.0f) * dt);
 }
-if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && RenderGroupBool != 0) {
+if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && renderbool.GetRenderGroup() != 0) {
 	//transform.MoveLocal(0.0f, 0.0f, 1.0f * dt);
 }
-if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS && RenderGroupBool != 0) {
+if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS && renderbool.GetRenderGroup() != 0) {
 	//transform.MoveLocal(0.0f, 0.0f, -1.0f * dt);
 }
 
-if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS && RenderGroupBool == 0) {
-	RenderGroupBool = 1;
-}
+
+
+//if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS && RenderGroupBool == 0) {
+//	RenderGroupBool = 1;
+//}
 
 
 //if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
@@ -652,7 +664,7 @@ void CheckCollision(GameObject player, GameObject otherObject, float xRangePos, 
 
 
 
-void CheckPhantomCollision(GameObject player, GameObject other, float xRangePos, float xRangeNeg, float yRangePos, float yRangeNeg)
+void CheckPhantomCollision(GameObject player, GameObject other, float xRangePos, float xRangeNeg, float yRangePos, float yRangeNeg, AudioEvent& audio)
 {
 	//Forward
 	if (player.get<Transform>().GetLocalPosition().x - xRangePos <= other.get<Transform>().GetLocalPosition().x + xRangeNeg &&
@@ -661,6 +673,7 @@ void CheckPhantomCollision(GameObject player, GameObject other, float xRangePos,
 		player.get<Transform>().GetLocalPosition().y >= other.get<Transform>().GetLocalPosition().y - yRangeNeg)
 	{
 		PlayerHealth--;
+		audio.Play();
 		player.get<Transform>().SetLocalPosition(0.0f, 0.0f, 0.8f);
 	}
 	else
@@ -674,6 +687,7 @@ void CheckPhantomCollision(GameObject player, GameObject other, float xRangePos,
 		player.get<Transform>().GetLocalPosition().y >= other.get<Transform>().GetLocalPosition().y - yRangeNeg)
 	{
 		PlayerHealth--;
+		audio.Play();
 		player.get<Transform>().SetLocalPosition(0.0f, 0.0f, 0.8f);
 	}
 	else
@@ -689,6 +703,7 @@ void CheckPhantomCollision(GameObject player, GameObject other, float xRangePos,
 		player.get<Transform>().GetLocalPosition().x >= other.get<Transform>().GetLocalPosition().x - xRangePos)
 	{
 		PlayerHealth--;
+		audio.Play();
 		player.get<Transform>().SetLocalPosition(0.0f, 0.0f, 0.8f);
 	}
 	else
@@ -702,6 +717,7 @@ void CheckPhantomCollision(GameObject player, GameObject other, float xRangePos,
 		player.get<Transform>().GetLocalPosition().x >= other.get<Transform>().GetLocalPosition().x - xRangePos)
 	{
 		PlayerHealth--;
+		audio.Play();
 		player.get<Transform>().SetLocalPosition(0.0f, 0.0f, 0.8f);
 	}
 	else
@@ -722,6 +738,15 @@ void checkPosition(GameObject object)
 }
 
 
+
+int GetRenderGroupBool()
+{
+	return RenderGroupBool;
+}
+
+
+
+
 //---------------------------------------------------------------------------------
 // Inplemented in Game.cpp
 //---------------------------------------------------------------------------------
@@ -729,6 +754,7 @@ extern void Init();
 extern void Update(float deltaTime);
 extern void Render();
 extern void Shutdown();
+
 
 
 
@@ -835,6 +861,11 @@ int main() {
 	glm::vec3 endPos2 = glm::vec3(-30.0f, 9.5f, -1.0f);
 	glm::vec3 startPos2 = glm::vec3(-30.0f, -9.5f, -1.0f);
 
+	glm::vec3 endPos3 = glm::vec3(-13.0f, 17.0f, -4.5f);
+	glm::vec3 startPos3 = glm::vec3(-13.0f, 17.0f, -4.0f);
+	glm::vec3 endPosWishingWell = glm::vec3(-13.0f, 17.0f, -1.35f);
+	glm::vec3 startPosWishingWell = glm::vec3(-13.0f, 17.0f, -0.85f);
+
 	float PhantomTimer = 0.0f;
 	float PhantomTimer2 = 0.0f;
 	float JumpTimer = 0.0f;
@@ -894,7 +925,7 @@ int main() {
 		shader->LoadShaderPartFromFile("shaders/frag_blinn_phong_textured.glsl", GL_FRAGMENT_SHADER);
 		shader->Link();
 
-		glm::vec3 lightPos = glm::vec3(0.0f, 0.0f, 6.0f);
+		/*glm::vec3 lightPos = glm::vec3(0.0f, 0.0f, 6.0f);
 		glm::vec3 lightCol = glm::vec3(0.9f, 0.85f, 0.5f);
 		float     lightAmbientPow = 0.05f;
 		float     lightSpecularPow = 1.0f;
@@ -904,6 +935,18 @@ int main() {
 		float     shininess = 4.0f;
 		float     lightLinearFalloff = 0.09f;
 		float     lightQuadraticFalloff = 0.032f;
+		float     outlineThickness = 0.15;*/
+
+		glm::vec3 lightPos = glm::vec3(-3.0f, 0.0f, -3.0f);
+		glm::vec3 lightCol = glm::vec3(0.9f, 0.85f, 0.5f);
+		float     lightAmbientPow = 0.639f;
+		float     lightSpecularPow = 0.0f;
+		glm::vec3 ambientCol = glm::vec3(1.0f);
+		float     ambientPow = 0.7f;
+		float     textureMix = 0.2f;
+		float     shininess = 4.0f;
+		float     lightLinearFalloff = 0.0f;
+		float     lightQuadraticFalloff = 0.0f;
 		float     outlineThickness = 0.15;
 		
 		// These are our application / scene level uniforms that don't necessarily update
@@ -929,10 +972,10 @@ int main() {
 		morphShader->Link();
 
 
-		morphShader->SetUniform("u_LightPos", lightPos);
+		morphShader->SetUniform("u_LightPos", glm::vec3(0.0f, 0.0f, 35.0f));
 		morphShader->SetUniform("u_LightCol", lightCol);
-		morphShader->SetUniform("u_AmbientLightStrength", lightAmbientPow);
-		morphShader->SetUniform("u_SpecularLightStrength", lightSpecularPow);
+		morphShader->SetUniform("u_AmbientLightStrength", 0.3f);
+		morphShader->SetUniform("u_SpecularLightStrength", 0.4f);
 		morphShader->SetUniform("u_AmbientCol", ambientCol);
 		morphShader->SetUniform("u_AmbientStrength", ambientPow);
 		morphShader->SetUniform("u_TextureMix", textureMix);
@@ -2307,9 +2350,9 @@ int main() {
 		bool canJump = true;
 		//float jumpTimeLimit
 
-
-		
-
+		bool Level1Music = false;
+		bool isWalking = true;
+		float Timer = 0.0f;
 		
 
 		//Key Watcher for changing camera modes
@@ -2322,7 +2365,13 @@ int main() {
 		//Game.cpp init//
 		Init();
 		
-
+		AudioEngine& engine = AudioEngine::Instance();
+		AudioEvent& BG = engine.GetEvent("music");
+		AudioEvent& popSound = engine.GetEvent("popSound");
+		AudioEvent& loon = engine.GetEvent("loonSound");
+		AudioEvent& footsteps = engine.GetEvent("footstepsSound");
+		
+		
 
 		
 		///// Game loop /////
@@ -2337,10 +2386,63 @@ int main() {
 			double thisFrame = glfwGetTime();
 			float dt = static_cast<float>(thisFrame - lastFrame);
 
+			//AudioEngine& engine = AudioEngine::Instance();
 			
+			Timer += dt;
+
+
 			//Game.cpp Update & Render//
 			Update(dt);
 			Render();
+
+			//Sound Controls 
+			if (renderbool.GetRenderGroup() == 0 && glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS && Level1Music == false)
+			{
+				BG.Play();
+				renderbool.SetRenderGroup(1);
+				Level1Music == true;
+			}
+			else if (PlayerHealth <= 0)
+			{
+				BG.StopImmediately();
+				footsteps.StopImmediately();
+
+			}
+				
+
+			if (renderbool.GetRenderGroup() != 0 && renderbool.GetRenderGroup() != 3 && glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS || (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) || (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS || (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)))
+			{
+				isWalking = true;
+				if (isWalking == true)
+				{
+					footsteps.Play();
+				}
+				if (isWalking == false)
+					footsteps.StopImmediately();
+			}
+			else if (glfwGetKey(window, GLFW_KEY_W) != GLFW_PRESS || (glfwGetKey(window, GLFW_KEY_A) != GLFW_PRESS) || (glfwGetKey(window, GLFW_KEY_S) != GLFW_PRESS || (glfwGetKey(window, GLFW_KEY_D) != GLFW_PRESS)))
+			{
+				isWalking = false;
+				
+			}
+
+			if (player.get<Transform>().GetLocalPosition().x < -15.0f && player.get<Transform>().GetLocalPosition().x > - 18.0f)
+				footsteps.SetParameter("isOnBridge", 1.0f);
+			else
+				footsteps.SetParameter("isOnBridge", 0.0f);
+				
+			
+			if (renderbool.GetRenderGroup() == 1)
+			{
+				if (Timer > 10.0f && Timer < 20.0f)
+					loon.Play();
+
+				if (Timer >= 20.0)
+					Timer = 0.0f;
+			}
+			
+			std::cout << "Scene Number = " << renderbool.GetRenderGroup() << std::endl;
+
 
 			//Jump Check
 			jumpWatcher.Poll(window);
@@ -2367,9 +2469,9 @@ int main() {
 			}
 			
 
-			if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS && RenderGroupBool == 3) {
+			if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS && renderbool.GetRenderGroup() == 3) {
 				PlayerHealth = 3;
-				RenderGroupBool = 1;
+				renderbool.SetRenderGroup(1);
 				CoinCount = 0;
 				gotCoin = false;
 
@@ -2386,7 +2488,7 @@ int main() {
 			bool playerFall4 = DistanceCheck(player, TaigaGround2);
 
 
-			if (RenderGroupBool == 1 || RenderGroupBool == 0)
+			if (renderbool.GetRenderGroup() == 1 || renderbool.GetRenderGroup() == 0)
 			{
 				if (playerFall && playerFall2)
 				{
@@ -2447,6 +2549,7 @@ int main() {
 
 			if (player.get<Transform>().GetLocalPosition().z <= -7.0f)
 			{
+				popSound.Play();
 				player.get<Transform>().SetLocalPosition(0.5f, 0.0f, 5.0f);
 				PlayerHealth--;
 			}
@@ -2454,10 +2557,10 @@ int main() {
 
 
 			//Switching scenes when player reaches a certain point
-			if (player.get<Transform>().GetLocalPosition().x <= -49 && gotCoin == true && RenderGroupBool == 1)
+			if (player.get<Transform>().GetLocalPosition().x <= -49 && gotCoin == true && renderbool.GetRenderGroup() == 1)
 			{
 				player.get<Transform>().SetLocalPosition(0.0f, 0.0f, 0.1f);
-				RenderGroupBool = 2;
+				renderbool.SetRenderGroup(2);
 			}
 			else
 			{
@@ -2473,7 +2576,7 @@ int main() {
 			if (PlayerHealth <= 0)
 			{
 				player.get<Transform>().SetLocalPosition(0.0f, 0.0f, 0.0f);
-				RenderGroupBool = 3;
+				renderbool.SetRenderGroup(3);
 			}
 
 			//player.get<Transform>().SetLocalPosition(player.get<Transform>().GetLocalPosition() - glm::vec3(0.0f, 0.0f, 2.0f * dt));
@@ -2513,8 +2616,12 @@ int main() {
 
 			PhantomTimer = 1.0f;
 
-			if (RenderGroupBool == 0 || RenderGroupBool == 1)
+			if (renderbool.GetRenderGroup() == 0 || renderbool.GetRenderGroup() == 1)
 				UpdateCatmull(phantomWaypoints, Phantom, dt);
+
+			if (renderbool.GetRenderGroup() == 1)
+				AudioEngine::Instance();
+			
 
 			
 			
@@ -2562,7 +2669,7 @@ int main() {
 			}
 			*/
 
-			if (RenderGroupBool == 1 || RenderGroupBool == 0)
+			if (renderbool.GetRenderGroup() == 1 || renderbool.GetRenderGroup() == 0)
 			{
 				PhantomTimer2 += dt;
 
@@ -2577,10 +2684,14 @@ int main() {
 				if (PhantomMove2 == true)
 				{
 					Phantom2.get<Transform>().SetLocalPosition(LERP(startPos2, endPos2, phantomTPos2));
+					Mound.get<Transform>().SetLocalPosition(LERP(startPos3, endPos3, phantomTPos2));
+					WishingWell.get<Transform>().SetLocalPosition(LERP(startPosWishingWell, endPosWishingWell, phantomTPos2));
 				}
 				else if (PhantomMove2 == false)
 				{
 					Phantom2.get<Transform>().SetLocalPosition(LERP(endPos2, startPos2, phantomTPos2));
+					Mound.get<Transform>().SetLocalPosition(LERP(endPos3, startPos3, phantomTPos2));
+					WishingWell.get<Transform>().SetLocalPosition(LERP(endPosWishingWell, startPosWishingWell, phantomTPos2));
 				}
 
 
@@ -2604,14 +2715,14 @@ int main() {
 				//}
 				}
 			}
-			else if (RenderGroupBool == 2)
+			else if (renderbool.GetRenderGroup() == 2)
 			{
 				Phantom.get<Transform>().SetLocalPosition(100, 100, 100);
 				Phantom2.get<Transform>().SetLocalPosition(100, 100, 100);
 			}
 			
-
-
+			
+			
 
 			//Jump Stuff
 			
@@ -2782,7 +2893,7 @@ int main() {
 			//RenderVAO(shader, islandVao, camera, islandTransform2);
 
 
-			if (RenderGroupBool != 0)
+			if (renderbool.GetRenderGroup() != 0)
 			{
 				camera->SetPosition(player.get<Transform>().GetLocalPosition() + glm::vec3(6.0f, 0.0f, 2.5f));
 				camera->SetRotation(glm::vec3(-95.0f, 0.0f, 0.0f));
@@ -2798,8 +2909,8 @@ int main() {
 			
 			//CheckCollision(player, Sign, 0.6f, 0.6f, 0.6f, 0.6f);
 			CheckCollision(player, Wizard, 0.85f, 0.85f, 0.85f, 0.85f);
-			CheckPhantomCollision(player, Phantom, 0.8f, 0.8f, 0.8f, 0.8f);
-			CheckPhantomCollision(player, Phantom2, 0.8f, 0.8f, 0.8f, 0.8f);
+			CheckPhantomCollision(player, Phantom, 0.8f, 0.8f, 0.8f, 0.8f, popSound);
+			CheckPhantomCollision(player, Phantom2, 0.8f, 0.8f, 0.8f, 0.8f, popSound);
 
 			//checkPosition(player);
 			//inputChecker();
@@ -2814,7 +2925,7 @@ int main() {
 
 			// Sort the renderers by shader and material, we will go for a minimizing context switches approach here,
 			// but you could for instance sort front to back to optimize for fill rate if you have intensive fragment shaders
-			if (RenderGroupBool == 0)
+			if (renderbool.GetRenderGroup() == 0)
 			{
 				renderGroup0.sort<RendererComponent>([](const RendererComponent& l, const RendererComponent& r) {
 					// Sort by render layer first, higher numbers get drawn last
@@ -2833,7 +2944,7 @@ int main() {
 					});
 			}
 
-			if (RenderGroupBool == 1)
+			if (renderbool.GetRenderGroup() == 1)
 			{
 				renderGroup.sort<RendererComponent>([](const RendererComponent& l, const RendererComponent& r) {
 					// Sort by render layer first, higher numbers get drawn last
@@ -2851,7 +2962,7 @@ int main() {
 					return false;
 					});
 			}
-			else if (RenderGroupBool == 2)
+			else if (renderbool.GetRenderGroup() == 2)
 			{
 				renderGroup2.sort<RendererComponent>([](const RendererComponent& l, const RendererComponent& r) {
 					// Sort by render layer first, higher numbers get drawn last
@@ -2869,7 +2980,7 @@ int main() {
 					return false;
 					});
 			}
-			else if (RenderGroupBool == 3)
+			else if (renderbool.GetRenderGroup() == 3)
 			{
 				renderGroup3.sort<RendererComponent>([](const RendererComponent& l, const RendererComponent& r) {
 					// Sort by render layer first, higher numbers get drawn last
@@ -2895,7 +3006,7 @@ int main() {
 			ShaderMaterial::sptr currentMat = nullptr;
 
 			// Iterate over the render group components and draw them
-			if (RenderGroupBool == 0)
+			if (renderbool.GetRenderGroup() == 0)
 			{
 				renderGroup0.each([&](entt::entity, RendererComponent& renderer, Transform& transform) {
 					// If the shader has changed, bind it and set up it's uniforms
@@ -2915,7 +3026,7 @@ int main() {
 			}
 
 
-			if (RenderGroupBool == 1)
+			if (renderbool.GetRenderGroup() == 1)
 			{
 				renderGroup.each([&](entt::entity, RendererComponent& renderer, Transform& transform) {
 					// If the shader has changed, bind it and set up it's uniforms
@@ -2933,7 +3044,7 @@ int main() {
 					RenderVAO(renderer.Material->Shader, renderer.Mesh, viewProjection, transform);
 					});
 			}
-			else if (RenderGroupBool == 2)
+			else if (renderbool.GetRenderGroup() == 2)
 			{
 				renderGroup2.each([&](entt::entity, RendererComponent& renderer, Transform& transform) {
 					// If the shader has changed, bind it and set up it's uniforms
@@ -2951,7 +3062,7 @@ int main() {
 					RenderVAO(renderer.Material->Shader, renderer.Mesh, viewProjection, transform);
 					});
 			}
-			else if (RenderGroupBool == 3)
+			else if (renderbool.GetRenderGroup() == 3)
 			{
 				renderGroup3.each([&](entt::entity, RendererComponent& renderer, Transform& transform) {
 					// If the shader has changed, bind it and set up it's uniforms
@@ -2978,7 +3089,7 @@ int main() {
 			//Game over = scene 3
 
 			//Update Animation
-			if (RenderGroupBool != 3)
+			if (renderbool.GetRenderGroup() != 3)
 			{
 				player.get<MorphRenderer>().nextFrame(dt);
 
@@ -2990,7 +3101,7 @@ int main() {
 
 
 			//Update Animation
-			if (RenderGroupBool == 1 || RenderGroupBool == 0)
+			if (renderbool.GetRenderGroup() == 1 || renderbool.GetRenderGroup() == 0)
 			{
 				Wizard.get<MorphRenderer>().nextFrame(dt);
 
