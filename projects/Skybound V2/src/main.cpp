@@ -65,7 +65,7 @@ void PlayerInput(GameObject& transform, float dt, float speed, btRigidBody* body
 		//transform->MoveLocal(0.0f, 0.0f, -1.0f * dt * speed);
 		//transform.MoveLocalFixed(0.0f, -1.0f * dt * speed, 0.0f);
 		//transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(0.0f, -1.0f * dt * speed, 0.0f));
-		transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
+		transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 180.0f);
 		body->activate(true);
 		body->applyForce(btVector3(0.0f, -1800.0f, 0.0f) * dt, btVector3(0.0f, 0.0f, 0.0f));
 		firstFrame = 0;
@@ -74,7 +74,7 @@ void PlayerInput(GameObject& transform, float dt, float speed, btRigidBody* body
 	}
 	if (glfwGetKey(BackendHandler::window, GLFW_KEY_D) == GLFW_PRESS && canMoveRight == true && RenderGroupBool != 0) {
 		//transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(0.0f, 1.0f * dt * speed, 0.0f));
-		transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 270.0f);
+		transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
 		body->activate(true);
 		body->applyForce(btVector3(0.0f, 1800.0f, 0.0f) * dt, btVector3(0.0f, 0.0f, 0.0f));
 		firstFrame = 0;
@@ -89,7 +89,7 @@ void PlayerInput(GameObject& transform, float dt, float speed, btRigidBody* body
 		//transform->MoveLocal(1.0f * dt * speed, 0.0f, 0.0f);
 		//transform.MoveLocalFixed(-1.0f * dt * speed, 0.0f, 0.0f);
 		//transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(-1.0f * dt * speed, 0.0f, 0.0f));
-		transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
+		transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
 		body->activate(true);
 		body->applyForce(btVector3(-1800.0f, 0.0f, 0.0f) * dt, btVector3(0.0f, 0.0f, 0.0f));
 		firstFrame = 0;
@@ -101,7 +101,7 @@ void PlayerInput(GameObject& transform, float dt, float speed, btRigidBody* body
 		//transform->MoveLocal(-1.0f * dt * speed, 0.0f, 0.0f);
 		//transform.MoveLocalFixed(1.0f * dt * speed, 0.0f, 0.0f);
 		//transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(1.0f * dt * speed, 0.0f, 0.0f));
-		transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 180.0f);
+		transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 270.0f);
 		body->activate(true);
 		body->applyForce(btVector3(1800.0f, 0.0f, 0.0f) * dt, btVector3(0.0f, 0.0f, 0.0f));
 		firstFrame = 0;
@@ -1031,7 +1031,7 @@ int main() {
 		Texture2D::sptr boxSpec = Texture2D::LoadFromFile("images/box-reflections.bmp");
 		Texture2D::sptr simpleFlora = Texture2D::LoadFromFile("images/SimpleFlora.png");
 
-		Texture2D::sptr PlayerDiffuse = Texture2D::LoadFromFile("images/SkyBoundCharUV2.png");
+		Texture2D::sptr PlayerDiffuse = Texture2D::LoadFromFile("images/NewCharacterTexture.png");
 		Texture2D::sptr diffuseMp02 = Texture2D::LoadFromFile("images/plains_island_texture.png");
 		Texture2D::sptr diffuseMp03 = Texture2D::LoadFromFile("images/WizardColours.png");
 		Texture2D::sptr diffuseMp04 = Texture2D::LoadFromFile("images/PhantomColours.png");
