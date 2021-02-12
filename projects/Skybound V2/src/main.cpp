@@ -1960,16 +1960,19 @@ int main() {
 		// Create an object to be our camera
 		GameObject cameraObject = scene->CreateEntity("Camera");
 		{
-			cameraObject.get<Transform>().SetLocalPosition(6.0f, 3.0f, 8.0f).LookAt(glm::vec3(-5.0f, 0.0f, 8.0f));
+			//cameraObject.get<Transform>().SetLocalPosition(6.0f, 3.0f, 8.0f).LookAt(glm::vec3(-5.0f, 0.0f, 8.0f));
+			cameraObject.get<Transform>().SetLocalPosition(8.0f, 0.0f, 4.0f).LookAt(glm::vec3(0));
+			cameraObject.get<Transform>().SetParent(player);
 
 			// We'll make our camera a component of the camera object
 			Camera& camera = cameraObject.emplace<Camera>();// Camera::Create();
 			camera.SetPosition(glm::vec3(6.0f, 3.0f, 8.0f));
 			camera.SetUp(glm::vec3(0, 0, 1));
-			camera.LookAt(glm::vec3(-5.0f, 0.0f, 8.0f));
+			//camera.LookAt(glm::vec3(-5.0f, 0.0f, 8.0f));
+			camera.LookAt(glm::vec3(0));
 			camera.SetFovDegrees(90.0f); // Set an initial FOV
 			camera.SetOrthoHeight(3.0f);
-			BehaviourBinding::Bind<CameraControlBehaviour>(cameraObject);
+			//BehaviourBinding::Bind<CameraControlBehaviour>(cameraObject);
 		}
 
 		#pragma endregion
@@ -2888,7 +2891,7 @@ int main() {
 
 			#pragma region Setting Camera Position
 
-
+			
 
 			#pragma endregion
 
@@ -2973,7 +2976,6 @@ int main() {
 				Shader::sptr current = nullptr;
 				ShaderMaterial::sptr currentMat = nullptr;
 
-				basicEffect->BindBuffer(0);
 
 				// Iterate over the render group components and draw them
 				renderGroup0.each([&](entt::entity e, RendererComponent& renderer, Transform& transform) {
@@ -3025,12 +3027,6 @@ int main() {
 
 				#pragma endregion
 
-
-				basicEffect->UnbindBuffer();
-
-				effects[activeEffect]->ApplyEffect(basicEffect);
-
-				effects[activeEffect]->DrawToScreen();
 			}
 
 			#pragma endregion
@@ -3111,6 +3107,8 @@ int main() {
 				player.get<MorphRenderer>().nextFrame(time.DeltaTime);
 				player.get<MorphRenderer>().render(morphShader, viewProjection, player.get<Transform>(), view, viewProjection);
 
+				PlayerInput(player, time.DeltaTime, speed, playerBody);
+
 				#pragma endregion
 
 
@@ -3154,6 +3152,7 @@ int main() {
 
 
 				#pragma endregion
+
 
 
 				basicEffect->UnbindBuffer();
