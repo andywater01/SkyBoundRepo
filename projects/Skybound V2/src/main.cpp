@@ -60,7 +60,7 @@ bool pauseGame = false;
 
 #pragma region Player Controls
 
-void PlayerInput(GameObject& transform, float dt, float speed, btRigidBody* body) {
+void PlayerInput(GameObject& transform, float dt, float speed, btRigidBody* body, GameObject& camera) {
 	if (glfwGetKey(BackendHandler::window, GLFW_KEY_A) == GLFW_PRESS && canMoveLeft == true && RenderGroupBool != 0) {
 		//transform->MoveLocal(0.0f, 0.0f, -1.0f * dt * speed);
 		//transform.MoveLocalFixed(0.0f, -1.0f * dt * speed, 0.0f);
@@ -70,7 +70,6 @@ void PlayerInput(GameObject& transform, float dt, float speed, btRigidBody* body
 		body->applyForce(btVector3(0.0f, -1800.0f, 0.0f) * dt, btVector3(0.0f, 0.0f, 0.0f));
 		firstFrame = 0;
 		lastFrame = 4;
-		//transform.SetLocalRotation(90.0f, 0.0f, 282.0f);
 	}
 	if (glfwGetKey(BackendHandler::window, GLFW_KEY_D) == GLFW_PRESS && canMoveRight == true && RenderGroupBool != 0) {
 		//transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(0.0f, 1.0f * dt * speed, 0.0f));
@@ -567,6 +566,22 @@ int main() {
 		btDefaultMotionState* wizardMotionState;
 		btRigidBody* wizardBody;
 
+		//Camera Physics
+		btCollisionShape* cameraShape = new btBoxShape(btVector3(1.f, 1.f, 1.f));
+
+		btTransform cameraTransform;
+
+		btScalar cameraMass(2.f);
+
+		//rigidbody is dynamic if and only if mass is non zero, otherwise static
+		bool iscameraDynamic = (cameraMass != 0.f);
+
+		btVector3 localcameraInertia(0, 0, 0);
+
+		//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+		btDefaultMotionState* cameraMotionState;
+		btRigidBody* cameraBody;
+
 		#pragma endregion
 
 
@@ -679,13 +694,29 @@ int main() {
 		spriteShader->Link();
 
 		//Shader Toggles
-		bool lightingToggle = false;
+		bool lightingToggle = true;
 		bool ambientToggle = false;
 		bool specularToggle = false;
 		bool ambientSpecularToggle = false;
 		bool customToggle = false;
 		bool diffuseRampToggle = false;
 		bool specularRampToggle = false;
+
+		shader->SetUniform("u_LightToggle", (int)lightingToggle);
+		shader->SetUniform("u_AmbientToggle", (int)ambientToggle);
+		shader->SetUniform("u_SpecularToggle", (int)specularToggle);
+		shader->SetUniform("u_AmbientSpecularToggle", (int)ambientSpecularToggle);
+		shader->SetUniform("u_CustomToggle", (int)customToggle);
+		shader->SetUniform("u_DiffuseRampToggle", (int)diffuseRampToggle);
+		shader->SetUniform("u_SpecularRampToggle", (int)specularRampToggle);
+
+		morphShader->SetUniform("u_LightToggle", (int)lightingToggle);
+		morphShader->SetUniform("u_AmbientToggle", (int)ambientToggle);
+		morphShader->SetUniform("u_SpecularToggle", (int)specularToggle);
+		morphShader->SetUniform("u_AmbientSpecularToggle", (int)ambientSpecularToggle);
+		morphShader->SetUniform("u_CustomToggle", (int)customToggle);
+		morphShader->SetUniform("u_DiffuseRampToggle", (int)diffuseRampToggle);
+		morphShader->SetUniform("u_SpecularRampToggle", (int)specularRampToggle);
 
 		
 		//Basic Effect(does nothing)
@@ -1439,7 +1470,7 @@ int main() {
 
 
 			playerTransform.setIdentity();
-			playerTransform.setOrigin(btVector3(0.0f, 0.0f, 30.0f));
+			playerTransform.setOrigin(btVector3(0.0f, 0.0f, 5.0f));
 			playerTransform.setRotation(btQuaternion(btVector3(1, 0, 0), btScalar(90.0f)));
 			playerTransform.setRotation(btQuaternion(btVector3(0, 0, 1), btScalar(180.0f)));
 			//playerTransform.setOrigin(glm2bt(player.get<Transform>().GetLocalPosition()));
@@ -1962,7 +1993,7 @@ int main() {
 		{
 			//cameraObject.get<Transform>().SetLocalPosition(6.0f, 3.0f, 8.0f).LookAt(glm::vec3(-5.0f, 0.0f, 8.0f));
 			cameraObject.get<Transform>().SetLocalPosition(8.0f, 0.0f, 4.0f).LookAt(glm::vec3(0));
-			cameraObject.get<Transform>().SetParent(player);
+			//cameraObject.get<Transform>().SetParent(player);
 
 			// We'll make our camera a component of the camera object
 			Camera& camera = cameraObject.emplace<Camera>();// Camera::Create();
@@ -1972,6 +2003,7 @@ int main() {
 			camera.LookAt(glm::vec3(0));
 			camera.SetFovDegrees(90.0f); // Set an initial FOV
 			camera.SetOrthoHeight(3.0f);
+			//BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(player);
 			//BehaviourBinding::Bind<CameraControlBehaviour>(cameraObject);
 		}
 
@@ -2891,7 +2923,9 @@ int main() {
 
 			#pragma region Setting Camera Position
 
-			
+			cameraObject.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 8.0f,
+				playerBody->getCenterOfMassTransform().getOrigin().getY(),
+				cameraObject.get<Transform>().GetLocalPosition().z);
 
 			#pragma endregion
 
@@ -3107,7 +3141,7 @@ int main() {
 				player.get<MorphRenderer>().nextFrame(time.DeltaTime);
 				player.get<MorphRenderer>().render(morphShader, viewProjection, player.get<Transform>(), view, viewProjection);
 
-				PlayerInput(player, time.DeltaTime, speed, playerBody);
+				PlayerInput(player, time.DeltaTime, speed, playerBody, cameraObject);
 
 				#pragma endregion
 
@@ -3302,6 +3336,7 @@ int main() {
 			//Render();
 
 			//#pragma endregion
+
 
 			// Draw our ImGui content
 			BackendHandler::RenderImGui();
