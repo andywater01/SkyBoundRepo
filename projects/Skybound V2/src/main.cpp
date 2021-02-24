@@ -2561,10 +2561,49 @@ int main() {
 			camera.LookAt(glm::vec3(0));
 			camera.SetFovDegrees(90.0f); // Set an initial FOV
 			camera.SetOrthoHeight(3.0f);
-			//BehaviourBinding::Bind<CameraControlBehaviour>(cameraObject);
+			//BehaviourBinding::Bind<CameraControlBehaviour>(cameraObject2);
 		}
 
 		#pragma endregion
+
+
+		#pragma endregion
+		///////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+		///////////////////////////////////// Scene 4 Generation //////////////////////////////////////////////////
+		#pragma region Scene 4 (Level 3)
+
+		// Create a scene, and set it to be the active scene in the application
+		GameScene::sptr scene4 = GameScene::Create("Scene 4 (Level 3)");
+
+		// We can create a group ahead of time to make iterating on the group faster
+		entt::basic_group<entt::entity, entt::exclude_t<>, entt::get_t<Transform>, RendererComponent> renderGroup4 =
+			scene4->Registry().group<RendererComponent>(entt::get_t<Transform>());
+		
+		//Make Objects Here :D
+
+		#pragma region Camera Object
+
+		// Create an object to be our camera
+		GameObject cameraObject4 = scene4->CreateEntity("Camera");
+		{
+			cameraObject4.get<Transform>().SetLocalPosition(8.0f, 0.0f, 4.0f).LookAt(glm::vec3(0));
+
+			// We'll make our camera a component of the camera object
+			Camera& camera = cameraObject4.emplace<Camera>();// Camera::Create();
+			camera.SetPosition(glm::vec3(6.0f, 3.0f, 8.0f));
+			camera.SetUp(glm::vec3(0, 0, 1));
+			//camera.LookAt(glm::vec3(-5.0f, 0.0f, 8.0f));
+			camera.LookAt(glm::vec3(0));
+			camera.SetFovDegrees(90.0f); // Set an initial FOV
+			camera.SetOrthoHeight(3.0f);
+			BehaviourBinding::Bind<CameraControlBehaviour>(cameraObject4);
+		}
+
+		#pragma endregion
+
+
 
 
 		#pragma endregion
@@ -3019,6 +3058,10 @@ int main() {
 			GameObject skyboxObj2 = scene2->CreateEntity("skybox2");
 			skyboxObj2.get<Transform>().SetLocalPosition(0.0f, 0.0f, 0.0f);
 			skyboxObj2.get_or_emplace<RendererComponent>().SetMesh(meshVao).SetMaterial(skyboxMat);
+
+			GameObject skyboxObj4 = scene4->CreateEntity("skybox4");
+			skyboxObj4.get<Transform>().SetLocalPosition(0.0f, 0.0f, 0.0f);
+			skyboxObj4.get_or_emplace<RendererComponent>().SetMesh(meshVao).SetMaterial(skyboxMat);
 		}
 		////////////////////////////////////////////////////////////////////////////////////////
 		
@@ -3070,6 +3113,11 @@ int main() {
 					drawPhysics = true;
 				else
 					drawPhysics = false;
+			});
+
+			keyToggles.emplace_back(GLFW_KEY_L, [&]() {
+				RenderGroupBool = 4;
+				Application::Instance().ActiveScene = scene4;
 			});
 		}
 
@@ -3260,6 +3308,12 @@ int main() {
 				Application::Instance().ActiveScene = scene3;
 			}
 
+			if (RenderGroupBool == 4)
+			{
+				playerTransform.setOrigin(btVector3(0.0f, 0.0f, 5.0f));
+				playerBody->setWorldTransform(playerTransform);
+			}
+
 			#pragma endregion
 
 
@@ -3377,6 +3431,12 @@ int main() {
 					cameraObject2.get<Transform>().GetLocalPosition().z);
 
 				
+			}
+			else if (RenderGroupBool == 4)
+			{
+				/*cameraObject4.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 8.0f,
+					playerBody->getCenterOfMassTransform().getOrigin().getY(),
+					cameraObject4.get<Transform>().GetLocalPosition().z);*/
 			}
 
 			#pragma endregion
@@ -3856,6 +3916,121 @@ int main() {
 				effects[activeEffect]->ApplyEffect(basicEffect);
 
 				effects[activeEffect]->DrawToScreen();
+			}
+
+			#pragma endregion
+
+
+			#pragma region Render Level 3 (Scene 4)
+
+			if (RenderGroupBool == 4)
+			{
+				// Grab out camera info from the camera object
+				Transform& camTransform = cameraObject4.get<Transform>();
+				glm::mat4 view = glm::inverse(camTransform.LocalTransform());
+				glm::mat4 projection = cameraObject4.get<Camera>().GetProjection();
+				glm::mat4 viewProjection = projection * view;
+
+
+
+				// Sort the renderers by shader and material, we will go for a minimizing context switches approach here,
+				// but you could for instance sort front to back to optimize for fill rate if you have intensive fragment shaders
+				renderGroup4.sort<RendererComponent>([](const RendererComponent& l, const RendererComponent& r) {
+					// Sort by render layer first, higher numbers get drawn last
+					if (l.Material->RenderLayer < r.Material->RenderLayer) return true;
+					if (l.Material->RenderLayer > r.Material->RenderLayer) return false;
+
+					// Sort by shader pointer next (so materials using the same shader run sequentially where possible)
+					if (l.Material->Shader < r.Material->Shader) return true;
+					if (l.Material->Shader > r.Material->Shader) return false;
+
+					// Sort by material pointer last (so we can minimize switching between materials)
+					if (l.Material < r.Material) return true;
+					if (l.Material > r.Material) return false;
+
+					return false;
+					});
+
+
+				// Start by assuming no shader or material is applied
+				Shader::sptr current = nullptr;
+				ShaderMaterial::sptr currentMat = nullptr;
+
+				basicEffect->BindBuffer(0);
+
+				// Iterate over the render group components and draw them
+				renderGroup4.each([&](entt::entity e, RendererComponent& renderer, Transform& transform) {
+					// If the shader has changed, set up it's uniforms
+					if (current != renderer.Material->Shader) {
+						current = renderer.Material->Shader;
+						current->Bind();
+						BackendHandler::SetupShaderForFrame(current, view, projection);
+					}
+					// If the material has changed, apply it
+					if (currentMat != renderer.Material) {
+						currentMat = renderer.Material;
+						currentMat->Apply();
+					}
+					// Render the mesh
+					BackendHandler::RenderVAO(renderer.Material->Shader, renderer.Mesh, viewProjection, transform);
+				});
+
+				#pragma region Draw Physics Objects
+
+				if (drawPhysics)
+				{
+					mydebugDrawer.SetMatrices(physicsShader, view, projection);
+					dynamicsWorld->debugDrawWorld();
+				}
+
+				#pragma endregion
+
+
+				#pragma region Render Player
+
+				//Update Animation
+				if (glfwGetKey(BackendHandler::window, GLFW_KEY_W) == GLFW_PRESS && !playerAirborne ||
+					glfwGetKey(BackendHandler::window, GLFW_KEY_A) == GLFW_PRESS && !playerAirborne ||
+					glfwGetKey(BackendHandler::window, GLFW_KEY_S) == GLFW_PRESS && !playerAirborne ||
+					glfwGetKey(BackendHandler::window, GLFW_KEY_D) == GLFW_PRESS && !playerAirborne)
+				{
+					player.get<MorphRenderer>().nextFrame(time.DeltaTime, 1); //Walk
+				}
+				else if (playerAirborne)
+				{
+					player.get<MorphRenderer>().nextFrame(time.DeltaTime, 2); //Jump
+				}
+				else
+				{
+					player.get<MorphRenderer>().nextFrame(time.DeltaTime, 0); //Idle
+				}
+
+				player.get<MorphRenderer>().render(morphShader, viewProjection, player.get<Transform>(), view, viewProjection);
+
+				//PlayerInput(player, time.DeltaTime, speed, playerBody);
+
+				#pragma endregion
+
+
+				#pragma region Updating Render Transforms with Physics Bodies
+
+				//Example of how to link bodies is below. Have to create the physics bodies in the scene first
+				//NOTE: If physics objects are incorrectly scaled or seem off with the rendered body then you will have to
+				//      adjust the physics shape the object has
+				// This is just a note in case you wanted to see how physics bodies are linked
+
+				//LinkBody(Bridge2, bridgeBody);
+
+				#pragma endregion
+
+
+
+				basicEffect->UnbindBuffer();
+
+				effects[activeEffect]->ApplyEffect(basicEffect);
+
+				effects[activeEffect]->DrawToScreen();
+
 			}
 
 			#pragma endregion
