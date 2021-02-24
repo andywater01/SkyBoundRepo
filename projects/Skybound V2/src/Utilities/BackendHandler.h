@@ -7,6 +7,7 @@
 #include "Graphics/Post/ColorCorrectionEffect.h"
 #include "Graphics/Post/WarmEffect.h"
 #include "Graphics/Post/CoolEffect.h"
+#include "Graphics/Post/BloomEffect.h"
 #include "Graphics/LUT.h"
 
 #include <iostream>

@@ -13,13 +13,14 @@ layout(location = 3) out vec2 outUV;
 uniform mat4 u_ModelViewProjection;
 uniform mat4 u_View;
 uniform mat4 u_Model;
+uniform mat3 u_ModelRotation;
 uniform mat3 u_NormalMatrix;
 uniform vec3 u_LightPos;
 
 
 void main() {
 
-	gl_Position = u_ModelViewProjection * vec4(0.0, inPosition.y, inPosition.z, 1.0);
+	gl_Position = u_ModelViewProjection * vec4(inPosition, 1.0);
 
 	// Lecture 5
 	// Pass vertex pos in world space to frag shader

@@ -28,8 +28,8 @@ class btIDebugDraw;
 
 struct InplaceSolverIslandCallback;
 
-#include "LinearMath/btAlignedObjectArray.h"
-#include "LinearMath/btThreads.h"
+#include "bullet/LinearMath/btAlignedObjectArray.h"
+#include "bullet/LinearMath/btThreads.h"
 
 ///btDiscreteDynamicsWorld provides discrete rigid body simulation
 ///those classes replace the obsolete CcdPhysicsEnvironment/CcdPhysicsController

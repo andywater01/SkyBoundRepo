@@ -33,6 +33,9 @@
 #include <bullet/btBulletDynamicsCommon.h>
 
 #include "Sound/AudioEngine.h"
+#include "Utilities/PhysicsDrawer.h"
+
+
 
 #pragma region Global Variables
 
@@ -54,20 +57,23 @@ bool canMoveRight = true;
 int firstFrame = 0;
 int lastFrame = 4;
 bool pauseGame = false;
+bool drawPhysics = false;
+
+bool playerAirborne = false;
 
 #pragma endregion 
 
 
 #pragma region Player Controls
 
-void PlayerInput(GameObject& transform, float dt, float speed, btRigidBody* body, GameObject& camera) {
+void PlayerInput(GameObject& transform, float dt, float speed, btRigidBody* body) {
 	if (glfwGetKey(BackendHandler::window, GLFW_KEY_A) == GLFW_PRESS && canMoveLeft == true && RenderGroupBool != 0) {
 		//transform->MoveLocal(0.0f, 0.0f, -1.0f * dt * speed);
 		//transform.MoveLocalFixed(0.0f, -1.0f * dt * speed, 0.0f);
 		//transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(0.0f, -1.0f * dt * speed, 0.0f));
 		transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 180.0f);
 		body->activate(true);
-		body->applyForce(btVector3(0.0f, -1800.0f, 0.0f) * dt, btVector3(0.0f, 0.0f, 0.0f));
+		body->applyForce(btVector3(0.0f, -1800.0f, 0.0f) * dt * speed, btVector3(0.0f, 0.0f, 0.0f));
 		firstFrame = 0;
 		lastFrame = 4;
 	}
@@ -75,7 +81,7 @@ void PlayerInput(GameObject& transform, float dt, float speed, btRigidBody* body
 		//transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(0.0f, 1.0f * dt * speed, 0.0f));
 		transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
 		body->activate(true);
-		body->applyForce(btVector3(0.0f, 1800.0f, 0.0f) * dt, btVector3(0.0f, 0.0f, 0.0f));
+		body->applyForce(btVector3(0.0f, 1800.0f, 0.0f) * dt * speed, btVector3(0.0f, 0.0f, 0.0f));
 		firstFrame = 0;
 		lastFrame = 4;
 		//body->activate(true);
@@ -90,7 +96,7 @@ void PlayerInput(GameObject& transform, float dt, float speed, btRigidBody* body
 		//transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(-1.0f * dt * speed, 0.0f, 0.0f));
 		transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
 		body->activate(true);
-		body->applyForce(btVector3(-1800.0f, 0.0f, 0.0f) * dt, btVector3(0.0f, 0.0f, 0.0f));
+		body->applyForce(btVector3(-1800.0f, 0.0f, 0.0f) * dt * speed, btVector3(0.0f, 0.0f, 0.0f));
 		firstFrame = 0;
 		lastFrame = 4;
 		//transform.SetLocalRotation(90.0f, 0.0f, 192.0f);
@@ -102,7 +108,7 @@ void PlayerInput(GameObject& transform, float dt, float speed, btRigidBody* body
 		//transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(1.0f * dt * speed, 0.0f, 0.0f));
 		transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 270.0f);
 		body->activate(true);
-		body->applyForce(btVector3(1800.0f, 0.0f, 0.0f) * dt, btVector3(0.0f, 0.0f, 0.0f));
+		body->applyForce(btVector3(1800.0f, 0.0f, 0.0f) * dt * speed, btVector3(0.0f, 0.0f, 0.0f));
 		firstFrame = 0;
 		lastFrame = 4;
 		//transform.SetLocalRotation(90.0f, 0.0f, 12.0f);
@@ -164,7 +170,6 @@ std::vector<glm::vec3> phantomWaypoints{ glm::vec3(-36.0f, 12.0f, -1.0f),
 										glm::vec3(-33.0f, -6.8f, -1.0f),
 										glm::vec3(-32.7f, 0.38f, -1.0f),
 										glm::vec3(-33.8f, 7.01f, -1.0f) };
-
 
 
 void UpdateCatmull(std::vector<glm::vec3> points, GameObject object, float deltaTime)
@@ -281,14 +286,19 @@ void GetDistance(GameObject player, GameObject object, glm::vec3 distance)
 	}
 }
 
-void MoveWizard(GameObject player, GameObject wizard, glm::vec3 distance2, int coinCount)
+void MoveWizard(GameObject player, GameObject wizard, btRigidBody* wizardBody, btTransform wizardTransform, glm::vec3 distance2)
 {
 	distance2 = player.get<Transform>().GetLocalPosition() - wizard.get<Transform>().GetLocalPosition();
 
-	if (distance2.x <= 2.0f && distance2.y <= 2.0f && coinCount >= 1 && glfwGetKey(BackendHandler::window, GLFW_KEY_E) == GLFW_PRESS && gotCoin == true)
+	if (distance2.x <= 4.0f && distance2.y <= 4.0f && CoinCount >= 1 && glfwGetKey(BackendHandler::window, GLFW_KEY_E) == GLFW_PRESS)
 	{
 		CoinCount = 0;
-		wizard.get<Transform>().SetLocalPosition(wizard.get<Transform>().GetLocalPosition() + glm::vec3(-33.0f, 5.0f, 0.0f));
+		//wizard.get<Transform>().SetLocalPosition(wizard.get<Transform>().GetLocalPosition() + glm::vec3(-33.0f, 5.0f, 0.0f));
+		wizardTransform.setOrigin(btVector3(-47.5f, 5.0f, -2.5f));
+		wizardBody->setWorldTransform(wizardTransform);
+
+		btCollisionShape* wizardShape = new btBoxShape(btVector3(1.1f, 1.1f, 2.4f));
+		wizardBody->setCollisionShape(wizardShape);
 	}
 }
 
@@ -395,8 +405,7 @@ void CheckCollision(GameObject player, GameObject otherObject, float xRangePos, 
 
 
 
-
-void CheckPhantomCollision(GameObject player, GameObject other, float xRangePos, float xRangeNeg, float yRangePos, float yRangeNeg)
+void CheckPhantomCollision(GameObject player, btRigidBody *playerBody, btTransform playerTransform, GameObject other, float xRangePos, float xRangeNeg, float yRangePos, float yRangeNeg)
 {
 	//Forward
 	if (player.get<Transform>().GetLocalPosition().x - xRangePos <= other.get<Transform>().GetLocalPosition().x + xRangeNeg &&
@@ -405,7 +414,8 @@ void CheckPhantomCollision(GameObject player, GameObject other, float xRangePos,
 		player.get<Transform>().GetLocalPosition().y >= other.get<Transform>().GetLocalPosition().y - yRangeNeg)
 	{
 		PlayerHealth--;
-		player.get<Transform>().SetLocalPosition(0.0f, 0.0f, 0.8f);
+		playerTransform.setOrigin(btVector3(0.0f, 0.0f, 5.0f));
+		playerBody->setWorldTransform(playerTransform);
 	}
 
 	//Backward
@@ -415,7 +425,8 @@ void CheckPhantomCollision(GameObject player, GameObject other, float xRangePos,
 		player.get<Transform>().GetLocalPosition().y >= other.get<Transform>().GetLocalPosition().y - yRangeNeg)
 	{
 		PlayerHealth--;
-		player.get<Transform>().SetLocalPosition(0.0f, 0.0f, 0.8f);
+		playerTransform.setOrigin(btVector3(0.0f, 0.0f, 5.0f));
+		playerBody->setWorldTransform(playerTransform);
 	}
 
 
@@ -426,7 +437,8 @@ void CheckPhantomCollision(GameObject player, GameObject other, float xRangePos,
 		player.get<Transform>().GetLocalPosition().x >= other.get<Transform>().GetLocalPosition().x - xRangePos)
 	{
 		PlayerHealth--;
-		player.get<Transform>().SetLocalPosition(0.0f, 0.0f, 0.8f);
+		playerTransform.setOrigin(btVector3(0.0f, 0.0f, 5.0f));
+		playerBody->setWorldTransform(playerTransform);
 	}
 
 
@@ -436,7 +448,63 @@ void CheckPhantomCollision(GameObject player, GameObject other, float xRangePos,
 		player.get<Transform>().GetLocalPosition().x >= other.get<Transform>().GetLocalPosition().x - xRangePos)
 	{
 		PlayerHealth--;
-		player.get<Transform>().SetLocalPosition(0.0f, 0.0f, 0.8f);
+		playerTransform.setOrigin(btVector3(0.0f, 0.0f, 5.0f));
+		playerBody->setWorldTransform(playerTransform);;
+	}
+
+
+}
+
+
+void CheckCoinCollision(GameObject player, GameObject other, float xRangePos, float xRangeNeg, float yRangePos, float yRangeNeg)
+{
+	//Forward
+	if (player.get<Transform>().GetLocalPosition().x - xRangePos <= other.get<Transform>().GetLocalPosition().x + xRangeNeg &&
+		player.get<Transform>().GetLocalPosition().x >= other.get<Transform>().GetLocalPosition().x - xRangeNeg &&
+		player.get<Transform>().GetLocalPosition().y <= other.get<Transform>().GetLocalPosition().y + yRangePos &&
+		player.get<Transform>().GetLocalPosition().y >= other.get<Transform>().GetLocalPosition().y - yRangeNeg)
+	{
+		other.get<Transform>().SetLocalPosition(other.get<Transform>().GetLocalPosition().x,
+												other.get<Transform>().GetLocalPosition().y,
+												-25.0f);
+		CoinCount++;
+	}
+
+	//Backward
+	if (player.get<Transform>().GetLocalPosition().x + xRangePos >= other.get<Transform>().GetLocalPosition().x - xRangePos &&
+		player.get<Transform>().GetLocalPosition().x <= other.get<Transform>().GetLocalPosition().x + xRangeNeg &&
+		player.get<Transform>().GetLocalPosition().y <= other.get<Transform>().GetLocalPosition().y + yRangePos &&
+		player.get<Transform>().GetLocalPosition().y >= other.get<Transform>().GetLocalPosition().y - yRangeNeg)
+	{
+		other.get<Transform>().SetLocalPosition(other.get<Transform>().GetLocalPosition().x,
+												other.get<Transform>().GetLocalPosition().y,
+												-25.0f);
+		CoinCount++;
+	}
+
+
+	//Left
+	if (player.get<Transform>().GetLocalPosition().y - yRangeNeg <= other.get<Transform>().GetLocalPosition().y + yRangePos &&
+		player.get<Transform>().GetLocalPosition().y >= other.get<Transform>().GetLocalPosition().y - yRangePos &&
+		player.get<Transform>().GetLocalPosition().x <= other.get<Transform>().GetLocalPosition().x + xRangeNeg &&
+		player.get<Transform>().GetLocalPosition().x >= other.get<Transform>().GetLocalPosition().x - xRangePos)
+	{
+		other.get<Transform>().SetLocalPosition(other.get<Transform>().GetLocalPosition().x,
+												other.get<Transform>().GetLocalPosition().y,
+												-25.0f);
+		CoinCount++;
+	}
+
+
+	if (player.get<Transform>().GetLocalPosition().y + yRangeNeg >= other.get<Transform>().GetLocalPosition().y - yRangePos &&
+		player.get<Transform>().GetLocalPosition().y <= other.get<Transform>().GetLocalPosition().y + yRangePos &&
+		player.get<Transform>().GetLocalPosition().x <= other.get<Transform>().GetLocalPosition().x + xRangeNeg &&
+		player.get<Transform>().GetLocalPosition().x >= other.get<Transform>().GetLocalPosition().x - xRangePos)
+	{
+		other.get<Transform>().SetLocalPosition(other.get<Transform>().GetLocalPosition().x,
+												other.get<Transform>().GetLocalPosition().y,
+												-25.0f);
+		CoinCount++;
 	}
 
 
@@ -452,6 +520,65 @@ void checkPosition(GameObject object)
 	std::cout << "Player X" << object.get<Transform>().GetLocalPosition().x << std::endl;
 	std::cout << "Player Y" << object.get<Transform>().GetLocalPosition().y << std::endl;
 	std::cout << "Player Z" << object.get<Transform>().GetLocalPosition().z << std::endl;
+}
+
+#pragma endregion
+
+
+#pragma region Link Render Transform with Physics Body Function
+
+//Links object's render transform with the object's physics body
+void LinkBody(GameObject object, btRigidBody *body)
+{
+	glm::vec3 linkedBody = glm::vec3(body->getCenterOfMassTransform().getOrigin().getX(),
+									 body->getCenterOfMassTransform().getOrigin().getY(),
+									 body->getCenterOfMassTransform().getOrigin().getZ());
+
+	object.get<Transform>().SetLocalPosition(linkedBody);
+
+}
+
+void LinkBody(GameObject object, btRigidBody* body, float lowerZ)
+{
+	glm::vec3 linkedBody = glm::vec3(body->getCenterOfMassTransform().getOrigin().getX(),
+		body->getCenterOfMassTransform().getOrigin().getY(),
+		body->getCenterOfMassTransform().getOrigin().getZ() - lowerZ);
+
+	object.get<Transform>().SetLocalPosition(linkedBody);
+
+}
+
+#pragma endregion
+
+
+#pragma region Physics Callback
+
+//Physics callback function
+void myTickCallback(btDynamicsWorld* world, btScalar timeStep) {
+	int numManifolds = world->getDispatcher()->getNumManifolds();
+	printf("numManifolds = %d\n", numManifolds);
+
+	if (numManifolds == 3)
+	{
+		//world->removeRigidBody(rigidBody);
+	}
+}
+
+#pragma endregion
+
+
+#pragma region Check Airborne
+
+void checkAirborne(GameObject player)
+{
+	if (player.get<Transform>().GetLocalPosition().z >= 0.12f)
+	{
+		playerAirborne = true;
+	}
+	else
+	{
+		playerAirborne = false;
+	}
 }
 
 #pragma endregion
@@ -504,8 +631,8 @@ int main() {
 
 		btDiscreteDynamicsWorld* dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
 
-		dynamicsWorld->setGravity(btVector3(0.f, 0.f, -1.f));
-
+		dynamicsWorld->setGravity(btVector3(0.f, 0.f, -15.f));
+		
 
 		//keep track of the shapes, we release memory at exit.
 		//make sure to re-use collision shapes among rigid bodies whenever possible!
@@ -517,7 +644,7 @@ int main() {
 		#pragma region Physics Plane
 
 		//Plane
-		float planeHeight = 0.1f;
+		float planeHeight = -15.0f;
 		btTransform t;
 		t.setIdentity();
 		t.setOrigin(btVector3(0, 0, planeHeight));
@@ -530,41 +657,7 @@ int main() {
 		#pragma endregion
 
 
-		#pragma region Player and Wizard Physics Variables
-
-		//Player Physics
-		btCollisionShape* playerShape = new btBoxShape(btVector3(1.f, 1.f, 1.f));
-
-		btTransform playerTransform;
-
-		btScalar playerMass(2.f);
-
-		//rigidbody is dynamic if and only if mass is non zero, otherwise static
-		bool isPlayerDynamic = (playerMass != 0.f);
-
-		btVector3 localPlayerInertia(0, 0, 0);
-
-		//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
-		btDefaultMotionState* playerMotionState;
-		btRigidBody* playerBody;
-
-		//////////////////////////////////
-
-		//Wizard Physics
-		btCollisionShape* wizardShape = new btBoxShape(btVector3(1.f, 1.f, 1.f));
-
-		btTransform wizardTransform;
-
-		btScalar wizardMass(2.f);
-
-		//rigidbody is dynamic if and only if mass is non zero, otherwise static
-		bool isWizardDynamic = (wizardMass != 0.f);
-
-		btVector3 localWizardInertia(0, 0, 0);
-
-		//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
-		btDefaultMotionState* wizardMotionState;
-		btRigidBody* wizardBody;
+		#pragma region Camera Physics Variables
 
 		//Camera Physics
 		btCollisionShape* cameraShape = new btBoxShape(btVector3(1.f, 1.f, 1.f));
@@ -622,7 +715,7 @@ int main() {
 		bool flipPhantom2 = false;
 
 		#pragma endregion
-
+		
 		
 		#pragma region Shader and ImGui
 
@@ -631,6 +724,10 @@ int main() {
 		passthroughShader->LoadShaderPartFromFile("shaders/passthrough_frag.glsl", GL_FRAGMENT_SHADER);
 		passthroughShader->Link();
 
+		Shader::sptr physicsShader = Shader::Create();
+		physicsShader->LoadShaderPartFromFile("shaders/Physics/physics_vertex_shader.glsl", GL_VERTEX_SHADER);
+		physicsShader->LoadShaderPartFromFile("shaders/Physics/physics_frag_shader.glsl", GL_FRAGMENT_SHADER);
+		physicsShader->Link();
 
 		// Load our shaders
 		Shader::sptr shader = Shader::Create();
@@ -643,11 +740,11 @@ int main() {
 		float     lightAmbientPow = 0.639f;
 		float     lightSpecularPow = 3.0f;
 		glm::vec3 ambientCol = glm::vec3(1.0f);
-		float     ambientPow = 0.8f;
+		float     ambientPow = 0.6f;
 		float     textureMix = 0.2f;
 		float     shininess = 16.0f;
-		float     lightLinearFalloff = 0.09f;
-		float     lightQuadraticFalloff = 0.032f;
+		float     lightLinearFalloff = 0.0f; //0.09f;
+		float     lightQuadraticFalloff = 0.0f; //0.032f;
 		float     outlineThickness = 0.15;
 		
 		// These are our application / scene level uniforms that don't necessarily update
@@ -675,7 +772,7 @@ int main() {
 		
 		morphShader->SetUniform("u_LightPos", glm::vec3(0.0f, 0.0f, 35.0f));
 		morphShader->SetUniform("u_LightCol", lightCol);
-		morphShader->SetUniform("u_AmbientLightStrength", 0.7f);
+		morphShader->SetUniform("u_AmbientLightStrength", lightAmbientPow);
 		morphShader->SetUniform("u_SpecularLightStrength", lightSpecularPow);
 		morphShader->SetUniform("u_AmbientCol", ambientCol);
 		morphShader->SetUniform("u_AmbientStrength", ambientPow);
@@ -694,11 +791,11 @@ int main() {
 		spriteShader->Link();
 
 		//Shader Toggles
-		bool lightingToggle = true;
+		bool lightingToggle = false;
 		bool ambientToggle = false;
 		bool specularToggle = false;
 		bool ambientSpecularToggle = false;
-		bool customToggle = false;
+		bool customToggle = true;
 		bool diffuseRampToggle = false;
 		bool specularRampToggle = false;
 
@@ -722,7 +819,7 @@ int main() {
 		//Basic Effect(does nothing)
 		PostEffect* basicEffect;
 
-		int activeEffect = 0;
+		int activeEffect = 4;
 		std::vector<PostEffect*> effects;
 
 		//Effects
@@ -735,7 +832,8 @@ int main() {
 		WarmEffect* warmEffect;
 
 		CoolEffect* coolEffect;
-		
+
+		BloomEffect* bloomEffect;
 
 		// We'll add some ImGui controls to control our shader
 		BackendHandler::imGuiCallbacks.push_back([&]() {
@@ -773,35 +871,58 @@ int main() {
 
 					ColorCorrectionEffect* temp = (ColorCorrectionEffect*)effects[activeEffect];
 				}
+				if (activeEffect == 4)
+				{
+					ImGui::Text("Active Effect: Bloom Effect");
+
+					BloomEffect* temp = (BloomEffect*)effects[activeEffect];
+					float passes = temp->GetPasses();
+					float threshold = temp->GetThreshold();
+
+					if (ImGui::SliderFloat("Blur Value", &passes, 0.0f, 40.0f)) {
+						temp->SetPasses(passes);
+					}
+					if (ImGui::SliderFloat("Brightness Threshold", &threshold, 0.0f, 2.0f)) {
+						temp->SetThreshold(threshold);
+					}
+				}
 			}
 			if (ImGui::CollapsingHeader("Scene Level Lighting Settings"))
 			{
 				if (ImGui::ColorPicker3("Ambient Color", glm::value_ptr(ambientCol))) {
 					shader->SetUniform("u_AmbientCol", ambientCol);
+					morphShader->SetUniform("u_AmbientCol", ambientCol);
 				}
 				if (ImGui::SliderFloat("Fixed Ambient Power", &ambientPow, 0.01f, 1.0f)) {
 					shader->SetUniform("u_AmbientStrength", ambientPow);
+					morphShader->SetUniform("u_AmbientStrength", ambientPow);
 				}
 			}
 			if (ImGui::CollapsingHeader("Light Level Lighting Settings"))
 			{
 				if (ImGui::DragFloat3("Light Pos", glm::value_ptr(lightPos), 0.01f, -10.0f, 10.0f)) {
 					shader->SetUniform("u_LightPos", lightPos);
+					morphShader->SetUniform("u_LightPos", lightPos);
 				}
 				if (ImGui::ColorPicker3("Light Col", glm::value_ptr(lightCol))) {
 					shader->SetUniform("u_LightCol", lightCol);
+					morphShader->SetUniform("u_LightCol", lightCol);
 				}
 				if (ImGui::SliderFloat("Light Ambient Power", &lightAmbientPow, 0.0f, 1.0f)) {
 					shader->SetUniform("u_AmbientLightStrength", lightAmbientPow);
+					morphShader->SetUniform("u_AmbientLightStrength", lightAmbientPow);
 				}
 				if (ImGui::SliderFloat("Light Specular Power", &lightSpecularPow, 0.0f, 1.0f)) {
 					shader->SetUniform("u_SpecularLightStrength", lightSpecularPow);
+					morphShader->SetUniform("u_SpecularLightStrength", lightSpecularPow);
 				}
 				if (ImGui::DragFloat("Light Linear Falloff", &lightLinearFalloff, 0.01f, 0.0f, 1.0f)) {
 					shader->SetUniform("u_LightAttenuationLinear", lightLinearFalloff);
+					morphShader->SetUniform("u_LightAttenuationLinear", lightLinearFalloff);
 				}
 				if (ImGui::DragFloat("Light Quadratic Falloff", &lightQuadraticFalloff, 0.01f, 0.0f, 1.0f)) {
 					shader->SetUniform("u_LightAttenuationQuadratic", lightQuadraticFalloff);
+					morphShader->SetUniform("u_LightAttenuationQuadratic", lightQuadraticFalloff);
 				}
 			}
 			if (ImGui::CollapsingHeader("Phantom Waypoints"))
@@ -849,181 +970,185 @@ int main() {
 					ImGui::End();
 				}
 			}
-			if (ImGui::Checkbox("No Lighting", &lightingToggle))
+			if (ImGui::CollapsingHeader("Shader Toggles"))
 			{
-				lightingToggle = true;
-				ambientToggle = false;
-				specularToggle = false;
-				ambientSpecularToggle = false;
-				customToggle = false;
-				diffuseRampToggle = false;
-				specularRampToggle = false;
-				shader->SetUniform("u_LightToggle", (int)lightingToggle);
-				shader->SetUniform("u_AmbientToggle", (int)ambientToggle);
-				shader->SetUniform("u_SpecularToggle", (int)specularToggle);
-				shader->SetUniform("u_AmbientSpecularToggle", (int)ambientSpecularToggle);
-				shader->SetUniform("u_CustomToggle", (int)customToggle);
-				shader->SetUniform("u_DiffuseRampToggle", (int)diffuseRampToggle);
-				shader->SetUniform("u_SpecularRampToggle", (int)specularRampToggle);
+				if (ImGui::Checkbox("No Lighting", &lightingToggle))
+				{
+					lightingToggle = true;
+					ambientToggle = false;
+					specularToggle = false;
+					ambientSpecularToggle = false;
+					customToggle = false;
+					diffuseRampToggle = false;
+					specularRampToggle = false;
+					shader->SetUniform("u_LightToggle", (int)lightingToggle);
+					shader->SetUniform("u_AmbientToggle", (int)ambientToggle);
+					shader->SetUniform("u_SpecularToggle", (int)specularToggle);
+					shader->SetUniform("u_AmbientSpecularToggle", (int)ambientSpecularToggle);
+					shader->SetUniform("u_CustomToggle", (int)customToggle);
+					shader->SetUniform("u_DiffuseRampToggle", (int)diffuseRampToggle);
+					shader->SetUniform("u_SpecularRampToggle", (int)specularRampToggle);
 
-				morphShader->SetUniform("u_LightToggle", (int)lightingToggle);
-				morphShader->SetUniform("u_AmbientToggle", (int)ambientToggle);
-				morphShader->SetUniform("u_SpecularToggle", (int)specularToggle);
-				morphShader->SetUniform("u_AmbientSpecularToggle", (int)ambientSpecularToggle);
-				morphShader->SetUniform("u_CustomToggle", (int)customToggle);
-				morphShader->SetUniform("u_DiffuseRampToggle", (int)diffuseRampToggle);
-				morphShader->SetUniform("u_SpecularRampToggle", (int)specularRampToggle);
-			}
-			if (ImGui::Checkbox("Ambient Only", &ambientToggle))
-			{
-				lightingToggle = false;
-				ambientToggle = true;
-				specularToggle = false;
-				ambientSpecularToggle = false;
-				customToggle = false;
-				diffuseRampToggle = false;
-				specularRampToggle = false;
-				shader->SetUniform("u_LightToggle", (int)lightingToggle);
-				shader->SetUniform("u_AmbientToggle", (int)ambientToggle);
-				shader->SetUniform("u_SpecularToggle", (int)specularToggle);
-				shader->SetUniform("u_AmbientSpecularToggle", (int)ambientSpecularToggle);
-				shader->SetUniform("u_CustomToggle", (int)customToggle);
-				shader->SetUniform("u_DiffuseRampToggle", (int)diffuseRampToggle);
-				shader->SetUniform("u_SpecularRampToggle", (int)specularRampToggle);
+					morphShader->SetUniform("u_LightToggle", (int)lightingToggle);
+					morphShader->SetUniform("u_AmbientToggle", (int)ambientToggle);
+					morphShader->SetUniform("u_SpecularToggle", (int)specularToggle);
+					morphShader->SetUniform("u_AmbientSpecularToggle", (int)ambientSpecularToggle);
+					morphShader->SetUniform("u_CustomToggle", (int)customToggle);
+					morphShader->SetUniform("u_DiffuseRampToggle", (int)diffuseRampToggle);
+					morphShader->SetUniform("u_SpecularRampToggle", (int)specularRampToggle);
+				}
+				if (ImGui::Checkbox("Ambient Only", &ambientToggle))
+				{
+					lightingToggle = false;
+					ambientToggle = true;
+					specularToggle = false;
+					ambientSpecularToggle = false;
+					customToggle = false;
+					diffuseRampToggle = false;
+					specularRampToggle = false;
+					shader->SetUniform("u_LightToggle", (int)lightingToggle);
+					shader->SetUniform("u_AmbientToggle", (int)ambientToggle);
+					shader->SetUniform("u_SpecularToggle", (int)specularToggle);
+					shader->SetUniform("u_AmbientSpecularToggle", (int)ambientSpecularToggle);
+					shader->SetUniform("u_CustomToggle", (int)customToggle);
+					shader->SetUniform("u_DiffuseRampToggle", (int)diffuseRampToggle);
+					shader->SetUniform("u_SpecularRampToggle", (int)specularRampToggle);
 
-				morphShader->SetUniform("u_LightToggle", (int)lightingToggle);
-				morphShader->SetUniform("u_AmbientToggle", (int)ambientToggle);
-				morphShader->SetUniform("u_SpecularToggle", (int)specularToggle);
-				morphShader->SetUniform("u_AmbientSpecularToggle", (int)ambientSpecularToggle);
-				morphShader->SetUniform("u_CustomToggle", (int)customToggle);
-				morphShader->SetUniform("u_DiffuseRampToggle", (int)diffuseRampToggle);
-				morphShader->SetUniform("u_SpecularRampToggle", (int)specularRampToggle);
-			}
-			if (ImGui::Checkbox("Specular Only", &specularToggle))
-			{
-				lightingToggle = false;
-				ambientToggle = false;
-				specularToggle = true;
-				ambientSpecularToggle = false;
-				customToggle = false;
-				diffuseRampToggle = false;
-				specularRampToggle = false;
-				shader->SetUniform("u_LightToggle", (int)lightingToggle);
-				shader->SetUniform("u_AmbientToggle", (int)ambientToggle);
-				shader->SetUniform("u_SpecularToggle", (int)specularToggle);
-				shader->SetUniform("u_AmbientSpecularToggle", (int)ambientSpecularToggle);
-				shader->SetUniform("u_CustomToggle", (int)customToggle);
-				shader->SetUniform("u_DiffuseRampToggle", (int)diffuseRampToggle);
-				shader->SetUniform("u_SpecularRampToggle", (int)specularRampToggle);
+					morphShader->SetUniform("u_LightToggle", (int)lightingToggle);
+					morphShader->SetUniform("u_AmbientToggle", (int)ambientToggle);
+					morphShader->SetUniform("u_SpecularToggle", (int)specularToggle);
+					morphShader->SetUniform("u_AmbientSpecularToggle", (int)ambientSpecularToggle);
+					morphShader->SetUniform("u_CustomToggle", (int)customToggle);
+					morphShader->SetUniform("u_DiffuseRampToggle", (int)diffuseRampToggle);
+					morphShader->SetUniform("u_SpecularRampToggle", (int)specularRampToggle);
+				}
+				if (ImGui::Checkbox("Specular Only", &specularToggle))
+				{
+					lightingToggle = false;
+					ambientToggle = false;
+					specularToggle = true;
+					ambientSpecularToggle = false;
+					customToggle = false;
+					diffuseRampToggle = false;
+					specularRampToggle = false;
+					shader->SetUniform("u_LightToggle", (int)lightingToggle);
+					shader->SetUniform("u_AmbientToggle", (int)ambientToggle);
+					shader->SetUniform("u_SpecularToggle", (int)specularToggle);
+					shader->SetUniform("u_AmbientSpecularToggle", (int)ambientSpecularToggle);
+					shader->SetUniform("u_CustomToggle", (int)customToggle);
+					shader->SetUniform("u_DiffuseRampToggle", (int)diffuseRampToggle);
+					shader->SetUniform("u_SpecularRampToggle", (int)specularRampToggle);
 
-				morphShader->SetUniform("u_LightToggle", (int)lightingToggle);
-				morphShader->SetUniform("u_AmbientToggle", (int)ambientToggle);
-				morphShader->SetUniform("u_SpecularToggle", (int)specularToggle);
-				morphShader->SetUniform("u_AmbientSpecularToggle", (int)ambientSpecularToggle);
-				morphShader->SetUniform("u_CustomToggle", (int)customToggle);
-				morphShader->SetUniform("u_DiffuseRampToggle", (int)diffuseRampToggle);
-				morphShader->SetUniform("u_SpecularRampToggle", (int)specularRampToggle);
-			}
-			if (ImGui::Checkbox("Ambient + Specular", &ambientSpecularToggle))
-			{
-				lightingToggle = false;
-				ambientToggle = false;
-				specularToggle = false;
-				ambientSpecularToggle = true;
-				customToggle = false;
-				diffuseRampToggle = false;
-				specularRampToggle = false;
-				shader->SetUniform("u_LightToggle", (int)lightingToggle);
-				shader->SetUniform("u_AmbientToggle", (int)ambientToggle);
-				shader->SetUniform("u_SpecularToggle", (int)specularToggle);
-				shader->SetUniform("u_AmbientSpecularToggle", (int)ambientSpecularToggle);
-				shader->SetUniform("u_CustomToggle", (int)customToggle);
-				shader->SetUniform("u_DiffuseRampToggle", (int)diffuseRampToggle);
-				shader->SetUniform("u_SpecularRampToggle", (int)specularRampToggle);
+					morphShader->SetUniform("u_LightToggle", (int)lightingToggle);
+					morphShader->SetUniform("u_AmbientToggle", (int)ambientToggle);
+					morphShader->SetUniform("u_SpecularToggle", (int)specularToggle);
+					morphShader->SetUniform("u_AmbientSpecularToggle", (int)ambientSpecularToggle);
+					morphShader->SetUniform("u_CustomToggle", (int)customToggle);
+					morphShader->SetUniform("u_DiffuseRampToggle", (int)diffuseRampToggle);
+					morphShader->SetUniform("u_SpecularRampToggle", (int)specularRampToggle);
+				}
+				if (ImGui::Checkbox("Ambient + Specular", &ambientSpecularToggle))
+				{
+					lightingToggle = false;
+					ambientToggle = false;
+					specularToggle = false;
+					ambientSpecularToggle = true;
+					customToggle = false;
+					diffuseRampToggle = false;
+					specularRampToggle = false;
+					shader->SetUniform("u_LightToggle", (int)lightingToggle);
+					shader->SetUniform("u_AmbientToggle", (int)ambientToggle);
+					shader->SetUniform("u_SpecularToggle", (int)specularToggle);
+					shader->SetUniform("u_AmbientSpecularToggle", (int)ambientSpecularToggle);
+					shader->SetUniform("u_CustomToggle", (int)customToggle);
+					shader->SetUniform("u_DiffuseRampToggle", (int)diffuseRampToggle);
+					shader->SetUniform("u_SpecularRampToggle", (int)specularRampToggle);
 
-				morphShader->SetUniform("u_LightToggle", (int)lightingToggle);
-				morphShader->SetUniform("u_AmbientToggle", (int)ambientToggle);
-				morphShader->SetUniform("u_SpecularToggle", (int)specularToggle);
-				morphShader->SetUniform("u_AmbientSpecularToggle", (int)ambientSpecularToggle);
-				morphShader->SetUniform("u_CustomToggle", (int)customToggle);
-				morphShader->SetUniform("u_DiffuseRampToggle", (int)diffuseRampToggle);
-				morphShader->SetUniform("u_SpecularRampToggle", (int)specularRampToggle);
-			}
-			if (ImGui::Checkbox("Ambient + Specular + Toon Shading", &customToggle))
-			{
-				lightingToggle = false;
-				ambientToggle = false;
-				specularToggle = false;
-				ambientSpecularToggle = false;
-				customToggle = true;
-				diffuseRampToggle = false;
-				specularRampToggle = false;
-				shader->SetUniform("u_LightToggle", (int)lightingToggle);
-				shader->SetUniform("u_AmbientToggle", (int)ambientToggle);
-				shader->SetUniform("u_SpecularToggle", (int)specularToggle);
-				shader->SetUniform("u_AmbientSpecularToggle", (int)ambientSpecularToggle);
-				shader->SetUniform("u_CustomToggle", (int)customToggle);
-				shader->SetUniform("u_DiffuseRampToggle", (int)diffuseRampToggle);
-				shader->SetUniform("u_SpecularRampToggle", (int)specularRampToggle);
+					morphShader->SetUniform("u_LightToggle", (int)lightingToggle);
+					morphShader->SetUniform("u_AmbientToggle", (int)ambientToggle);
+					morphShader->SetUniform("u_SpecularToggle", (int)specularToggle);
+					morphShader->SetUniform("u_AmbientSpecularToggle", (int)ambientSpecularToggle);
+					morphShader->SetUniform("u_CustomToggle", (int)customToggle);
+					morphShader->SetUniform("u_DiffuseRampToggle", (int)diffuseRampToggle);
+					morphShader->SetUniform("u_SpecularRampToggle", (int)specularRampToggle);
+				}
+				if (ImGui::Checkbox("Ambient + Specular + Toon Shading", &customToggle))
+				{
+					lightingToggle = false;
+					ambientToggle = false;
+					specularToggle = false;
+					ambientSpecularToggle = false;
+					customToggle = true;
+					diffuseRampToggle = false;
+					specularRampToggle = false;
+					shader->SetUniform("u_LightToggle", (int)lightingToggle);
+					shader->SetUniform("u_AmbientToggle", (int)ambientToggle);
+					shader->SetUniform("u_SpecularToggle", (int)specularToggle);
+					shader->SetUniform("u_AmbientSpecularToggle", (int)ambientSpecularToggle);
+					shader->SetUniform("u_CustomToggle", (int)customToggle);
+					shader->SetUniform("u_DiffuseRampToggle", (int)diffuseRampToggle);
+					shader->SetUniform("u_SpecularRampToggle", (int)specularRampToggle);
 
-				morphShader->SetUniform("u_LightToggle", (int)lightingToggle);
-				morphShader->SetUniform("u_AmbientToggle", (int)ambientToggle);
-				morphShader->SetUniform("u_SpecularToggle", (int)specularToggle);
-				morphShader->SetUniform("u_AmbientSpecularToggle", (int)ambientSpecularToggle);
-				morphShader->SetUniform("u_CustomToggle", (int)customToggle);
-				morphShader->SetUniform("u_DiffuseRampToggle", (int)diffuseRampToggle);
-				morphShader->SetUniform("u_SpecularRampToggle", (int)specularRampToggle);
-			}
-			if (ImGui::Checkbox("Diffuse Ramp", &diffuseRampToggle))
-			{
-				lightingToggle = false;
-				ambientToggle = false;
-				specularToggle = false;
-				ambientSpecularToggle = false;
-				customToggle = false;
-				diffuseRampToggle = true;
-				specularRampToggle = false;
-				shader->SetUniform("u_LightToggle", (int)lightingToggle);
-				shader->SetUniform("u_AmbientToggle", (int)ambientToggle);
-				shader->SetUniform("u_SpecularToggle", (int)specularToggle);
-				shader->SetUniform("u_AmbientSpecularToggle", (int)ambientSpecularToggle);
-				shader->SetUniform("u_CustomToggle", (int)customToggle);
-				shader->SetUniform("u_DiffuseRampToggle", (int)diffuseRampToggle);
-				shader->SetUniform("u_SpecularRampToggle", (int)specularRampToggle);
+					morphShader->SetUniform("u_LightToggle", (int)lightingToggle);
+					morphShader->SetUniform("u_AmbientToggle", (int)ambientToggle);
+					morphShader->SetUniform("u_SpecularToggle", (int)specularToggle);
+					morphShader->SetUniform("u_AmbientSpecularToggle", (int)ambientSpecularToggle);
+					morphShader->SetUniform("u_CustomToggle", (int)customToggle);
+					morphShader->SetUniform("u_DiffuseRampToggle", (int)diffuseRampToggle);
+					morphShader->SetUniform("u_SpecularRampToggle", (int)specularRampToggle);
+				}
+				if (ImGui::Checkbox("Diffuse Ramp", &diffuseRampToggle))
+				{
+					lightingToggle = false;
+					ambientToggle = false;
+					specularToggle = false;
+					ambientSpecularToggle = false;
+					customToggle = false;
+					diffuseRampToggle = true;
+					specularRampToggle = false;
+					shader->SetUniform("u_LightToggle", (int)lightingToggle);
+					shader->SetUniform("u_AmbientToggle", (int)ambientToggle);
+					shader->SetUniform("u_SpecularToggle", (int)specularToggle);
+					shader->SetUniform("u_AmbientSpecularToggle", (int)ambientSpecularToggle);
+					shader->SetUniform("u_CustomToggle", (int)customToggle);
+					shader->SetUniform("u_DiffuseRampToggle", (int)diffuseRampToggle);
+					shader->SetUniform("u_SpecularRampToggle", (int)specularRampToggle);
 
-				morphShader->SetUniform("u_LightToggle", (int)lightingToggle);
-				morphShader->SetUniform("u_AmbientToggle", (int)ambientToggle);
-				morphShader->SetUniform("u_SpecularToggle", (int)specularToggle);
-				morphShader->SetUniform("u_AmbientSpecularToggle", (int)ambientSpecularToggle);
-				morphShader->SetUniform("u_CustomToggle", (int)customToggle);
-				morphShader->SetUniform("u_DiffuseRampToggle", (int)diffuseRampToggle);
-				morphShader->SetUniform("u_SpecularRampToggle", (int)specularRampToggle);
-			}
-			if (ImGui::Checkbox("Specular Ramp", &specularRampToggle))
-			{
-				lightingToggle = false;
-				ambientToggle = false;
-				specularToggle = false;
-				ambientSpecularToggle = false;
-				customToggle = false;
-				diffuseRampToggle = false;
-				specularRampToggle = true;
-				shader->SetUniform("u_LightToggle", (int)lightingToggle);
-				shader->SetUniform("u_AmbientToggle", (int)ambientToggle);
-				shader->SetUniform("u_SpecularToggle", (int)specularToggle);
-				shader->SetUniform("u_AmbientSpecularToggle", (int)ambientSpecularToggle);
-				shader->SetUniform("u_CustomToggle", (int)customToggle);
-				shader->SetUniform("u_DiffuseRampToggle", (int)diffuseRampToggle);
-				shader->SetUniform("u_SpecularRampToggle", (int)specularRampToggle);
+					morphShader->SetUniform("u_LightToggle", (int)lightingToggle);
+					morphShader->SetUniform("u_AmbientToggle", (int)ambientToggle);
+					morphShader->SetUniform("u_SpecularToggle", (int)specularToggle);
+					morphShader->SetUniform("u_AmbientSpecularToggle", (int)ambientSpecularToggle);
+					morphShader->SetUniform("u_CustomToggle", (int)customToggle);
+					morphShader->SetUniform("u_DiffuseRampToggle", (int)diffuseRampToggle);
+					morphShader->SetUniform("u_SpecularRampToggle", (int)specularRampToggle);
+				}
+				if (ImGui::Checkbox("Specular Ramp", &specularRampToggle))
+				{
+					lightingToggle = false;
+					ambientToggle = false;
+					specularToggle = false;
+					ambientSpecularToggle = false;
+					customToggle = false;
+					diffuseRampToggle = false;
+					specularRampToggle = true;
+					shader->SetUniform("u_LightToggle", (int)lightingToggle);
+					shader->SetUniform("u_AmbientToggle", (int)ambientToggle);
+					shader->SetUniform("u_SpecularToggle", (int)specularToggle);
+					shader->SetUniform("u_AmbientSpecularToggle", (int)ambientSpecularToggle);
+					shader->SetUniform("u_CustomToggle", (int)customToggle);
+					shader->SetUniform("u_DiffuseRampToggle", (int)diffuseRampToggle);
+					shader->SetUniform("u_SpecularRampToggle", (int)specularRampToggle);
 
-				morphShader->SetUniform("u_LightToggle", (int)lightingToggle);
-				morphShader->SetUniform("u_AmbientToggle", (int)ambientToggle);
-				morphShader->SetUniform("u_SpecularToggle", (int)specularToggle);
-				morphShader->SetUniform("u_AmbientSpecularToggle", (int)ambientSpecularToggle);
-				morphShader->SetUniform("u_CustomToggle", (int)customToggle);
-				morphShader->SetUniform("u_DiffuseRampToggle", (int)diffuseRampToggle);
-				morphShader->SetUniform("u_SpecularRampToggle", (int)specularRampToggle);
+					morphShader->SetUniform("u_LightToggle", (int)lightingToggle);
+					morphShader->SetUniform("u_AmbientToggle", (int)ambientToggle);
+					morphShader->SetUniform("u_SpecularToggle", (int)specularToggle);
+					morphShader->SetUniform("u_AmbientSpecularToggle", (int)ambientSpecularToggle);
+					morphShader->SetUniform("u_CustomToggle", (int)customToggle);
+					morphShader->SetUniform("u_DiffuseRampToggle", (int)diffuseRampToggle);
+					morphShader->SetUniform("u_SpecularRampToggle", (int)specularRampToggle);
+				}
 			}
+			
 
 			auto name = controllables[selectedVao].get<GameObjectTag>().Name;
 			ImGui::Text(name.c_str());
@@ -1083,7 +1208,7 @@ int main() {
 		Texture2D::sptr diffuseMp19 = Texture2D::LoadFromFile("images/MailboxColor.png");
 		Texture2D::sptr diffuseMp20 = Texture2D::LoadFromFile("images/flowerTexture.png");
 		Texture2D::sptr diffuseMp21 = Texture2D::LoadFromFile("images/HouseColors.png");
-		Texture2D::sptr spriteDiffuse = Texture2D::LoadFromFile("images/heart.png");
+		Texture2D::sptr heartDiffuse = Texture2D::LoadFromFile("images/heart.png");
 
 		Texture2D::sptr diffuseRamp = Texture2D::LoadFromFile("images/DiffuseRamp.png");
 		Texture2D::sptr specularRamp = Texture2D::LoadFromFile("images/SpecularRamp.png");
@@ -1092,7 +1217,7 @@ int main() {
 
 		// Load the cube map
 		//TextureCubeMap::sptr environmentMap = TextureCubeMap::LoadFromImages("images/cubemaps/skybox/sample.jpg");
-		TextureCubeMap::sptr environmentMap = TextureCubeMap::LoadFromImages("images/cubemaps/skybox/Sky.jpg"); 
+		TextureCubeMap::sptr environmentMap = TextureCubeMap::LoadFromImages("images/cubemaps/skybox/ToonSky.jpg"); 
 
 		// Creating an empty texture
 		Texture2DDescription desc = Texture2DDescription();  
@@ -1297,14 +1422,10 @@ int main() {
 		material20->Set("s_SpecularRamp", specularRamp);
 
 
-		ShaderMaterial::sptr spriteMat = ShaderMaterial::Create();
-		spriteMat->Shader = shader;
-		spriteMat->Set("s_Diffuse", spriteDiffuse);
-		spriteMat->Set("u_Shininess", 0.0f);
-		spriteMat->Set("u_OutlineThickness", 0.0001f);
-		spriteMat->Set("s_DiffuseRamp", diffuseRamp);
-		spriteMat->Set("s_SpecularRamp", specularRamp);
-		spriteMat->RenderLayer = 0;
+		ShaderMaterial::sptr heartMat = ShaderMaterial::Create();
+		heartMat->Shader = spriteShader;
+		heartMat->Set("s_Diffuse", heartDiffuse);
+		heartMat->RenderLayer = 0;
 
 		#pragma endregion
 
@@ -1384,11 +1505,11 @@ int main() {
 		#pragma endregion
 
 
-		#pragma region Sprite Object
+		#pragma region Sprite Objects
 
-		VertexArrayObject::sptr spriteVao;
+		VertexArrayObject::sptr heartVao;
 
-		GameObject spriteObj = scene->CreateEntity("HeartSprite");
+		GameObject heart1Obj = scene->CreateEntity("HeartSprite");
 		{
 			GLfloat vertices[] = { -1, -1, 0, // bottom left corner
 						   -1,  1, 0, // top left corner
@@ -1402,11 +1523,64 @@ int main() {
 			};
 
 
-			spriteVao = NotObjLoader::LoadFromFile("Sprite.notobj");
-			spriteObj.emplace<Sprite>().SetMesh(spriteVao).SetMaterial(spriteMat);
-			spriteObj.get<Transform>().SetLocalPosition(0.0f, 0.0f, 5.0f);
-			spriteObj.get<Transform>().SetLocalRotation(0.0f, 180.0f, 270.0f);
-			spriteObj.get<Transform>().SetLocalScale(0.5f, 0.5f, 0.5f);
+			heartVao = NotObjLoader::LoadFromFile("sprite.notobj");
+			heart1Obj.emplace<Sprite>().SetMesh(heartVao).SetMaterial(heartMat);
+			//heart1Obj.emplace<RendererComponent>().SetMesh(heart1Vao).SetMaterial(heart1Mat);
+			heart1Obj.get<Transform>().SetLocalPosition(0.0f, 0.0f, 5.0f);
+			heart1Obj.get<Transform>().SetLocalRotation(0.0f, 180.0f, 270.0f);
+			//heart1Obj.get<Transform>().SetLocalRotation(0.0f, 180.0f, 180.0f);
+			heart1Obj.get<Transform>().SetLocalScale(0.07f, 0.07f, 0.07f);
+			//heart1Obj.get<Transform>().LookAt(glm::vec3(0));
+
+		}
+
+		GameObject heart2Obj = scene->CreateEntity("HeartSprite");
+		{
+			GLfloat vertices[] = { -1, -1, 0, // bottom left corner
+						   -1,  1, 0, // top left corner
+							1,  1, 0, // top right corner
+							1, -1, 0 }; // bottom right corner
+
+
+			GLuint elements[] = {
+					0, 1, 2,
+					2, 3, 0
+			};
+
+
+			heartVao = NotObjLoader::LoadFromFile("sprite.notobj");
+			heart2Obj.emplace<Sprite>().SetMesh(heartVao).SetMaterial(heartMat);
+			//heart1Obj.emplace<RendererComponent>().SetMesh(heart1Vao).SetMaterial(heart1Mat);
+			heart2Obj.get<Transform>().SetLocalPosition(0.0f, 0.0f, 5.0f);
+			heart2Obj.get<Transform>().SetLocalRotation(0.0f, 180.0f, 270.0f);
+			//heart1Obj.get<Transform>().SetLocalRotation(0.0f, 180.0f, 180.0f);
+			heart2Obj.get<Transform>().SetLocalScale(0.07f, 0.07f, 0.07f);
+			//heart1Obj.get<Transform>().LookAt(glm::vec3(0));
+
+		}
+
+		GameObject heart3Obj = scene->CreateEntity("HeartSprite");
+		{
+			GLfloat vertices[] = { -1, -1, 0, // bottom left corner
+						   -1,  1, 0, // top left corner
+							1,  1, 0, // top right corner
+							1, -1, 0 }; // bottom right corner
+
+
+			GLuint elements[] = {
+					0, 1, 2,
+					2, 3, 0
+			};
+
+
+			heartVao = NotObjLoader::LoadFromFile("sprite.notobj");
+			heart3Obj.emplace<Sprite>().SetMesh(heartVao).SetMaterial(heartMat);
+			//heart1Obj.emplace<RendererComponent>().SetMesh(heart1Vao).SetMaterial(heart1Mat);
+			heart3Obj.get<Transform>().SetLocalPosition(0.0f, 0.0f, 5.0f);
+			heart3Obj.get<Transform>().SetLocalRotation(0.0f, 180.0f, 270.0f);
+			//heart1Obj.get<Transform>().SetLocalRotation(0.0f, 180.0f, 180.0f);
+			heart3Obj.get<Transform>().SetLocalScale(0.07f, 0.07f, 0.07f);
+			//heart1Obj.get<Transform>().LookAt(glm::vec3(0));
 
 		}
 
@@ -1415,27 +1589,80 @@ int main() {
 
 		#pragma region Player Object
 
+		//Player Physics
+		btCollisionShape* playerShape = new btBoxShape(btVector3(1.1f, 1.1f, 2.4f));
+
+		btCollisionObject* playerObj = new btCollisionObject();
+		playerObj->setCollisionShape(playerShape);
+
+		btTransform playerTransform;
+
+		btScalar playerMass(2.f);
+
+		//rigidbody is dynamic if and only if mass is non zero, otherwise static
+		bool isPlayerDynamic = (playerMass != 0.f);
+
+		btVector3 localPlayerInertia(0, 0, 0);
+
+		//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+		btDefaultMotionState* playerMotionState;
+		btRigidBody* playerBody;
+
 		GameObject player = scene->CreateEntity("Player");
 		{
 			player.emplace<MorphRenderer>();
 
+			//Idle Animation
+			std::string idlePrefix = "models/Player/Idle/SkyBoundCharacter0";
+			std::string idleFileName;
 
+			for (int i = 0; i < 2; i++)
+			{
+				idleFileName = idlePrefix + std::to_string(i) + ".obj";
+
+				player.get<MorphRenderer>().addFrame(MorphLoader::LoadFromFile(idleFileName), 0);
+
+			}
+
+			player.get<MorphRenderer>().SetFrameTime(0.45, 0);
+
+
+			////////////////////////////////////////////////////////
+
+
+			//Walk Animation
 			std::string walkPrefix = "models/Player/Walk/SkyBoundCharacter0";
 			std::string walkFileName;
-
-
 
 			for (int i = 0; i < 4; i++)
 			{
 				walkFileName = walkPrefix + std::to_string(i) + ".obj";
 
-				player.get<MorphRenderer>().addFrame(MorphLoader::LoadFromFile(walkFileName));
+				player.get<MorphRenderer>().addFrame(MorphLoader::LoadFromFile(walkFileName), 1);
 
 			}
 
-			player.get<MorphRenderer>().SetFrameTime(0.25);
+			player.get<MorphRenderer>().SetFrameTime(0.25, 1);
 
 			player.get<MorphRenderer>().SetMesh(player.get<MorphRenderer>().vao).SetMaterial(material0);
+
+
+			///////////////////////////////////////////////////////
+
+			//Jump Animation
+			std::string jumpPrefix = "models/Player/Jump/SkyBoundCharacter0";
+			std::string jumpFileName;
+
+			for (int i = 0; i < 5; i++)
+			{
+				jumpFileName = jumpPrefix + std::to_string(i) + ".obj";
+
+				player.get<MorphRenderer>().addFrame(MorphLoader::LoadFromFile(jumpFileName), 2);
+
+			}
+
+			player.get<MorphRenderer>().SetFrameTime(0.85, 2);
+
 
 
 			/*
@@ -1470,14 +1697,16 @@ int main() {
 
 
 			playerTransform.setIdentity();
-			playerTransform.setOrigin(btVector3(0.0f, 0.0f, 5.0f));
-			playerTransform.setRotation(btQuaternion(btVector3(1, 0, 0), btScalar(90.0f)));
-			playerTransform.setRotation(btQuaternion(btVector3(0, 0, 1), btScalar(180.0f)));
+			playerTransform.setOrigin(btVector3(0.0f, 0.0f, 10.0f));
+			//playerTransform.setRotation(btQuaternion(btVector3(1, 0, 0), btScalar(90.0f)));
+			//playerTransform.setRotation(btQuaternion(btVector3(0, 0, 1), btScalar(180.0f)));
 			//playerTransform.setOrigin(glm2bt(player.get<Transform>().GetLocalPosition()));
 			//playerTransform.setIdentity();
 
-			if (isPlayerDynamic)
-				playerShape->calculateLocalInertia(playerMass, localPlayerInertia);
+			//Disabling the calculation of inertia makes the physics shape not rotate
+
+			//if (isPlayerDynamic)
+				//playerShape->calculateLocalInertia(playerMass, localPlayerInertia);
 
 
 			//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
@@ -1485,11 +1714,13 @@ int main() {
 			btRigidBody::btRigidBodyConstructionInfo rbInfo(playerMass, playerMotionState, playerShape, localPlayerInertia);
 			playerBody = new btRigidBody(rbInfo);
 
-			playerBody->setDamping(0.3f, 0.3f);
+			playerBody->setDamping(0.6f, 0.6f);
 
 
 			//add the body to the dynamics world
 			dynamicsWorld->addRigidBody(playerBody);
+
+			//dynamicsWorld->addCollisionObject(playerObj, 1, 1);
 
 			//playerBody->applyGravity();
 
@@ -1501,6 +1732,23 @@ int main() {
 
 		#pragma region First Level Island (Plain Islands) Objects
 
+		//Physics - Island 1
+		
+		btCollisionShape* island1Shape = new btCylinderShapeZ(btVector3(15.3f, 15.3f, 2.0f));
+
+		btTransform island1Transform;
+
+		btScalar island1Mass(0.f);
+
+		//rigidbody is dynamic if and only if mass is non zero, otherwise static
+		bool isisland1Dynamic = (island1Mass != 0.f);
+
+		btVector3 localisland1Inertia(0, 0, 0);
+
+		//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+		btDefaultMotionState* island1MotionState;
+		btRigidBody* island1Body;
+
 		GameObject island1 = scene->CreateEntity("Island1");
 		{
 			VertexArrayObject::sptr Island1VAO = ObjLoader::LoadFromFile("models/plains_island.obj");
@@ -1511,33 +1759,51 @@ int main() {
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(island1);
 			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
 
-			/*
-			btCollisionShape* island1Shape = new btBoxShape(btVector3(btScalar(50.), btScalar(50.), btScalar(50.)));
 
+			//Collision Stuff
 			collisionShapes.push_back(island1Shape);
-
-			btTransform island1Transform;
 			island1Transform.setIdentity();
-			island1Transform.setOrigin(glm2bt(island1.get<Transform>().GetLocalPosition()));
+			island1Transform.setOrigin(btVector3(0.0f, 0.0f, -4.3f));
+			btQuaternion rotation;
+			//rotation.setEuler(0.0f, 0.0f, 0.0f);
+			//island1Transform.setRotation(rotation);
+			//island1Transform.setRotation(btQuaternion(btVector3(0, 0, 1), btScalar(3.)));
+			//island1Transform.setRotation(btQuaternion(btVector3(1, 0, 0), btScalar(-1.57)));
+			//island1Transform.setRotation(btQuaternion(btVector3(1, 0, 0), btScalar(-1.57)));
+			//island1Transform.setOrigin(glm2bt(island1.get<Transform>().GetLocalPosition()));
+			//island1Transform.setIdentity();
 
-			btScalar mass(0.);
-
-			//rigidbody is dynamic if and only if mass is non zero, otherwise static
-			bool isStatic = (mass != 0.f);
-
-			btVector3 localInertia(0, 0, 0);
-			if (isStatic)
-				island1Shape->calculateLocalInertia(mass, localInertia);
+			if (isisland1Dynamic)
+				island1Shape->calculateLocalInertia(island1Mass, localisland1Inertia);
 
 			//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
-			btDefaultMotionState* myMotionState = new btDefaultMotionState(island1Transform);
-			btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, island1Shape, localInertia);
-			btRigidBody* body = new btRigidBody(rbInfo);
+			island1MotionState = new btDefaultMotionState(island1Transform);
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(island1Mass, island1MotionState, island1Shape, localisland1Inertia);
+			island1Body = new btRigidBody(rbInfo);
 
 			//add the body to the dynamics world
-			dynamicsWorld->addRigidBody(body);
-		*/
+			dynamicsWorld->addRigidBody(island1Body);
+			
 		}
+
+
+		//Physics - Island 2
+
+		btCollisionShape* island2Shape = new btCylinderShapeZ(btVector3(15.3f, 15.3f, 2.0f));
+
+		btTransform island2Transform;
+
+		btScalar island2Mass(0.f);
+
+		//rigidbody is dynamic if and only if mass is non zero, otherwise static
+		bool isisland2Dynamic = (island2Mass != 0.f);
+
+		btVector3 localisland2Inertia(0, 0, 0);
+
+		//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+		btDefaultMotionState* island2MotionState;
+		btRigidBody* island2Body;
+
 
 		GameObject island2 = scene->CreateEntity("Island2");
 		{
@@ -1549,12 +1815,46 @@ int main() {
 			island2.get<Transform>().SetLocalScale(1.5f, 1.5f, 1.5f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(island2);
 			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+
+			//Collision Stuff
+			collisionShapes.push_back(island2Shape);
+			island2Transform.setIdentity();
+			island2Transform.setOrigin(btVector3(-35.0f, 0.0f, -4.5f));
+			btQuaternion rotation;
+
+			if (isisland2Dynamic)
+				island2Shape->calculateLocalInertia(island2Mass, localisland2Inertia);
+
+			//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+			island2MotionState = new btDefaultMotionState(island2Transform);
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(island2Mass, island2MotionState, island2Shape, localisland2Inertia);
+			island2Body = new btRigidBody(rbInfo);
+
+			//add the body to the dynamics world
+			dynamicsWorld->addRigidBody(island2Body);
 		}
 
 		#pragma endregion
 
 
 		#pragma region Wizard Object
+
+		//Wizard Physics
+		btCollisionShape* wizardShape = new btBoxShape(btVector3(1.f, 4.f, 5.0f));
+
+		btTransform wizardTransform;
+
+		btScalar wizardMass(0.f);
+
+		//rigidbody is dynamic if and only if mass is non zero, otherwise static
+		bool isWizardDynamic = (wizardMass != 0.f);
+
+		btVector3 localWizardInertia(0, 0, 0);
+
+		//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+		btDefaultMotionState* wizardMotionState;
+		btRigidBody* wizardBody;
+
 
 		GameObject Wizard = scene->CreateEntity("Wizard");
 		{
@@ -1567,11 +1867,11 @@ int main() {
 			{
 				IdleFileName = IdlePrefix + std::to_string(i) + ".obj";
 
-				Wizard.get<MorphRenderer>().addFrame(MorphLoader::LoadFromFile(IdleFileName));
+				Wizard.get<MorphRenderer>().addFrame(MorphLoader::LoadFromFile(IdleFileName), 0);
 
 			}
 
-			Wizard.get<MorphRenderer>().SetFrameTime(0.7f);
+			Wizard.get<MorphRenderer>().SetFrameTime(0.7f, 0);
 
 
 			Wizard.get<MorphRenderer>().SetMesh(Wizard.get<MorphRenderer>().vao).SetMaterial(material2);
@@ -1582,36 +1882,22 @@ int main() {
 			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
 
 			//Collision Stuff
-			//collisionShapes.push_back(wizardShape);
+			collisionShapes.push_back(wizardShape);
 
-			//wizardTransform.setIdentity();
-			//wizardTransform.setOrigin(glm2bt(Wizard.get<Transform>().GetLocalPosition()));
+			wizardTransform.setIdentity();
+			wizardTransform.setOrigin(btVector3(-14.5f, 0.0f, -2.5f));
 
-			//if (isWizardDynamic)
-				//wizardShape->calculateLocalInertia(wizardMass, localWizardInertia);
-
-
+			if (isWizardDynamic)
+				wizardShape->calculateLocalInertia(wizardMass, localWizardInertia);
 
 			//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
-			//wizardMotionState = new btDefaultMotionState(wizardTransform);
-			//btRigidBody::btRigidBodyConstructionInfo rbInfo(wizardMass, wizardMotionState, wizardShape, localWizardInertia);
-			//wizardBody = new btRigidBody(rbInfo);
-
-
-
-
-			//playerBody->applyGravity();
-
-			//playerBody->setWorldTransform(playerTransform);
-
-			//playerBody->isActive();
-			//playerBody->getMotionState()->getWorldTransform(playerTransform);
-			//float matrix[16];
-			//playerTransform.setFromOpenGLMatrix(matrix);
+			wizardMotionState = new btDefaultMotionState(wizardTransform);
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(wizardMass, wizardMotionState, wizardShape, localWizardInertia);
+			wizardBody = new btRigidBody(rbInfo);
 
 
 			//add the body to the dynamics world
-			//dynamicsWorld->addRigidBody(wizardBody);
+			dynamicsWorld->addRigidBody(wizardBody);
 		}
 
 		#pragma endregion
@@ -1630,11 +1916,11 @@ int main() {
 			{
 				PhantomFileName = PhantomPrefix + std::to_string(i) + ".obj";
 
-				Phantom.get<MorphRenderer>().addFrame(MorphLoader::LoadFromFile(PhantomFileName));
+				Phantom.get<MorphRenderer>().addFrame(MorphLoader::LoadFromFile(PhantomFileName), 0);
 
 			}
 
-			Phantom.get<MorphRenderer>().SetFrameTime(0.3f);
+			Phantom.get<MorphRenderer>().SetFrameTime(0.3f, 0);
 
 
 			Phantom.get<MorphRenderer>().SetMesh(Phantom.get<MorphRenderer>().vao).SetMaterial(material3);
@@ -1656,11 +1942,11 @@ int main() {
 			{
 				Phantom2FileName = Phantom2Prefix + std::to_string(i) + ".obj";
 
-				Phantom2.get<MorphRenderer>().addFrame(MorphLoader::LoadFromFile(Phantom2FileName));
+				Phantom2.get<MorphRenderer>().addFrame(MorphLoader::LoadFromFile(Phantom2FileName), 0);
 
 			}
 
-			Phantom2.get<MorphRenderer>().SetFrameTime(0.3f);
+			Phantom2.get<MorphRenderer>().SetFrameTime(0.3f, 0);
 
 
 			Phantom2.get<MorphRenderer>().SetMesh(Phantom2.get<MorphRenderer>().vao).SetMaterial(material3);
@@ -1676,6 +1962,25 @@ int main() {
 
 		#pragma region Coin Object
 
+		//Coin Physics
+		btCollisionShape* coinShape = new btBoxShape(btVector3(0.5f, 0.5f, 0.5f));
+
+		btCollisionObject* coinObj = new btCollisionObject();
+		coinObj->setCollisionShape(coinShape);
+
+		btTransform coinTransform;
+
+		btScalar coinMass(0.f);
+
+		//rigidbody is dynamic if and only if mass is non zero, otherwise static
+		bool iscoinDynamic = (coinMass != 0.f);
+
+		btVector3 localcoinInertia(0, 0, 0);
+
+		//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+		btDefaultMotionState* coinMotionState;
+		btRigidBody* coinBody;
+
 		GameObject Coin = scene->CreateEntity("Coin");
 		{
 			Coin.emplace<MorphRenderer>();
@@ -1687,11 +1992,11 @@ int main() {
 			{
 				coinFileName = coinPrefix + std::to_string(i) + ".obj";
 
-				Coin.get<MorphRenderer>().addFrame(MorphLoader::LoadFromFile(coinFileName));
+				Coin.get<MorphRenderer>().addFrame(MorphLoader::LoadFromFile(coinFileName), 0);
 
 			}
 
-			Coin.get<MorphRenderer>().SetFrameTime(0.5f);
+			Coin.get<MorphRenderer>().SetFrameTime(0.5f, 0);
 
 
 			Coin.get<MorphRenderer>().SetMesh(Coin.get<MorphRenderer>().vao).SetMaterial(material4);
@@ -1701,6 +2006,24 @@ int main() {
 			Coin.get<Transform>().SetLocalScale(0.5f, 0.5f, 0.5f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Coin);
 			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+
+			//Collision Stuff
+			collisionShapes.push_back(coinShape);
+
+			coinTransform.setIdentity();
+			coinTransform.setOrigin(btVector3(6.0f, -7.0f, 0.0f));
+
+			if (iscoinDynamic)
+				coinShape->calculateLocalInertia(coinMass, localcoinInertia);
+
+			//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+			coinMotionState = new btDefaultMotionState(coinTransform);
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(coinMass, coinMotionState, coinShape, localcoinInertia);
+			coinBody = new btRigidBody(rbInfo);
+
+
+			//add the body to the dynamics world
+			//dynamicsWorld->addRigidBody(coinBody, 1, 1);
 		}
 
 		#pragma endregion
@@ -1841,6 +2164,23 @@ int main() {
 
 		#pragma region Bridge Object
 
+		//Physics
+
+		btCollisionShape* bridgeShape = new btBoxShape(btVector3(2.0f, 2.0f, 0.8f));
+
+		btTransform bridgeTransform;
+
+		btScalar bridgeMass(0.f);
+
+		//rigidbody is dynamic if and only if mass is non zero, otherwise static
+		bool isbridgeDynamic = (bridgeMass != 0.f);
+
+		btVector3 localbridgeInertia(0, 0, 0);
+
+		//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+		btDefaultMotionState* bridgeMotionState;
+		btRigidBody* bridgeBody;
+
 		GameObject Bridge = scene->CreateEntity("Bridge");
 		{
 			VertexArrayObject::sptr BridgeVAO = ObjLoader::LoadFromFile("models/hossain/NewBridge.obj");
@@ -1850,6 +2190,23 @@ int main() {
 			Bridge.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Bridge);
 			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+
+			//Collision Stuff
+			collisionShapes.push_back(bridgeShape);
+			bridgeTransform.setIdentity();
+			bridgeTransform.setOrigin(btVector3(-18.0f, 0.0f, -3.2f));
+			btQuaternion rotation;
+
+			if (isbridgeDynamic)
+				bridgeShape->calculateLocalInertia(bridgeMass, localbridgeInertia);
+
+			//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+			bridgeMotionState = new btDefaultMotionState(bridgeTransform);
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(bridgeMass, bridgeMotionState, bridgeShape, localbridgeInertia);
+			bridgeBody = new btRigidBody(rbInfo);
+
+			//add the body to the dynamics world
+			dynamicsWorld->addRigidBody(bridgeBody);
 		}
 
 		#pragma endregion
@@ -1986,7 +2343,7 @@ int main() {
 		#pragma endregion
 
 
-		#pragma region Camera Object
+		#pragma region Camera Objects
 
 		// Create an object to be our camera
 		GameObject cameraObject = scene->CreateEntity("Camera");
@@ -2005,6 +2362,26 @@ int main() {
 			camera.SetOrthoHeight(3.0f);
 			//BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(player);
 			//BehaviourBinding::Bind<CameraControlBehaviour>(cameraObject);
+		}
+
+
+		// Create an object to be our orthographic camera
+		GameObject orthoCameraObject = scene->CreateEntity("OrthoCamera");
+		{
+			//cameraObject.get<Transform>().SetLocalPosition(0, 3, 3).LookAt(glm::vec3(0, 0, 0));
+			//Looking at water and terrain positions
+			//cameraObject.get<Transform>().SetLocalPosition(-43.89, 25.74, 3.89).LookAt(glm::vec3(-40.69, -0.53, -7.83));
+			orthoCameraObject.get<Transform>().SetLocalPosition(8.0f, 0.0f, 4.0f).LookAt(glm::vec3(0));
+
+			// We'll make our camera a component of the camera object
+			Camera& orthoCamera = orthoCameraObject.emplace<Camera>();// Camera::Create();
+			orthoCamera.SetPosition(glm::vec3(0, 3, 3));
+			orthoCamera.SetUp(glm::vec3(0, 0, 1));
+			orthoCamera.LookAt(glm::vec3(0));
+			orthoCamera.SetFovDegrees(90.0f); // Set an initial FOV
+			orthoCamera.SetOrthoHeight(3.0f);
+			orthoCameraObject.get<Camera>().ToggleOrtho();
+			//BehaviourBinding::Bind<CameraControlBehaviour>(orthoCameraObject);
 		}
 
 		#pragma endregion
@@ -2049,6 +2426,13 @@ int main() {
 			colorCorrectionEffect->Init(width, height);
 		}
 		effects.push_back(colorCorrectionEffect);
+
+		GameObject bloomEffectObject = scene->CreateEntity("Color Correction Effect");
+		{
+			bloomEffect = &bloomEffectObject.emplace<BloomEffect>();
+			bloomEffect->Init(width, height);
+		}
+		effects.push_back(bloomEffect);
 
 		#pragma endregion
 
@@ -2167,16 +2551,17 @@ int main() {
 		// Create an object to be our camera
 		GameObject cameraObject2 = scene2->CreateEntity("Camera");
 		{
-			cameraObject2.get<Transform>().SetLocalPosition(0, 3, 3).LookAt(glm::vec3(0, 0, 0));
+			cameraObject2.get<Transform>().SetLocalPosition(8.0f, 0.0f, 4.0f).LookAt(glm::vec3(0));
 
 			// We'll make our camera a component of the camera object
 			Camera& camera = cameraObject2.emplace<Camera>();// Camera::Create();
-			camera.SetPosition(glm::vec3(-10, 0, 10));
+			camera.SetPosition(glm::vec3(6.0f, 3.0f, 8.0f));
 			camera.SetUp(glm::vec3(0, 0, 1));
+			//camera.LookAt(glm::vec3(-5.0f, 0.0f, 8.0f));
 			camera.LookAt(glm::vec3(0));
 			camera.SetFovDegrees(90.0f); // Set an initial FOV
 			camera.SetOrthoHeight(3.0f);
-			BehaviourBinding::Bind<CameraControlBehaviour>(cameraObject2);
+			//BehaviourBinding::Bind<CameraControlBehaviour>(cameraObject);
 		}
 
 		#pragma endregion
@@ -2236,11 +2621,11 @@ int main() {
 			{
 				coinFileName = coinPrefix + std::to_string(i) + ".obj";
 
-				Coin_2.get<MorphRenderer>().addFrame(MorphLoader::LoadFromFile(coinFileName));
+				Coin_2.get<MorphRenderer>().addFrame(MorphLoader::LoadFromFile(coinFileName), 0);
 
 			}
 
-			Coin_2.get<MorphRenderer>().SetFrameTime(0.5f);
+			Coin_2.get<MorphRenderer>().SetFrameTime(0.5f, 0);
 
 
 			Coin_2.get<MorphRenderer>().SetMesh(Coin_2.get<MorphRenderer>().vao).SetMaterial(material4);
@@ -2612,7 +2997,6 @@ int main() {
 			skybox->LoadShaderPartFromFile("shaders/skybox-shader.vert.glsl", GL_VERTEX_SHADER);
 			skybox->LoadShaderPartFromFile("shaders/skybox-shader.frag.glsl", GL_FRAGMENT_SHADER);
 			skybox->Link();
-
 			ShaderMaterial::sptr skyboxMat = ShaderMaterial::Create();
 			skyboxMat->Shader = skybox;  
 			skyboxMat->Set("s_Environment", environmentMap);
@@ -2637,7 +3021,7 @@ int main() {
 			skyboxObj2.get_or_emplace<RendererComponent>().SetMesh(meshVao).SetMaterial(skyboxMat);
 		}
 		////////////////////////////////////////////////////////////////////////////////////////
-
+		
 
 		// We'll use a vector to store all our key press events for now (this should probably be a behaviour eventually)
 		std::vector<KeyPressWatcher> keyToggles;
@@ -2670,6 +3054,23 @@ int main() {
 				auto behaviour = BehaviourBinding::Get<SimpleMoveBehaviour>(controllables[selectedVao]);
 				behaviour->Relative = !behaviour->Relative;
 				});
+
+			keyToggles.emplace_back(GLFW_KEY_SPACE, [&]() {
+				if (!playerAirborne)
+					playerBody->applyForce(btVector3(0.0f, 0.0f, 1800.0f), btVector3(0.0f, 0.0f, 0.0f));
+			});
+
+			keyToggles.emplace_back(GLFW_KEY_J, [&]() {
+				wizardTransform.setOrigin(btVector3(-14.5f, 0.0f, 15.5f));
+				wizardBody->setWorldTransform(wizardTransform);
+				});
+
+			keyToggles.emplace_back(GLFW_KEY_P, [&]() {
+				if (!drawPhysics)
+					drawPhysics = true;
+				else
+					drawPhysics = false;
+			});
 		}
 
 		// Initialize our timing instance and grab a reference for our use
@@ -2680,7 +3081,7 @@ int main() {
 		#pragma region Speed Variables (+ Misc.)
 
 		//Speed Variables
-		float speed = 3.0f;
+		float speed = 1.0f;
 		float speedTimer = 0.0f;
 		float speedTimeLimit = 2.0f;
 		bool canSprint = true;
@@ -2714,6 +3115,9 @@ int main() {
 		#pragma endregion
 
 
+		PhysicsDrawer mydebugDrawer;
+		dynamicsWorld->setDebugDrawer(&mydebugDrawer);
+
 		///// Game loop /////
 		while (!glfwWindowShouldClose(BackendHandler::window)) {
 			glfwPollEvents();
@@ -2726,6 +3130,7 @@ int main() {
 
 			//Update Physics World
 			dynamicsWorld->stepSimulation(time.DeltaTime, 1);
+
 
 			#pragma region Update Sound
 
@@ -2758,8 +3163,10 @@ int main() {
 				{
 					trans = obj->getWorldTransform();
 				}
-				printf("World Pos Object %d = %f,%f,%f\n", j, float(trans.getOrigin().getX()), float(trans.getOrigin().getY()), float(trans.getOrigin().getZ()));
+				//printf("World Pos Object %d = %f,%f,%f\n", j, float(trans.getOrigin().getX()), float(trans.getOrigin().getY()), float(trans.getOrigin().getZ()));
 			}
+
+			//checkPosition(player);
 
 			#pragma endregion
 
@@ -2786,6 +3193,7 @@ int main() {
 			});
 
 			
+			//dynamicsWorld->setInternalTickCallback(myTickCallback);
 
 			#pragma region Respawning
 
@@ -2814,33 +3222,16 @@ int main() {
 			#pragma endregion
 			
 
-			#pragma region Player Falling
-
-			if (RenderGroupBool == 1 || RenderGroupBool == 0)
-			{
-				if (playerFall && playerFall2)
-				{
-					player.get<Transform>().SetLocalPosition(player.get<Transform>().GetLocalPosition() - glm::vec3(0.0f, 0.0f, 9.8f * time.DeltaTime));
-
-					if (Distance(player, island1) >= 20 && Distance(player, island2) >= 20)
-					{
-						canMoveBack = false;
-						canMoveForward = false;
-						canMoveLeft = false;
-						canMoveRight = false;
-					}
-				}
-				else
-				{
-					player.get<Transform>().SetLocalPosition(player.get<Transform>().GetLocalPosition().x, player.get<Transform>().GetLocalPosition().y, 0.1f);
-				}
-			}
+			#pragma region Check for Player Falling and Player Jumping 
 
 			if (player.get<Transform>().GetLocalPosition().z <= -7.0f)
 			{
-				player.get<Transform>().SetLocalPosition(0.5f, 0.0f, 5.0f);
 				PlayerHealth--;
+				playerTransform.setOrigin(btVector3(0.0f, 0.0f, 5.0f));
+				playerBody->setWorldTransform(playerTransform);
 			}
+
+			checkAirborne(player);
 
 			#pragma endregion
 
@@ -2855,16 +3246,16 @@ int main() {
 			}
 
 			//Switching scenes when player reaches a certain point
-			if (player.get<Transform>().GetLocalPosition().x <= -49 && gotCoin == true && RenderGroupBool == 1)
+			if (player.get<Transform>().GetLocalPosition().x <= -49.0f && RenderGroupBool == 1)
 			{
-				player.get<Transform>().SetLocalPosition(0.0f, 0.0f, 0.1f);
+				playerTransform.setOrigin(btVector3(0.0f, 0.0f, 5.0f));
+				playerBody->setWorldTransform(playerTransform);
 				RenderGroupBool = 2;
 				Application::Instance().ActiveScene = scene2;
 			}
 
 			if (PlayerHealth <= 0)
 			{
-				player.get<Transform>().SetLocalPosition(0.0f, 0.0f, 0.0f);
 				RenderGroupBool = 3;
 				Application::Instance().ActiveScene = scene3;
 			}
@@ -2923,27 +3314,91 @@ int main() {
 
 			#pragma region Setting Camera Position
 
-			cameraObject.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 8.0f,
-				playerBody->getCenterOfMassTransform().getOrigin().getY(),
-				cameraObject.get<Transform>().GetLocalPosition().z);
+			if (RenderGroupBool == 1)
+			{
+				cameraObject.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 8.0f,
+					playerBody->getCenterOfMassTransform().getOrigin().getY(),
+					cameraObject.get<Transform>().GetLocalPosition().z);
+
+				orthoCameraObject.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 8.0f,
+					playerBody->getCenterOfMassTransform().getOrigin().getY(),
+					orthoCameraObject.get<Transform>().GetLocalPosition().z);
+
+				if (PlayerHealth == 3)
+				{
+					//Sprites
+					heart1Obj.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 2.0f,
+						playerBody->getCenterOfMassTransform().getOrigin().getY() - 2.5f,
+						cameraObject.get<Transform>().GetLocalPosition().z - 0.02f);
+
+					heart2Obj.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 2.0f,
+						playerBody->getCenterOfMassTransform().getOrigin().getY() - 2.0f,
+						cameraObject.get<Transform>().GetLocalPosition().z - 0.02f);
+
+					heart3Obj.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 2.0f,
+						playerBody->getCenterOfMassTransform().getOrigin().getY() - 1.5f,
+						cameraObject.get<Transform>().GetLocalPosition().z - 0.02f);
+				}
+				else if (PlayerHealth == 2)
+				{
+					//Sprites
+					heart1Obj.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 2.0f,
+						playerBody->getCenterOfMassTransform().getOrigin().getY() - 2.5f,
+						cameraObject.get<Transform>().GetLocalPosition().z - 0.02f);
+
+					heart2Obj.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 2.0f,
+						playerBody->getCenterOfMassTransform().getOrigin().getY() - 2.0f,
+						cameraObject.get<Transform>().GetLocalPosition().z - 0.02f);
+
+					heart3Obj.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 2.0f,
+						playerBody->getCenterOfMassTransform().getOrigin().getY() - 1.5f,
+						cameraObject.get<Transform>().GetLocalPosition().z + 6.0f);
+				}
+				else if (PlayerHealth == 1)
+				{
+					//Sprites
+					heart1Obj.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 2.0f,
+						playerBody->getCenterOfMassTransform().getOrigin().getY() - 2.5f,
+						cameraObject.get<Transform>().GetLocalPosition().z - 0.02f);
+
+					heart2Obj.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 2.0f,
+						playerBody->getCenterOfMassTransform().getOrigin().getY() - 2.0f,
+						cameraObject.get<Transform>().GetLocalPosition().z + 6.0f);
+
+					heart3Obj.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 2.0f,
+						playerBody->getCenterOfMassTransform().getOrigin().getY() - 1.5f,
+						cameraObject.get<Transform>().GetLocalPosition().z + 6.0f);
+				}
+			}
+			else if (RenderGroupBool == 2)
+			{
+				cameraObject2.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 8.0f,
+					playerBody->getCenterOfMassTransform().getOrigin().getY(),
+					cameraObject2.get<Transform>().GetLocalPosition().z);
+
+				
+			}
 
 			#pragma endregion
 
 
 			#pragma region Move Coin and Wizard
 
-			GetDistance(player, Coin, CoinDistance);
+			//GetDistance(player, Coin, CoinDistance);
 
-			MoveWizard(player, Wizard, WizardDistance, CoinCount);
+			MoveWizard(player, Wizard, wizardBody, wizardTransform, WizardDistance);
 
 			#pragma endregion
 
 
 			#pragma region Checking Collision
 
-			CheckCollision(player, Wizard, 0.85f, 0.85f, 0.85f, 0.85f);
-			CheckPhantomCollision(player, Phantom, 0.8f, 0.8f, 0.8f, 0.8f);
-			CheckPhantomCollision(player, Phantom2, 0.8f, 0.8f, 0.8f, 0.8f);
+			//CheckCollision(player, Wizard, 0.85f, 0.85f, 0.85f, 0.85f);
+			if (RenderGroupBool == 1)
+			{
+				CheckPhantomCollision(player, playerBody, playerTransform, Phantom, 0.8f, 0.8f, 0.8f, 0.8f);
+				CheckPhantomCollision(player, playerBody, playerTransform, Phantom2, 0.8f, 0.8f, 0.8f, 0.8f);
+			}
 
 			#pragma endregion
 
@@ -2958,6 +3413,22 @@ int main() {
 			#pragma endregion
 
 
+			#pragma region Player Sprint
+
+			if (glfwGetKey(BackendHandler::window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+			{
+				speed = 3.0f;
+				player.get<MorphRenderer>().SetFrameTime(0.15, 1);
+			}
+			else
+			{
+				speed = 1.0f;
+				player.get<MorphRenderer>().SetFrameTime(0.25, 1);
+			}
+
+			#pragma endregion
+
+
 			// Clear the screen
 			basicEffect->Clear();
 			/*greyscaleEffect->Clear();
@@ -2967,7 +3438,7 @@ int main() {
 				effects[i]->Clear();
 			}
 
-			glClearColor(0.08f, 0.17f, 0.31f, 1.0f);
+			glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
 			glEnable(GL_DEPTH_TEST);
 			glClearDepth(1.0f);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -3031,16 +3502,16 @@ int main() {
 				#pragma region Rendering Animated Models
 
 				//Animated Models
-				Wizard.get<MorphRenderer>().nextFrame(time.DeltaTime);
+				Wizard.get<MorphRenderer>().nextFrame(time.DeltaTime, 0);
 				Wizard.get<MorphRenderer>().render(morphShader, viewProjection, Wizard.get<Transform>(), view, viewProjection);
 
-				Phantom.get<MorphRenderer>().nextFrame(time.DeltaTime);
+				Phantom.get<MorphRenderer>().nextFrame(time.DeltaTime, 0);
 				Phantom.get<MorphRenderer>().render(morphShader, viewProjection, Phantom.get<Transform>(), view, viewProjection);
 
-				Phantom2.get<MorphRenderer>().nextFrame(time.DeltaTime);
+				Phantom2.get<MorphRenderer>().nextFrame(time.DeltaTime, 0);
 				Phantom2.get<MorphRenderer>().render(morphShader, viewProjection, Phantom2.get<Transform>(), view, viewProjection);
 
-				Coin.get<MorphRenderer>().nextFrame(time.DeltaTime);
+				Coin.get<MorphRenderer>().nextFrame(time.DeltaTime, 0);
 				Coin.get<MorphRenderer>().render(morphShader, viewProjection, Coin.get<Transform>(), view, viewProjection);
 
 				#pragma endregion
@@ -3049,7 +3520,7 @@ int main() {
 				#pragma region Render Player
 
 				//Update Animation
-				player.get<MorphRenderer>().nextFrame(time.DeltaTime);
+				player.get<MorphRenderer>().nextFrame(time.DeltaTime, 0);
 				player.get<MorphRenderer>().render(morphShader, viewProjection, player.get<Transform>(), view, viewProjection);
 
 				#pragma endregion
@@ -3076,6 +3547,14 @@ int main() {
 				glm::mat4 projection = cameraObject.get<Camera>().GetProjection();
 				glm::mat4 viewProjection = projection * view;
 
+				// Grab out camera info from the camera object
+				Transform& orthoCamTransform = orthoCameraObject.get<Transform>();
+				glm::mat4 orthoView = glm::inverse(orthoCamTransform.LocalTransform());
+				glm::mat4 orthoProjection = orthoCameraObject.get<Camera>().GetProjection();
+				glm::mat4 orthoViewProjection = orthoProjection * orthoView;
+
+				
+
 				// Sort the renderers by shader and material, we will go for a minimizing context switches approach here,
 				// but you could for instance sort front to back to optimize for fill rate if you have intensive fragment shaders
 				renderGroup.sort<RendererComponent>([](const RendererComponent& l, const RendererComponent& r) {
@@ -3093,6 +3572,7 @@ int main() {
 
 					return false;
 				});
+
 
 				// Start by assuming no shader or material is applied
 				Shader::sptr current = nullptr;
@@ -3117,31 +3597,57 @@ int main() {
 					BackendHandler::RenderVAO(renderer.Material->Shader, renderer.Mesh, viewProjection, transform);
 				});
 
-				#pragma region Rendering Animated Models
+				#pragma region Draw Physics Objects
 
-				//Animated Models
-				Wizard.get<MorphRenderer>().nextFrame(time.DeltaTime);
-				Wizard.get<MorphRenderer>().render(morphShader, viewProjection, Wizard.get<Transform>(), view, viewProjection);
-
-				Phantom.get<MorphRenderer>().nextFrame(time.DeltaTime);
-				Phantom.get<MorphRenderer>().render(morphShader, viewProjection, Phantom.get<Transform>(), view, viewProjection);
-
-				Phantom2.get<MorphRenderer>().nextFrame(time.DeltaTime);
-				Phantom2.get<MorphRenderer>().render(morphShader, viewProjection, Phantom2.get<Transform>(), view, viewProjection);
-
-				Coin.get<MorphRenderer>().nextFrame(time.DeltaTime);
-				Coin.get<MorphRenderer>().render(morphShader, viewProjection, Coin.get<Transform>(), view, viewProjection);
+				if (drawPhysics)
+				{
+					mydebugDrawer.SetMatrices(physicsShader, view, projection);
+					dynamicsWorld->debugDrawWorld();
+				}
 
 				#pragma endregion
 
 
-				#pragma region Render Player
+				#pragma region Rendering Animated Models
+
+				//Animated Models
+				Wizard.get<MorphRenderer>().nextFrame(time.DeltaTime, 0);
+				Wizard.get<MorphRenderer>().render(morphShader, viewProjection, Wizard.get<Transform>(), view, viewProjection);
+
+				Phantom.get<MorphRenderer>().nextFrame(time.DeltaTime, 0);
+				Phantom.get<MorphRenderer>().render(morphShader, viewProjection, Phantom.get<Transform>(), view, viewProjection);
+
+				Phantom2.get<MorphRenderer>().nextFrame(time.DeltaTime, 0);
+				Phantom2.get<MorphRenderer>().render(morphShader, viewProjection, Phantom2.get<Transform>(), view, viewProjection);
+
+				Coin.get<MorphRenderer>().nextFrame(time.DeltaTime, 0);
+				Coin.get<MorphRenderer>().render(morphShader, viewProjection, Coin.get<Transform>(), view, viewProjection);
+
+				#pragma endregion
+				
+
+				#pragma region Render Player and Control Player
 
 				//Update Animation
-				player.get<MorphRenderer>().nextFrame(time.DeltaTime);
+				if (glfwGetKey(BackendHandler::window, GLFW_KEY_W) == GLFW_PRESS && !playerAirborne ||
+					glfwGetKey(BackendHandler::window, GLFW_KEY_A) == GLFW_PRESS && !playerAirborne ||
+					glfwGetKey(BackendHandler::window, GLFW_KEY_S) == GLFW_PRESS && !playerAirborne ||
+					glfwGetKey(BackendHandler::window, GLFW_KEY_D) == GLFW_PRESS && !playerAirborne)
+				{
+					player.get<MorphRenderer>().nextFrame(time.DeltaTime, 1); //Walk
+				}
+				else if (playerAirborne)
+				{
+					player.get<MorphRenderer>().nextFrame(time.DeltaTime, 2); //Jump
+				}
+				else
+				{
+					player.get<MorphRenderer>().nextFrame(time.DeltaTime, 0); //Idle
+				}
+
 				player.get<MorphRenderer>().render(morphShader, viewProjection, player.get<Transform>(), view, viewProjection);
 
-				PlayerInput(player, time.DeltaTime, speed, playerBody, cameraObject);
+				PlayerInput(player, time.DeltaTime, speed, playerBody);
 
 				#pragma endregion
 
@@ -3187,13 +3693,59 @@ int main() {
 
 				#pragma endregion
 
+				
+				#pragma region Updating Render Transforms with Physics Bodies
 
+				LinkBody(island1, island1Body);
+
+				LinkBody(island2, island2Body);
+
+				LinkBody(Bridge, bridgeBody);
+
+				LinkBody(Wizard, wizardBody);
+
+				//LinkBody(Coin, coinBody);
+
+				#pragma endregion
+
+				CheckCoinCollision(player, Coin, 0.8f, 0.8f, 0.8f, 0.8f);
+
+
+				/*btCollisionObject* playerObj = new btCollisionObject();
+				playerObj->setCollisionShape(playerShape);
+
+				btCollisionAlgorithm* pAlgorithm = dynamicsWorld->getDispatcher()->findAlgorithm(playerBody->upcast(btCollisionObject), coinBody);
+				btManifoldResult oManifoldResult(pBulletObj1, pBulletObj2);
+				pAlgorithm->processCollision(pBulletObj1, pBulletObj2, pBtWorld->getDispatchInfo(), &oManifoldResult);
+				btPersistentManifold* pManifold = oManifoldResult.getPersistentManifold();*/
+
+
+				#pragma region Rendering Sprites
+
+				glEnable(GL_BLEND);
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				//spriteShader->Bind();
+				BackendHandler::SetupShaderForFrame(spriteShader, orthoView, orthoProjection);
+				heartMat->Apply();
+				BackendHandler::RenderVAO(spriteShader, heartVao, orthoViewProjection, heart1Obj.get<Transform>());
+
+				BackendHandler::SetupShaderForFrame(spriteShader, orthoView, orthoProjection);
+				heartMat->Apply();
+				BackendHandler::RenderVAO(spriteShader, heartVao, orthoViewProjection, heart2Obj.get<Transform>());
+
+				BackendHandler::SetupShaderForFrame(spriteShader, orthoView, orthoProjection);
+				heartMat->Apply();
+				BackendHandler::RenderVAO(spriteShader, heartVao, orthoViewProjection, heart3Obj.get<Transform>());
+				glDisable(GL_BLEND);
+				
+				#pragma endregion
 
 				basicEffect->UnbindBuffer();
 
 				effects[activeEffect]->ApplyEffect(basicEffect);
 
 				effects[activeEffect]->DrawToScreen();
+
 			}
 
 			#pragma endregion
@@ -3231,6 +3783,8 @@ int main() {
 				Shader::sptr current = nullptr;
 				ShaderMaterial::sptr currentMat = nullptr;
 
+				activeEffect = 2;
+
 				basicEffect->BindBuffer(0);
 
 				// Iterate over the render group components and draw them
@@ -3250,11 +3804,50 @@ int main() {
 					BackendHandler::RenderVAO(renderer.Material->Shader, renderer.Mesh, viewProjection, transform);
 				});
 
+				#pragma region Draw Physics Objects
+
+				if (drawPhysics)
+				{
+					mydebugDrawer.SetMatrices(physicsShader, view, projection);
+					dynamicsWorld->debugDrawWorld();
+				}
+
+				#pragma endregion
+
+
 				#pragma region Render Player
 
 				//Update Animation
-				player.get<MorphRenderer>().nextFrame(time.DeltaTime);
+				if (glfwGetKey(BackendHandler::window, GLFW_KEY_W) == GLFW_PRESS && !playerAirborne ||
+					glfwGetKey(BackendHandler::window, GLFW_KEY_A) == GLFW_PRESS && !playerAirborne ||
+					glfwGetKey(BackendHandler::window, GLFW_KEY_S) == GLFW_PRESS && !playerAirborne ||
+					glfwGetKey(BackendHandler::window, GLFW_KEY_D) == GLFW_PRESS && !playerAirborne)
+				{
+					player.get<MorphRenderer>().nextFrame(time.DeltaTime, 1); //Walk
+				}
+				else if (playerAirborne)
+				{
+					player.get<MorphRenderer>().nextFrame(time.DeltaTime, 2); //Jump
+				}
+				else
+				{
+					player.get<MorphRenderer>().nextFrame(time.DeltaTime, 0); //Idle
+				}
+
 				player.get<MorphRenderer>().render(morphShader, viewProjection, player.get<Transform>(), view, viewProjection);
+
+				PlayerInput(player, time.DeltaTime, speed, playerBody);
+
+				#pragma endregion
+
+
+				#pragma region Updating Render Transforms with Physics Bodies
+
+				LinkBody(TaigaGround, island1Body, 9.0f);
+
+				LinkBody(TaigaGround2, island2Body, 9.0f);
+
+				LinkBody(Bridge2, bridgeBody);
 
 				#pragma endregion
 
@@ -3300,7 +3893,6 @@ int main() {
 				Shader::sptr current = nullptr;
 				ShaderMaterial::sptr currentMat = nullptr;
 
-				basicEffect->BindBuffer(0);
 
 				// Iterate over the render group components and draw them
 				renderGroup3.each([&](entt::entity e, RendererComponent& renderer, Transform& transform) {
@@ -3319,11 +3911,7 @@ int main() {
 					BackendHandler::RenderVAO(renderer.Material->Shader, renderer.Mesh, viewProjection, transform);
 				});
 
-				basicEffect->UnbindBuffer();
-
-				effects[activeEffect]->ApplyEffect(basicEffect);
-
-				effects[activeEffect]->DrawToScreen();
+				
 			}
 
 			#pragma endregion
@@ -3336,7 +3924,7 @@ int main() {
 			//Render();
 
 			//#pragma endregion
-
+			
 
 			// Draw our ImGui content
 			BackendHandler::RenderImGui();
