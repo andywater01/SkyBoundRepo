@@ -1208,6 +1208,14 @@ int main() {
 		Texture2D::sptr diffuseMp19 = Texture2D::LoadFromFile("images/MailboxColor.png");
 		Texture2D::sptr diffuseMp20 = Texture2D::LoadFromFile("images/flowerTexture.png");
 		Texture2D::sptr diffuseMp21 = Texture2D::LoadFromFile("images/HouseColors.png");
+		Texture2D::sptr diffuseMp22 = Texture2D::LoadFromFile("images/FireIslandTextureDone.png");
+		Texture2D::sptr diffuseMp23 = Texture2D::LoadFromFile("images/VolcanoText1.png");
+		Texture2D::sptr diffuseMp24 = Texture2D::LoadFromFile("images/CartoonTree.png");
+		Texture2D::sptr diffuseMp25 = Texture2D::LoadFromFile("images/CreatureTexture.png");
+		Texture2D::sptr diffuseMp26 = Texture2D::LoadFromFile("images/barrel_texture.png");
+		Texture2D::sptr diffuseMp27 = Texture2D::LoadFromFile("images/LavaPlatformTexture2.png");
+
+
 		Texture2D::sptr heartDiffuse = Texture2D::LoadFromFile("images/heart.png");
 
 		Texture2D::sptr diffuseRamp = Texture2D::LoadFromFile("images/DiffuseRamp.png");
@@ -1422,10 +1430,65 @@ int main() {
 		material20->Set("s_SpecularRamp", specularRamp);
 
 
+		//Fire Island Materials
+		ShaderMaterial::sptr material21 = ShaderMaterial::Create();
+		material21->Shader = shader;
+		material21->Set("s_Diffuse", diffuseMp22);
+		material21->Set("u_Shininess", 4.0f);
+		material21->Set("u_OutlineThickness", 0.15f);
+		material21->Set("s_DiffuseRamp", diffuseRamp);
+		material21->Set("s_SpecularRamp", specularRamp);
+
+		ShaderMaterial::sptr material22 = ShaderMaterial::Create();
+		material22->Shader = shader;
+		material22->Set("s_Diffuse", diffuseMp23);
+		material22->Set("u_Shininess", 8.0f);
+		material22->Set("u_OutlineThickness", 0.0001f);
+		material22->Set("s_DiffuseRamp", diffuseRamp);
+		material22->Set("s_SpecularRamp", specularRamp);
+
+		ShaderMaterial::sptr material23 = ShaderMaterial::Create();
+		material23->Shader = shader;
+		material23->Set("s_Diffuse", diffuseMp24);
+		material23->Set("u_Shininess", 4.0f);
+		material23->Set("u_OutlineThickness", 0.0001f);
+		material23->Set("s_DiffuseRamp", diffuseRamp);
+		material23->Set("s_SpecularRamp", specularRamp);
+
+		ShaderMaterial::sptr material24 = ShaderMaterial::Create();
+		material24->Shader = shader;
+		material24->Set("s_Diffuse", diffuseMp25);
+		material24->Set("u_Shininess", 4.0f);
+		material24->Set("u_OutlineThickness", 0.01f);
+		material24->Set("s_DiffuseRamp", diffuseRamp);
+		material24->Set("s_SpecularRamp", specularRamp);
+
+		ShaderMaterial::sptr material25 = ShaderMaterial::Create();
+		material25->Shader = shader;
+		material25->Set("s_Diffuse", diffuseMp26);
+		material25->Set("u_Shininess", 4.0f);
+		material25->Set("u_OutlineThickness", 0.1f);
+		material25->Set("s_DiffuseRamp", diffuseRamp);
+		material25->Set("s_SpecularRamp", specularRamp);
+
+		ShaderMaterial::sptr material26 = ShaderMaterial::Create();
+		material26->Shader = shader;
+		material26->Set("s_Diffuse", diffuseMp27);
+		material26->Set("u_Shininess", 4.0f);
+		material26->Set("u_OutlineThickness", 0.1f);
+		material26->Set("s_DiffuseRamp", diffuseRamp);
+		material26->Set("s_SpecularRamp", specularRamp);
+
+
+		////////
+
+
 		ShaderMaterial::sptr heartMat = ShaderMaterial::Create();
 		heartMat->Shader = spriteShader;
 		heartMat->Set("s_Diffuse", heartDiffuse);
 		heartMat->RenderLayer = 0;
+
+
 
 		#pragma endregion
 
@@ -1460,6 +1523,7 @@ int main() {
 		simpleFloraMat->Set("s_Specular", noSpec);
 		simpleFloraMat->Set("u_Shininess", 8.0f);
 		simpleFloraMat->Set("u_TextureMix", 0.0f);
+
 
 		#pragma endregion
 
@@ -2601,9 +2665,300 @@ int main() {
 			BehaviourBinding::Bind<CameraControlBehaviour>(cameraObject4);
 		}
 
+		#pragma region FireIsland1 Object
+
+		btCollisionShape* Fireisland1Shape = new btCylinderShapeZ(btVector3(15.3f, 15.3f, 2.0f));
+
+		btTransform Fireisland1Transform;
+
+		btScalar Fireisland1Mass(0.f);
+
+		//rigidbody is dynamic if and only if mass is non zero, otherwise static
+		bool Fireisisland1Dynamic = (Fireisland1Mass != 0.f);
+
+		btVector3 Firelocalisland1Inertia(0, 0, 0);
+
+		//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+		btDefaultMotionState* Fireisland1MotionState;
+		btRigidBody* Fireisland1Body;
+
+		GameObject Fireisland1 = scene4->CreateEntity("Fireisland1");
+		{
+			VertexArrayObject::sptr Fireisland1VAO = ObjLoader::LoadFromFile("models/FireIslandDone.obj");
+			Fireisland1.emplace<RendererComponent>().SetMesh(Fireisland1VAO).SetMaterial(material21);
+			Fireisland1.get<Transform>().SetLocalPosition(0.0f, 0.0f, -4.5f);
+			Fireisland1.get<Transform>().SetLocalRotation(-90.0f, 180.0f, 0.0f);
+			Fireisland1.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Fireisland1);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+
+
+			//Collision Stuff
+			collisionShapes.push_back(Fireisland1Shape);
+			Fireisland1Transform.setIdentity();
+			Fireisland1Transform.setOrigin(btVector3(0.0f, 0.0f, -4.3f));
+			btQuaternion rotation;
+			//rotation.setEuler(0.0f, 0.0f, 0.0f);
+			//island1Transform.setRotation(rotation);
+			//island1Transform.setRotation(btQuaternion(btVector3(0, 0, 1), btScalar(3.)));
+			//island1Transform.setRotation(btQuaternion(btVector3(1, 0, 0), btScalar(-1.57)));
+			//island1Transform.setRotation(btQuaternion(btVector3(1, 0, 0), btScalar(-1.57)));
+			//island1Transform.setOrigin(glm2bt(island1.get<Transform>().GetLocalPosition()));
+			//island1Transform.setIdentity();
+
+			if (Fireisisland1Dynamic)
+				Fireisland1Shape->calculateLocalInertia(Fireisland1Mass, Firelocalisland1Inertia);
+
+			//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+			Fireisland1MotionState = new btDefaultMotionState(Fireisland1Transform);
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(Fireisland1Mass, Fireisland1MotionState, Fireisland1Shape, Firelocalisland1Inertia);
+			Fireisland1Body = new btRigidBody(rbInfo);
+
+			//add the body to the dynamics world
+			dynamicsWorld->addRigidBody(Fireisland1Body);
+
+		}
+
+
+		#pragma endregion
+
+		#pragma region FireIsland2 Object
+
+		btCollisionShape* Fireisland2Shape = new btCylinderShapeZ(btVector3(15.3f, 15.3f, 2.0f));
+
+		btTransform Fireisland2Transform;
+
+		btScalar Fireisland2Mass(0.f);
+
+		//rigidbody is dynamic if and only if mass is non zero, otherwise static
+		bool Fireisisland2Dynamic = (Fireisland2Mass != 0.f);
+
+		btVector3 Firelocalisland2Inertia(0, 0, 0);
+
+		//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+		btDefaultMotionState* Fireisland2MotionState;
+		btRigidBody* Fireisland2Body;
+
+
+		GameObject Fireisland2 = scene4->CreateEntity("FireIsland2");
+		{
+
+			VertexArrayObject::sptr FireIsland2VAO = ObjLoader::LoadFromFile("models/FireIslandDone.obj");
+			Fireisland2.emplace<RendererComponent>().SetMesh(FireIsland2VAO).SetMaterial(material21);
+			Fireisland2.get<Transform>().SetLocalPosition(-55.0f, 0.0f, 3.0f);
+			Fireisland2.get<Transform>().SetLocalRotation(-90.0f, 180.0f, 0.0f);
+			Fireisland2.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Fireisland2);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+
+			//Collision Stuff
+			collisionShapes.push_back(Fireisland2Shape);
+			Fireisland2Transform.setIdentity();
+			Fireisland2Transform.setOrigin(btVector3(-55.0f, 0.0f, 3.0f));
+			btQuaternion rotation;
+
+			if (Fireisisland2Dynamic)
+				Fireisland2Shape->calculateLocalInertia(Fireisland2Mass, Firelocalisland2Inertia);
+
+			//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+			Fireisland2MotionState = new btDefaultMotionState(Fireisland2Transform);
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(Fireisland2Mass, Fireisland2MotionState, Fireisland2Shape, Firelocalisland2Inertia);
+			Fireisland2Body = new btRigidBody(rbInfo);
+
+			//add the body to the dynamics world
+			dynamicsWorld->addRigidBody(Fireisland2Body);
+		}
+
 		#pragma endregion
 
 
+		#pragma region Volcano1 Object
+		
+		GameObject Volcano1 = scene4->CreateEntity("Volcano1");
+		{
+			VertexArrayObject::sptr Volcano1VAO = ObjLoader::LoadFromFile("models/Volcano2.obj");
+			Volcano1.emplace<RendererComponent>().SetMesh(Volcano1VAO).SetMaterial(material22);
+			Volcano1.get<Transform>().SetLocalPosition(-19.0f, -20.0f, -3.0f);
+			Volcano1.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
+			Volcano1.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Volcano1);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
+		#pragma endregion
+
+
+
+		#pragma region Volcano2 Object
+
+		GameObject Volcano2 = scene4->CreateEntity("Volcano2");
+		{
+			VertexArrayObject::sptr Volcano2VAO = ObjLoader::LoadFromFile("models/Volcano2.obj");
+			Volcano2.emplace<RendererComponent>().SetMesh(Volcano2VAO).SetMaterial(material22);
+			Volcano2.get<Transform>().SetLocalPosition(-35.0f, 35.0f, -5.0f);
+			Volcano2.get<Transform>().SetLocalRotation(90.0f, 0.0f, -90.0f);
+			Volcano2.get<Transform>().SetLocalScale(3.0f, 3.0f, 3.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Volcano2);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
+		#pragma endregion
+
+
+		#pragma region Volcano3 Object
+
+		GameObject Volcano3 = scene4->CreateEntity("Volcano3");
+		{
+			VertexArrayObject::sptr Volcano3VAO = ObjLoader::LoadFromFile("models/Volcano2.obj");
+			Volcano3.emplace<RendererComponent>().SetMesh(Volcano3VAO).SetMaterial(material22);
+			Volcano3.get<Transform>().SetLocalPosition(-92.0f, -7.8f, -3.0f);
+			Volcano3.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
+			Volcano3.get<Transform>().SetLocalScale(2.2f, 2.2f, 2.2f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Volcano3);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
+		#pragma endregion
+
+
+		#pragma region DeadTree Object
+
+		GameObject DeadTree = scene4->CreateEntity("DeadTree");
+		{
+			VertexArrayObject::sptr DeadTreeVAO = ObjLoader::LoadFromFile("models/DeadBerchTree.obj");
+			DeadTree.emplace<RendererComponent>().SetMesh(DeadTreeVAO).SetMaterial(material23);
+			DeadTree.get<Transform>().SetLocalPosition(-9.0f, 10.0f, -3.0f);
+			DeadTree.get<Transform>().SetLocalRotation(90.0f, 0.0f, 30.0f);
+			DeadTree.get<Transform>().SetLocalScale(2.0f, 2.0f, 2.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(DeadTree);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+		#pragma endregion
+
+		#pragma region DeadTree2 Object
+
+		GameObject DeadTree2 = scene4->CreateEntity("DeadTree2");
+		{
+			VertexArrayObject::sptr DeadTreeVAO2 = ObjLoader::LoadFromFile("models/DeadBerchTree.obj");
+			DeadTree2.emplace<RendererComponent>().SetMesh(DeadTreeVAO2).SetMaterial(material23);
+			DeadTree2.get<Transform>().SetLocalPosition(-3.0f, -11.0f, -3.0f);
+			DeadTree2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
+			DeadTree2.get<Transform>().SetLocalScale(1.8f, 1.8f, 1.8f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(DeadTree2);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+		#pragma endregion
+		
+		#pragma region DeadTree3 Object
+		GameObject DeadTree3 = scene4->CreateEntity("DeadTree3");
+		{
+			VertexArrayObject::sptr DeadTreeVAO3 = ObjLoader::LoadFromFile("models/DeadBerchTree.obj");
+			DeadTree3.emplace<RendererComponent>().SetMesh(DeadTreeVAO3).SetMaterial(material23);
+			DeadTree3.get<Transform>().SetLocalPosition(-50.0f, -13.0f, 4.7f);
+			DeadTree3.get<Transform>().SetLocalRotation(90.0f, 0.0f, -30.0f);
+			DeadTree3.get<Transform>().SetLocalScale(1.8f, 1.8f, 1.8f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(DeadTree3);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+		#pragma endregion
+
+
+		#pragma region CreatureBones Object
+		GameObject CreatureBones = scene4->CreateEntity("CreatureBones");
+		{
+			VertexArrayObject::sptr CreatureBonesVAO = ObjLoader::LoadFromFile("models/BoneCreature.obj");
+			CreatureBones.emplace<RendererComponent>().SetMesh(CreatureBonesVAO).SetMaterial(material24);
+			CreatureBones.get<Transform>().SetLocalPosition(2.0f, -9.5f, -2.5f);
+			CreatureBones.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
+			CreatureBones.get<Transform>().SetLocalScale(1.3f, 1.3f, 1.3f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(CreatureBones);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
+		GameObject CreatureBones2 = scene4->CreateEntity("CreatureBones2");
+		{
+			VertexArrayObject::sptr CreatureBonesVAO2 = ObjLoader::LoadFromFile("models/BoneCreature.obj");
+			CreatureBones2.emplace<RendererComponent>().SetMesh(CreatureBonesVAO2).SetMaterial(material24);
+			CreatureBones2.get<Transform>().SetLocalPosition(-60.0f, 11.0f, 5.0f);
+			CreatureBones2.get<Transform>().SetLocalRotation(90.0f, 0.0f, -150.0f);
+			CreatureBones2.get<Transform>().SetLocalScale(1.3f, 1.3f, 1.3f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(CreatureBones2);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
+		#pragma endregion
+
+
+		#pragma region Barrel Object
+
+		GameObject Barrel = scene4->CreateEntity("Barrel");
+		{
+			VertexArrayObject::sptr BarrelVAO = ObjLoader::LoadFromFile("models/Barrel_Unwrapped.obj");
+			Barrel.emplace<RendererComponent>().SetMesh(BarrelVAO).SetMaterial(material25);
+			Barrel.get<Transform>().SetLocalPosition(-2.0f, 9.5f, -2.3f);
+			Barrel.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
+			Barrel.get<Transform>().SetLocalScale(0.7f, 0.7f, 0.7f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Barrel);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
+		GameObject Barrel2 = scene4->CreateEntity("Barrel2");
+		{
+			VertexArrayObject::sptr BarrelVAO2 = ObjLoader::LoadFromFile("models/Barrel_Unwrapped.obj");
+			Barrel2.emplace<RendererComponent>().SetMesh(BarrelVAO2).SetMaterial(material25);
+			Barrel2.get<Transform>().SetLocalPosition(-0.1f, 10.0f, -2.3f);
+			Barrel2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
+			Barrel2.get<Transform>().SetLocalScale(0.7f, 0.7f, 0.7f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Barrel2);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
+		#pragma endregion
+
+
+		#pragma region Fire Platform Object
+
+		GameObject FirePlatform = scene4->CreateEntity("FirePlatform");
+		{
+			VertexArrayObject::sptr FirePlatformVAO = ObjLoader::LoadFromFile("models/FirePlatform.obj");
+			FirePlatform.emplace<RendererComponent>().SetMesh(FirePlatformVAO).SetMaterial(material26);
+			FirePlatform.get<Transform>().SetLocalPosition(-25.0f, 0.5f, 0.5f);
+			FirePlatform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
+			FirePlatform.get<Transform>().SetLocalScale(1.2f, 1.2f, 1.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(FirePlatform);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
+		GameObject FirePlatform2 = scene4->CreateEntity("FirePlatform2");
+		{
+			VertexArrayObject::sptr FirePlatform2VAO = ObjLoader::LoadFromFile("models/FirePlatform.obj");
+			FirePlatform2.emplace<RendererComponent>().SetMesh(FirePlatform2VAO).SetMaterial(material26);
+			FirePlatform2.get<Transform>().SetLocalPosition(-33.0f, 0.5f, 3.0f);
+			FirePlatform2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
+			FirePlatform2.get<Transform>().SetLocalScale(1.2f, 1.2f, 1.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(FirePlatform2);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
+		#pragma endregion
+
+
+		#pragma region Portal2 Object
+
+		GameObject Portal3 = scene4->CreateEntity("Portal3");
+		{
+			VertexArrayObject::sptr FirePlatformVAO = ObjLoader::LoadFromFile("models/portal.obj");
+			Portal3.emplace<RendererComponent>().SetMesh(FirePlatformVAO).SetMaterial(material8);
+			Portal3.get<Transform>().SetLocalPosition(-73.0f, 0.0f, 9.5f);
+			Portal3.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
+			Portal3.get<Transform>().SetLocalScale(3.0f, 3.0f, 3.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Portal3);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
+
+
+		#pragma endregion
 
 
 		#pragma endregion
@@ -2990,7 +3345,7 @@ int main() {
 		entt::basic_group<entt::entity, entt::exclude_t<>, entt::get_t<Transform>, RendererComponent> renderGroup3 =
 			scene3->Registry().group<RendererComponent>(entt::get_t<Transform>());
 
-		#pragma region Game Over Object
+		#pragma region Game Over ObjectS
 
 		GameObject GameOver = scene3->CreateEntity("Game Over");
 		{
@@ -4020,6 +4375,8 @@ int main() {
 				// This is just a note in case you wanted to see how physics bodies are linked
 
 				//LinkBody(Bridge2, bridgeBody);
+				LinkBody(Fireisland1, Fireisland1Body);
+				LinkBody(Fireisland2, Fireisland2Body);
 
 				#pragma endregion
 

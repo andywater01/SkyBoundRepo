@@ -1,0 +1,23 @@
+# Blender MTL File: 'FireIsland.blend'
+# Material Count: 2
+
+newmtl Material.004
+Ns 552.750122
+Ka 0.361702 0.361702 0.361702
+Kd 0.800000 0.062736 0.068084
+Ks 0.648936 0.648936 0.648936
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 3
+
+newmtl Material.005
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.152482 0.152482 0.152482
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd C:\\Users\\Andy\\Desktop\\FreeWorldSkyBound\\New Repo\\SkyBoundRepo\\SkyBoundRepo\\projects\\Skybound V2\\res\\images\\FireIslandTextureDone.png
