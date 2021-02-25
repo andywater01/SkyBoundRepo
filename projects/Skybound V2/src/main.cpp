@@ -63,6 +63,11 @@ bool playerAirborne = false;
 
 int menuSelect = 1;
 
+bool destroyedScene1Objects = false;
+bool scene1ActiveBodies = false;
+bool scene2ActiveBodies = false;
+bool scene3ActiveBodies = false;
+
 #pragma endregion 
 
 
@@ -540,11 +545,11 @@ void LinkBody(GameObject object, btRigidBody *body)
 
 }
 
-void LinkBody(GameObject object, btRigidBody* body, float lowerZ)
+void LinkBody(GameObject object, btRigidBody* body, float adjustX, float adjustY, float adjustZ)
 {
-	glm::vec3 linkedBody = glm::vec3(body->getCenterOfMassTransform().getOrigin().getX(),
-		body->getCenterOfMassTransform().getOrigin().getY(),
-		body->getCenterOfMassTransform().getOrigin().getZ() - lowerZ);
+	glm::vec3 linkedBody = glm::vec3(body->getCenterOfMassTransform().getOrigin().getX() + adjustX,
+		body->getCenterOfMassTransform().getOrigin().getY() + adjustY,
+		body->getCenterOfMassTransform().getOrigin().getZ() + adjustZ);
 
 	object.get<Transform>().SetLocalPosition(linkedBody);
 
@@ -560,9 +565,14 @@ void myTickCallback(btDynamicsWorld* world, btScalar timeStep) {
 	int numManifolds = world->getDispatcher()->getNumManifolds();
 	printf("numManifolds = %d\n", numManifolds);
 
-	if (numManifolds == 3)
+	if (numManifolds == 1)
 	{
 		//world->removeRigidBody(rigidBody);
+		playerAirborne = true;
+	}
+	else
+	{
+		playerAirborne = false;
 	}
 }
 
@@ -573,14 +583,14 @@ void myTickCallback(btDynamicsWorld* world, btScalar timeStep) {
 
 void checkAirborne(GameObject player)
 {
-	if (player.get<Transform>().GetLocalPosition().z >= 0.12f)
+	/*if (player.get<Transform>().GetLocalPosition().z >= 0.14f)
 	{
 		playerAirborne = true;
 	}
 	else
 	{
 		playerAirborne = false;
-	}
+	}*/
 }
 
 #pragma endregion
@@ -689,16 +699,42 @@ int main() {
 		glm::vec3 endPos2 = glm::vec3(-30.0f, 9.5f, -1.0f);
 		glm::vec3 startPos2 = glm::vec3(-30.0f, -9.5f, -1.0f);
 
+		btVector3 firePlatform1Pos1 = btVector3(-25.0f, -1.5f, 0.5f);
+		btVector3 firePlatform1Pos2 = btVector3(-25.0f, 1.5f, 0.5f);
+
+		btVector3 firePlatform2Pos1 = btVector3(-30.0f, -1.5f, 3.0f);
+		btVector3 firePlatform2Pos2 = btVector3(-30.0f, 1.5f, 3.0f);
+
 		float PhantomTimer = 0.0f;
 		float PhantomTimer2 = 0.0f;
 		float JumpTimer = 0.0f;
+		float firePlatform1Timer = 0.0f;
+		float firePlatform2Timer = 0.0f;
 
 		float PhantomTimeLimit = 1.0f;
 		float PhantomTimeLimit2 = 2.0f;
 		float JumpTimeLimit = 0.15f;
+		float firePlatform1Limit = 1.0f;
+		float firePlatform2Limit = 1.0f;
 
 		bool PhantomMove = true;
 		bool PhantomMove2 = true;
+
+		bool firePlatform1Move = true;
+		bool firePlatform2Move = true;
+
+
+
+		glm::vec3 endPos4 = glm::vec3(-13.0f, 17.0f, -4.5f);
+		glm::vec3 startPos4 = glm::vec3(-13.0f, 17.0f, -4.0f);
+
+		bool moundMove = true;
+		bool wellMove = true;
+
+		glm::vec3 endPos3 = glm::vec3(-13.0f, 17.0f, -1.35f);
+		glm::vec3 startPos3 = glm::vec3(-13.0f, 17.0f, -0.85f);
+		float ObjectTimer2 = 0.0f;
+		float ObjectTimeLimit = 2.0f;
 
 		//Phantom Rotation Lerp
 		glm::quat startPhantomRot = glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
@@ -2675,7 +2711,7 @@ int main() {
 			camera.LookAt(glm::vec3(0));
 			camera.SetFovDegrees(90.0f); // Set an initial FOV
 			camera.SetOrthoHeight(3.0f);
-			BehaviourBinding::Bind<CameraControlBehaviour>(cameraObject4);
+			//BehaviourBinding::Bind<CameraControlBehaviour>(cameraObject4);
 		}
 
 		#pragma endregion
@@ -2683,7 +2719,7 @@ int main() {
 
 		#pragma region FireIsland1 Object
 
-		btCollisionShape* Fireisland1Shape = new btCylinderShapeZ(btVector3(15.3f, 15.3f, 2.0f));
+		btCollisionShape* Fireisland1Shape = new btCylinderShapeZ(btVector3(20.0f, 20.0f, 2.0f));
 
 		btTransform Fireisland1Transform;
 
@@ -2741,7 +2777,7 @@ int main() {
 
 		#pragma region FireIsland2 Object
 
-		btCollisionShape* Fireisland2Shape = new btCylinderShapeZ(btVector3(15.3f, 15.3f, 2.0f));
+		btCollisionShape* Fireisland2Shape = new btCylinderShapeZ(btVector3(20.0f, 20.0f, 2.0f));
 
 		btTransform Fireisland2Transform;
 
@@ -2936,6 +2972,21 @@ int main() {
 
 		#pragma region Fire Platform Object
 
+		btCollisionShape* FirePlatformShape = new btBoxShape(btVector3(1.7f, 2.0f, 0.2f));
+
+		btTransform FirePlatform1Transform;
+
+		btScalar FirePlatformMass(0.f);
+
+		//rigidbody is dynamic if and only if mass is non zero, otherwise static
+		bool FirePlatformisDynamic = (FirePlatformMass != 0.f);
+
+		btVector3 localFirePlatformInertia(0, 0, 0);
+
+		//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+		btDefaultMotionState* FirePlatformMotionState;
+		btRigidBody* FirePlatform1Body;
+
 		GameObject FirePlatform = scene4->CreateEntity("FirePlatform");
 		{
 			VertexArrayObject::sptr FirePlatformVAO = ObjLoader::LoadFromFile("models/FirePlatform.obj");
@@ -2945,7 +2996,26 @@ int main() {
 			FirePlatform.get<Transform>().SetLocalScale(1.2f, 1.2f, 1.0f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(FirePlatform);
 			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+
+			//Collision Stuff
+			collisionShapes.push_back(FirePlatformShape);
+			FirePlatform1Transform.setIdentity();
+			FirePlatform1Transform.setOrigin(btVector3(-25.0f, 0.0f, 0.5f));
+			
+			if (FirePlatformisDynamic)
+				FirePlatformShape->calculateLocalInertia(FirePlatformMass, localFirePlatformInertia);
+
+			//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+			FirePlatformMotionState = new btDefaultMotionState(FirePlatform1Transform);
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(FirePlatformMass, FirePlatformMotionState, FirePlatformShape, localFirePlatformInertia);
+			FirePlatform1Body = new btRigidBody(rbInfo);
+
+			//add the body to the dynamics world
+			//dynamicsWorld->addRigidBody(Fireisland1Body);
 		}
+
+		btTransform FirePlatform2Transform;
+		btRigidBody* FirePlatform2Body;
 
 		GameObject FirePlatform2 = scene4->CreateEntity("FirePlatform2");
 		{
@@ -2956,6 +3026,22 @@ int main() {
 			FirePlatform2.get<Transform>().SetLocalScale(1.2f, 1.2f, 1.0f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(FirePlatform2);
 			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+
+			//Collision Stuff
+			collisionShapes.push_back(FirePlatformShape);
+			FirePlatform2Transform.setIdentity();
+			FirePlatform2Transform.setOrigin(btVector3(-30.0f, 0.5f, 3.0f));
+
+			if (FirePlatformisDynamic)
+				FirePlatformShape->calculateLocalInertia(FirePlatformMass, localFirePlatformInertia);
+
+			//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+			FirePlatformMotionState = new btDefaultMotionState(FirePlatform2Transform);
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(FirePlatformMass, FirePlatformMotionState, FirePlatformShape, localFirePlatformInertia);
+			FirePlatform2Body = new btRigidBody(rbInfo);
+
+			//add the body to the dynamics world
+			//dynamicsWorld->addRigidBody(Fireisland1Body);
 		}
 
 		#pragma endregion
@@ -3566,7 +3652,7 @@ int main() {
 
 			keyToggles.emplace_back(GLFW_KEY_SPACE, [&]() {
 				if (!playerAirborne)
-					playerBody->applyForce(btVector3(0.0f, 0.0f, 1800.0f), btVector3(0.0f, 0.0f, 0.0f));
+					playerBody->applyForce(btVector3(0.0f, 0.0f, 3000.0f), btVector3(0.0f, 0.0f, 0.0f));
 			});
 
 			keyToggles.emplace_back(GLFW_KEY_J, [&]() {
@@ -3649,6 +3735,18 @@ int main() {
 				{
 					exit(0);
 				}
+				else if (menuSelect == 3)
+				{
+					menuSelect = 4;
+				}
+				else if (menuSelect == 4)
+				{
+					menuSelect = 5;
+				}
+				else if (menuSelect == 5)
+				{
+					menuSelect = 6;
+				}
 				
 			});
 
@@ -3709,6 +3807,7 @@ int main() {
 		PhysicsDrawer mydebugDrawer;
 		dynamicsWorld->setDebugDrawer(&mydebugDrawer);
 
+
 		///// Game loop /////
 		while (!glfwWindowShouldClose(BackendHandler::window)) {
 			glfwPollEvents();
@@ -3721,7 +3820,8 @@ int main() {
 
 			//Update Physics World
 			dynamicsWorld->stepSimulation(time.DeltaTime, 1);
-
+			myTickCallback(dynamicsWorld, time.DeltaTime);
+			dynamicsWorld->setInternalTickCallback(myTickCallback);
 
 			#pragma region Update Sound
 
@@ -3757,7 +3857,7 @@ int main() {
 				//printf("World Pos Object %d = %f,%f,%f\n", j, float(trans.getOrigin().getX()), float(trans.getOrigin().getY()), float(trans.getOrigin().getZ()));
 			}
 
-			checkPosition(player);
+			//checkPosition(player);
 
 			#pragma endregion
 
@@ -3815,14 +3915,14 @@ int main() {
 
 			#pragma region Check for Player Falling and Player Jumping 
 
+			checkAirborne(player);
+
 			if (player.get<Transform>().GetLocalPosition().z <= -7.0f)
 			{
 				PlayerHealth--;
 				playerTransform.setOrigin(btVector3(0.0f, 0.0f, 5.0f));
 				playerBody->setWorldTransform(playerTransform);
 			}
-
-			checkAirborne(player);
 
 			#pragma endregion
 
@@ -3947,12 +4047,89 @@ int main() {
 					Phantom2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 180.0f);
 					
 				}
+
+
+				ObjectTimer2 += time.DeltaTime;
+
+				if (ObjectTimer2 >= ObjectTimeLimit)
+				{
+					ObjectTimer2 = 0.0f;
+					moundMove = !moundMove;
+					wellMove = !wellMove;
+				}
+
+				float objectTPos = ObjectTimer2 / ObjectTimeLimit;
+
+				if (moundMove == true)
+				{
+					Mound.get<Transform>().SetLocalPosition(LERP(startPos4, endPos4, objectTPos));
+				}
+				else if (moundMove == false)
+				{
+					Mound.get<Transform>().SetLocalPosition(LERP(endPos4, startPos4, objectTPos));
+				}
+
+				if (wellMove == true)
+				{
+					WishingWell.get<Transform>().SetLocalPosition(LERP(startPos3, endPos3, objectTPos));
+				}
+				else if (wellMove == false)
+				{
+					WishingWell.get<Transform>().SetLocalPosition(LERP(endPos3, startPos3, objectTPos));
+				}
+
+				
 			}
 			else if (RenderGroupBool == 2)
 			{
 				Phantom.get<Transform>().SetLocalPosition(100, 100, 100);
 				Phantom2.get<Transform>().SetLocalPosition(100, 100, 100);
 			}
+			/*else if (RenderGroupBool == 4)
+			{
+				firePlatform1Timer += time.DeltaTime;
+
+				if (firePlatform1Timer >= firePlatform1Limit)
+				{
+					firePlatform1Limit = 0.0f;
+					firePlatform1Move = !firePlatform1Move;
+				}
+
+				float firePlatform1Tpos = firePlatform1Timer / firePlatform1Limit;
+
+				if (firePlatform1Move == true)
+				{
+					FirePlatform1Transform.setOrigin(LERP(firePlatform1Pos1, firePlatform1Pos2, firePlatform1Tpos));
+					FirePlatform1Body->setWorldTransform(FirePlatform1Transform);
+				}
+				else if (PhantomMove2 == false)
+				{
+					FirePlatform1Transform.setOrigin(LERP(firePlatform1Pos2, firePlatform1Pos1, firePlatform1Tpos));
+					FirePlatform1Body->setWorldTransform(FirePlatform1Transform);
+				}
+
+
+				firePlatform2Timer += time.DeltaTime;
+
+				if (firePlatform2Timer >= firePlatform2Limit)
+				{
+					firePlatform2Limit = 0.0f;
+					firePlatform2Move = !firePlatform2Move;
+				}
+
+				float firePlatform2Tpos = firePlatform2Timer / firePlatform2Limit;
+
+				if (firePlatform2Move == true)
+				{
+					FirePlatform2Transform.setOrigin(LERP(firePlatform2Pos1, firePlatform2Pos2, firePlatform2Tpos));
+					FirePlatform2Body->setWorldTransform(FirePlatform2Transform);
+				}
+				else if (PhantomMove2 == false)
+				{
+					FirePlatform2Transform.setOrigin(LERP(firePlatform2Pos2, firePlatform2Pos1, firePlatform2Tpos));
+					FirePlatform2Body->setWorldTransform(FirePlatform2Transform);
+				}
+			}*/
 
 			#pragma endregion
 
@@ -4029,9 +4206,9 @@ int main() {
 			}
 			else if (RenderGroupBool == 4)
 			{
-				/*cameraObject4.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 8.0f,
+				cameraObject4.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 8.0f,
 					playerBody->getCenterOfMassTransform().getOrigin().getY(),
-					cameraObject4.get<Transform>().GetLocalPosition().z);*/
+					playerBody->getCenterOfMassTransform().getOrigin().getZ() + 5.0f);
 			}
 
 			#pragma endregion
@@ -4058,12 +4235,13 @@ int main() {
 			#pragma endregion
 
 
-			#pragma region Player Physics
+			#pragma region Player and Wizard Physics
 
 			playerBody->applyDamping(time.DeltaTime);
 
 			player.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX(), playerBody->getCenterOfMassTransform().getOrigin().getY(), playerBody->getCenterOfMassTransform().getOrigin().getZ());
 
+			LinkBody(Wizard, wizardBody);
 
 			#pragma endregion
 
@@ -4082,6 +4260,7 @@ int main() {
 			}
 
 			#pragma endregion
+
 
 
 			// Clear the screen
@@ -4378,8 +4557,6 @@ int main() {
 
 				LinkBody(Bridge, bridgeBody);
 
-				LinkBody(Wizard, wizardBody);
-
 				//LinkBody(Coin, coinBody);
 
 				#pragma endregion
@@ -4518,9 +4695,9 @@ int main() {
 
 				#pragma region Updating Render Transforms with Physics Bodies
 
-				LinkBody(TaigaGround, island1Body, 9.0f);
+				LinkBody(TaigaGround, island1Body, 0.0f, 0.0f, -9.0f);
 
-				LinkBody(TaigaGround2, island2Body, 9.0f);
+				LinkBody(TaigaGround2, island2Body, 0.0f, 0.0f, -9.0f);
 
 				LinkBody(Bridge2, bridgeBody);
 
@@ -4546,7 +4723,20 @@ int main() {
 				glm::mat4 projection = cameraObject4.get<Camera>().GetProjection();
 				glm::mat4 viewProjection = projection * view;
 
+				if (!destroyedScene1Objects)
+				{
+					//Removing the last scene's physics bodies
+					dynamicsWorld->removeRigidBody(island1Body);
+					dynamicsWorld->removeRigidBody(island2Body);
+					dynamicsWorld->removeRigidBody(bridgeBody);
+					destroyedScene1Objects = true;
 
+					//Adding the current scene's physics bodies
+					dynamicsWorld->addRigidBody(Fireisland1Body);
+					dynamicsWorld->addRigidBody(Fireisland2Body);
+					dynamicsWorld->addRigidBody(FirePlatform1Body);
+					dynamicsWorld->addRigidBody(FirePlatform2Body);
+				}
 
 				// Sort the renderers by shader and material, we will go for a minimizing context switches approach here,
 				// but you could for instance sort front to back to optimize for fill rate if you have intensive fragment shaders
@@ -4570,6 +4760,8 @@ int main() {
 				// Start by assuming no shader or material is applied
 				Shader::sptr current = nullptr;
 				ShaderMaterial::sptr currentMat = nullptr;
+
+				activeEffect = 1;
 
 				basicEffect->BindBuffer(0);
 
@@ -4622,7 +4814,7 @@ int main() {
 
 				player.get<MorphRenderer>().render(morphShader, viewProjection, player.get<Transform>(), view, viewProjection);
 
-				//PlayerInput(player, time.DeltaTime, speed, playerBody);
+				PlayerInput(player, time.DeltaTime, speed, playerBody);
 
 				#pragma endregion
 
@@ -4635,8 +4827,10 @@ int main() {
 				// This is just a note in case you wanted to see how physics bodies are linked
 
 				//LinkBody(Bridge2, bridgeBody);
-				//LinkBody(Fireisland1, Fireisland1Body);
-				//LinkBody(Fireisland2, Fireisland2Body);
+				LinkBody(Fireisland1, Fireisland1Body);
+				LinkBody(Fireisland2, Fireisland2Body, 2.0f, 0.0f, 0.0f);
+				LinkBody(FirePlatform, FirePlatform1Body, 0.0f, 0.0f, 0.2f);
+				LinkBody(FirePlatform2, FirePlatform2Body, 0.0f, 0.0f, 0.2f);
 
 				#pragma endregion
 
