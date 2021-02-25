@@ -61,6 +61,8 @@ bool drawPhysics = false;
 
 bool playerAirborne = false;
 
+int menuSelect = 1;
+
 #pragma endregion 
 
 
@@ -73,7 +75,7 @@ void PlayerInput(GameObject& transform, float dt, float speed, btRigidBody* body
 		//transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(0.0f, -1.0f * dt * speed, 0.0f));
 		transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 180.0f);
 		body->activate(true);
-		body->applyForce(btVector3(0.0f, -1800.0f, 0.0f) * dt * speed, btVector3(0.0f, 0.0f, 0.0f));
+		body->applyForce(btVector3(0.0f, -8000.0f, 0.0f) * dt * speed, btVector3(0.0f, 0.0f, 0.0f));
 		firstFrame = 0;
 		lastFrame = 4;
 	}
@@ -81,7 +83,7 @@ void PlayerInput(GameObject& transform, float dt, float speed, btRigidBody* body
 		//transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(0.0f, 1.0f * dt * speed, 0.0f));
 		transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
 		body->activate(true);
-		body->applyForce(btVector3(0.0f, 1800.0f, 0.0f) * dt * speed, btVector3(0.0f, 0.0f, 0.0f));
+		body->applyForce(btVector3(0.0f, 8000.0f, 0.0f) * dt * speed, btVector3(0.0f, 0.0f, 0.0f));
 		firstFrame = 0;
 		lastFrame = 4;
 		//body->activate(true);
@@ -96,7 +98,7 @@ void PlayerInput(GameObject& transform, float dt, float speed, btRigidBody* body
 		//transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(-1.0f * dt * speed, 0.0f, 0.0f));
 		transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
 		body->activate(true);
-		body->applyForce(btVector3(-1800.0f, 0.0f, 0.0f) * dt * speed, btVector3(0.0f, 0.0f, 0.0f));
+		body->applyForce(btVector3(-8000.0f, 0.0f, 0.0f) * dt * speed, btVector3(0.0f, 0.0f, 0.0f));
 		firstFrame = 0;
 		lastFrame = 4;
 		//transform.SetLocalRotation(90.0f, 0.0f, 192.0f);
@@ -108,7 +110,7 @@ void PlayerInput(GameObject& transform, float dt, float speed, btRigidBody* body
 		//transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(1.0f * dt * speed, 0.0f, 0.0f));
 		transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 270.0f);
 		body->activate(true);
-		body->applyForce(btVector3(1800.0f, 0.0f, 0.0f) * dt * speed, btVector3(0.0f, 0.0f, 0.0f));
+		body->applyForce(btVector3(8000.0f, 0.0f, 0.0f) * dt * speed, btVector3(0.0f, 0.0f, 0.0f));
 		firstFrame = 0;
 		lastFrame = 4;
 		//transform.SetLocalRotation(90.0f, 0.0f, 12.0f);
@@ -1215,8 +1217,19 @@ int main() {
 		Texture2D::sptr diffuseMp26 = Texture2D::LoadFromFile("images/barrel_texture.png");
 		Texture2D::sptr diffuseMp27 = Texture2D::LoadFromFile("images/LavaPlatformTexture2.png");
 
-
+		//Heart Sprites
 		Texture2D::sptr heartDiffuse = Texture2D::LoadFromFile("images/heart.png");
+
+		//Scene 0 Menu Sprites
+		Texture2D::sptr playMenuDiffuse = Texture2D::LoadFromFile("images/SkyboundMenuPlay.png");
+		Texture2D::sptr controlsMenuDiffuse = Texture2D::LoadFromFile("images/SkyboundMenuControls.png");
+		Texture2D::sptr exitMenuDiffuse = Texture2D::LoadFromFile("images/SkyboundMenuExit.png");
+
+		Texture2D::sptr controlsDiffuse = Texture2D::LoadFromFile("images/SkyboundControls.png");
+
+		Texture2D::sptr story1Diffuse = Texture2D::LoadFromFile("images/StoryImage1.png");
+		Texture2D::sptr story2Diffuse = Texture2D::LoadFromFile("images/StoryImage2.png");
+		Texture2D::sptr story3Diffuse = Texture2D::LoadFromFile("images/StoryImage3.png");
 
 		Texture2D::sptr diffuseRamp = Texture2D::LoadFromFile("images/DiffuseRamp.png");
 		Texture2D::sptr specularRamp = Texture2D::LoadFromFile("images/SpecularRamp.png");
@@ -1238,7 +1251,7 @@ int main() {
 
 		#pragma endregion
 
-
+		 
 		///////////////////////////////////// Scene 1 Generation //////////////////////////////////////////////////
 		#pragma region Scene 1 Generation
 		
@@ -1778,7 +1791,7 @@ int main() {
 			btRigidBody::btRigidBodyConstructionInfo rbInfo(playerMass, playerMotionState, playerShape, localPlayerInertia);
 			playerBody = new btRigidBody(rbInfo);
 
-			playerBody->setDamping(0.6f, 0.6f);
+			playerBody->setDamping(0.9f, 0.9f);
 
 
 			//add the body to the dynamics world
@@ -2665,6 +2678,9 @@ int main() {
 			BehaviourBinding::Bind<CameraControlBehaviour>(cameraObject4);
 		}
 
+		#pragma endregion
+
+
 		#pragma region FireIsland1 Object
 
 		btCollisionShape* Fireisland1Shape = new btCylinderShapeZ(btVector3(15.3f, 15.3f, 2.0f));
@@ -2715,12 +2731,13 @@ int main() {
 			Fireisland1Body = new btRigidBody(rbInfo);
 
 			//add the body to the dynamics world
-			dynamicsWorld->addRigidBody(Fireisland1Body);
+			//dynamicsWorld->addRigidBody(Fireisland1Body);
 
 		}
 
 
 		#pragma endregion
+
 
 		#pragma region FireIsland2 Object
 
@@ -2766,7 +2783,7 @@ int main() {
 			Fireisland2Body = new btRigidBody(rbInfo);
 
 			//add the body to the dynamics world
-			dynamicsWorld->addRigidBody(Fireisland2Body);
+			//dynamicsWorld->addRigidBody(Fireisland2Body);
 		}
 
 		#pragma endregion
@@ -2776,7 +2793,7 @@ int main() {
 		
 		GameObject Volcano1 = scene4->CreateEntity("Volcano1");
 		{
-			VertexArrayObject::sptr Volcano1VAO = ObjLoader::LoadFromFile("models/Volcano2.obj");
+			VertexArrayObject::sptr Volcano1VAO = ObjLoader::LoadFromFile("models/VolcanoWorking.obj");
 			Volcano1.emplace<RendererComponent>().SetMesh(Volcano1VAO).SetMaterial(material22);
 			Volcano1.get<Transform>().SetLocalPosition(-19.0f, -20.0f, -3.0f);
 			Volcano1.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
@@ -2788,12 +2805,11 @@ int main() {
 		#pragma endregion
 
 
-
 		#pragma region Volcano2 Object
 
 		GameObject Volcano2 = scene4->CreateEntity("Volcano2");
 		{
-			VertexArrayObject::sptr Volcano2VAO = ObjLoader::LoadFromFile("models/Volcano2.obj");
+			VertexArrayObject::sptr Volcano2VAO = ObjLoader::LoadFromFile("models/VolcanoWorking.obj");
 			Volcano2.emplace<RendererComponent>().SetMesh(Volcano2VAO).SetMaterial(material22);
 			Volcano2.get<Transform>().SetLocalPosition(-35.0f, 35.0f, -5.0f);
 			Volcano2.get<Transform>().SetLocalRotation(90.0f, 0.0f, -90.0f);
@@ -2809,7 +2825,7 @@ int main() {
 
 		GameObject Volcano3 = scene4->CreateEntity("Volcano3");
 		{
-			VertexArrayObject::sptr Volcano3VAO = ObjLoader::LoadFromFile("models/Volcano2.obj");
+			VertexArrayObject::sptr Volcano3VAO = ObjLoader::LoadFromFile("models/VolcanoWorking.obj");
 			Volcano3.emplace<RendererComponent>().SetMesh(Volcano3VAO).SetMaterial(material22);
 			Volcano3.get<Transform>().SetLocalPosition(-92.0f, -7.8f, -3.0f);
 			Volcano3.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
@@ -2835,6 +2851,7 @@ int main() {
 		}
 		#pragma endregion
 
+
 		#pragma region DeadTree2 Object
 
 		GameObject DeadTree2 = scene4->CreateEntity("DeadTree2");
@@ -2848,6 +2865,7 @@ int main() {
 			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
 		}
 		#pragma endregion
+
 		
 		#pragma region DeadTree3 Object
 		GameObject DeadTree3 = scene4->CreateEntity("DeadTree3");
@@ -2960,7 +2978,7 @@ int main() {
 
 		#pragma endregion
 
-
+		
 		#pragma endregion
 		///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -2975,6 +2993,47 @@ int main() {
 		// We can create a group ahead of time to make iterating on the group faster
 		entt::basic_group<entt::entity, entt::exclude_t<>, entt::get_t<Transform>, RendererComponent> renderGroup0 =
 			scene0->Registry().group<RendererComponent>(entt::get_t<Transform>());
+
+		#pragma region Materials
+
+		ShaderMaterial::sptr playMenuMat = ShaderMaterial::Create();
+		playMenuMat->Shader = spriteShader;
+		playMenuMat->Set("s_Diffuse", playMenuDiffuse);
+		playMenuMat->RenderLayer = 0;
+
+		ShaderMaterial::sptr controlsMenuMat = ShaderMaterial::Create();
+		controlsMenuMat->Shader = spriteShader;
+		controlsMenuMat->Set("s_Diffuse", controlsMenuDiffuse);
+		controlsMenuMat->RenderLayer = 1;
+
+		ShaderMaterial::sptr exitMenuMat = ShaderMaterial::Create();
+		exitMenuMat->Shader = spriteShader;
+		exitMenuMat->Set("s_Diffuse", exitMenuDiffuse);
+		exitMenuMat->RenderLayer = 2;
+
+		ShaderMaterial::sptr controlsMat = ShaderMaterial::Create();
+		controlsMat->Shader = spriteShader;
+		controlsMat->Set("s_Diffuse", controlsDiffuse);
+		controlsMat->RenderLayer = 3;
+
+		ShaderMaterial::sptr story1Mat = ShaderMaterial::Create();
+		story1Mat->Shader = spriteShader;
+		story1Mat->Set("s_Diffuse", story1Diffuse);
+		story1Mat->RenderLayer = 3;
+
+		ShaderMaterial::sptr story2Mat = ShaderMaterial::Create();
+		story2Mat->Shader = spriteShader;
+		story2Mat->Set("s_Diffuse", story2Diffuse);
+		story2Mat->RenderLayer = 3;
+
+		ShaderMaterial::sptr story3Mat = ShaderMaterial::Create();
+		story3Mat->Shader = spriteShader;
+		story3Mat->Set("s_Diffuse", story3Diffuse);
+		story3Mat->RenderLayer = 3;
+
+
+		#pragma endregion
+
 
 		#pragma region Island Objects
 
@@ -3313,20 +3372,72 @@ int main() {
 		#pragma endregion
 
 
-		#pragma region Camera Object
+		#pragma region Sprite Objects
+
+		VertexArrayObject::sptr menuVAO;
+
+		GameObject playMenuObj = scene0->CreateEntity("MenuPlay");
+		{
+			GLfloat vertices[] = { -1, -1, 0, // bottom left corner
+						   -1,  1, 0, // top left corner
+							1,  1, 0, // top right corner
+							1, -1, 0 }; // bottom right corner
+
+
+			GLuint elements[] = {
+					0, 1, 2,
+					2, 3, 0
+			};
+
+
+			menuVAO = NotObjLoader::LoadFromFile("sprite.notobj");
+			playMenuObj.emplace<Sprite>().SetMesh(menuVAO).SetMaterial(playMenuMat);
+			//playMenuObj.emplace<RendererComponent>().SetMesh(playMenuVao).SetMaterial(playMenuMat);
+			playMenuObj.get<Transform>().SetLocalPosition(-5.0f, 0.0f, 10.0f);
+			playMenuObj.get<Transform>().SetLocalRotation(0.0f, 180.0f, 270.0f);
+			//playMenuObj.get<Transform>().SetLocalRotation(0.0f, 180.0f, 180.0f);
+			playMenuObj.get<Transform>().SetLocalScale(0.6f, 0.6f, 0.6f);
+			//playMenuObj.get<Transform>().LookAt(glm::vec3(0));
+
+		}
+
+		#pragma endregion
+
+
+		#pragma region Camera Objects
 
 		// Create an object to be our camera
 		GameObject cameraObject0 = scene0->CreateEntity("Camera");
 		{
-			cameraObject0.get<Transform>().SetLocalPosition(6.0f, 3.0f, 8.0f).LookAt(glm::vec3(-5.0f, 0.0f, 8.0f));
+			//cameraObject0.get<Transform>().SetLocalPosition(6.0f, 3.0f, 8.0f).LookAt(glm::vec3(-5.0f, 0.0f, 8.0f));
+			cameraObject0.get<Transform>().SetLocalPosition(10.0f, 0.0f, 10.0f).LookAt(playMenuObj.get<Transform>().GetLocalPosition());
 
 			// We'll make our camera a component of the camera object
 			Camera& camera = cameraObject0.emplace<Camera>();// Camera::Create();
-			camera.SetPosition(glm::vec3(6.0f, 3.0f, 8.0f));
+			camera.SetPosition(glm::vec3(0.0f, 0.0f, 10.0f));
 			camera.SetUp(glm::vec3(0, 0, 1));
 			camera.LookAt(glm::vec3(-5.0f, 0.0f, 8.0f));
 			camera.SetFovDegrees(90.0f); // Set an initial FOV
 			camera.SetOrthoHeight(3.0f);
+		}
+
+		// Create an object to be our orthographic camera
+		GameObject orthoCameraObject0 = scene0->CreateEntity("OrthoCamera");
+		{
+			//cameraObject.get<Transform>().SetLocalPosition(0, 3, 3).LookAt(glm::vec3(0, 0, 0));
+			//Looking at water and terrain positions
+			//cameraObject.get<Transform>().SetLocalPosition(-43.89, 25.74, 3.89).LookAt(glm::vec3(-40.69, -0.53, -7.83));
+			orthoCameraObject0.get<Transform>().SetLocalPosition(10.0f, 0.0f, 10.0f).LookAt(playMenuObj.get<Transform>().GetLocalPosition());
+
+			// We'll make our camera a component of the camera object
+			Camera& orthoCamera = orthoCameraObject0.emplace<Camera>();// Camera::Create();
+			orthoCamera.SetPosition(glm::vec3(0, 3, 3));
+			orthoCamera.SetUp(glm::vec3(0, 0, 1));
+			orthoCamera.LookAt(glm::vec3(0));
+			orthoCamera.SetFovDegrees(90.0f); // Set an initial FOV
+			orthoCamera.SetOrthoHeight(3.0f);
+			orthoCameraObject0.get<Camera>().ToggleOrtho();
+			//BehaviourBinding::Bind<CameraControlBehaviour>(orthoCameraObject);
 		}
 
 		#pragma endregion
@@ -3474,6 +3585,81 @@ int main() {
 				RenderGroupBool = 4;
 				Application::Instance().ActiveScene = scene4;
 			});
+
+			keyToggles.emplace_back(GLFW_KEY_LEFT, [&]() {
+				if (RenderGroupBool == 0)
+				{
+					menuSelect--;
+
+					if (menuSelect < 0)
+						menuSelect = 2;
+
+					if (menuSelect == 0)
+					{
+						playMenuObj.get<Sprite>().SetMaterial(controlsMenuMat);
+					}
+					else if (menuSelect == 1)
+					{
+						playMenuObj.get<Sprite>().SetMaterial(playMenuMat);
+					}
+					else
+					{
+						playMenuObj.get<Sprite>().SetMaterial(exitMenuMat);
+					}
+				}
+			});
+
+			keyToggles.emplace_back(GLFW_KEY_RIGHT, [&]() {
+				if (RenderGroupBool == 0)
+				{
+					menuSelect++;
+
+					if (menuSelect > 2)
+						menuSelect = 0;
+
+					if (menuSelect == 0)
+					{
+						playMenuObj.get<Sprite>().SetMaterial(controlsMenuMat);
+					}
+					else if (menuSelect == 1)
+					{
+						playMenuObj.get<Sprite>().SetMaterial(playMenuMat);
+					}
+					else
+					{
+						playMenuObj.get<Sprite>().SetMaterial(exitMenuMat);
+					}
+				}
+			});
+
+			keyToggles.emplace_back(GLFW_KEY_ENTER, [&]() {
+				if (menuSelect == 0)
+				{
+					menuSelect = -1;
+					playMenuObj.get<Sprite>().SetMaterial(controlsMat);
+				}
+				else if (menuSelect == 1)
+				{
+					menuSelect = 3;
+
+					//RenderGroupBool = 1;
+					//Application::Instance().ActiveScene = scene;
+				}
+				else if (menuSelect == 2)
+				{
+					exit(0);
+				}
+				
+			});
+
+			keyToggles.emplace_back(GLFW_KEY_BACKSPACE, [&]() {
+				if (menuSelect == -1)
+				{
+					menuSelect = 0;
+					playMenuObj.get<Sprite>().SetMaterial(controlsMenuMat);
+				}
+
+			});
 		}
 
 		// Initialize our timing instance and grab a reference for our use
@@ -3493,6 +3679,8 @@ int main() {
 		glm::vec3 WizardDistance = glm::vec3();
 
 		float Timer = 0.0f;
+
+		float storyTimer = 0.0f;
 
 		#pragma endregion
 
@@ -3569,7 +3757,7 @@ int main() {
 				//printf("World Pos Object %d = %f,%f,%f\n", j, float(trans.getOrigin().getX()), float(trans.getOrigin().getY()), float(trans.getOrigin().getZ()));
 			}
 
-			//checkPosition(player);
+			checkPosition(player);
 
 			#pragma endregion
 
@@ -3641,20 +3829,20 @@ int main() {
 
 			#pragma region Switching Scenes
 
-			if (glfwGetKey(BackendHandler::window, GLFW_KEY_ENTER) == GLFW_PRESS && RenderGroupBool == 0) {
-				RenderGroupBool = 1;
-				Application::Instance().ActiveScene = scene;
-				//BG.Play();
-				//Level1Music == true;
-			}
+			//if (glfwGetKey(BackendHandler::window, GLFW_KEY_ENTER) == GLFW_PRESS && RenderGroupBool == 0) {
+			//	RenderGroupBool = 1;
+			//	Application::Instance().ActiveScene = scene;
+			//	//BG.Play();
+			//	//Level1Music == true;
+			//}
 
 			//Switching scenes when player reaches a certain point
 			if (player.get<Transform>().GetLocalPosition().x <= -49.0f && RenderGroupBool == 1)
 			{
 				playerTransform.setOrigin(btVector3(0.0f, 0.0f, 5.0f));
 				playerBody->setWorldTransform(playerTransform);
-				RenderGroupBool = 2;
-				Application::Instance().ActiveScene = scene2;
+				RenderGroupBool = 4;
+				Application::Instance().ActiveScene = scene4;
 			}
 
 			if (PlayerHealth <= 0)
@@ -3663,10 +3851,58 @@ int main() {
 				Application::Instance().ActiveScene = scene3;
 			}
 
-			if (RenderGroupBool == 4)
+			/*if (RenderGroupBool == 4)
 			{
 				playerTransform.setOrigin(btVector3(0.0f, 0.0f, 5.0f));
 				playerBody->setWorldTransform(playerTransform);
+			}*/
+
+			#pragma endregion
+
+
+			#pragma region Showing Storyboard
+
+			if (menuSelect == 3)
+			{
+				playMenuObj.get<Sprite>().SetMaterial(story1Mat);
+
+				storyTimer += time.DeltaTime;
+
+				if (storyTimer > 8.0f)
+				{
+					menuSelect = 4;
+					storyTimer = 0.0f;
+				}
+			}
+			else if (menuSelect == 4)
+			{
+				playMenuObj.get<Sprite>().SetMaterial(story2Mat);
+
+				storyTimer += time.DeltaTime;
+
+				if (storyTimer > 8.0f)
+				{
+					menuSelect = 5;
+					storyTimer = 0.0f;
+				}
+			}
+			else if (menuSelect == 5)
+			{
+				playMenuObj.get<Sprite>().SetMaterial(story3Mat);
+
+				storyTimer += time.DeltaTime;
+
+				if (storyTimer > 8.0f)
+				{
+					menuSelect = 6;
+					storyTimer = 0.0f;
+				}
+			}
+			else if (menuSelect == 6)
+			{
+				menuSelect = 7;
+				RenderGroupBool = 1;
+				Application::Instance().ActiveScene = scene;
 			}
 
 			#pragma endregion
@@ -3721,9 +3957,13 @@ int main() {
 			#pragma endregion
 
 
-			#pragma region Setting Camera Position
+			#pragma region Setting Camera and Sprite Positions
 
-			if (RenderGroupBool == 1)
+			if (RenderGroupBool == 0)
+			{
+
+			}
+			else if (RenderGroupBool == 1)
 			{
 				cameraObject.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 8.0f,
 					playerBody->getCenterOfMassTransform().getOrigin().getY(),
@@ -3832,7 +4072,7 @@ int main() {
 
 			if (glfwGetKey(BackendHandler::window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
 			{
-				speed = 3.0f;
+				speed = 2.2f;
 				player.get<MorphRenderer>().SetFrameTime(0.15, 1);
 			}
 			else
@@ -3873,6 +4113,12 @@ int main() {
 				glm::mat4 view = glm::inverse(camTransform.LocalTransform());
 				glm::mat4 projection = cameraObject0.get<Camera>().GetProjection();
 				glm::mat4 viewProjection = projection * view;
+
+				// Grab out camera info from the camera object
+				Transform& orthoCamTransform = orthoCameraObject0.get<Transform>();
+				glm::mat4 orthoView = glm::inverse(orthoCamTransform.LocalTransform());
+				glm::mat4 orthoProjection = orthoCameraObject0.get<Camera>().GetProjection();
+				glm::mat4 orthoViewProjection = orthoProjection * orthoView;
 
 				// Sort the renderers by shader and material, we will go for a minimizing context switches approach here,
 				// but you could for instance sort front to back to optimize for fill rate if you have intensive fragment shaders
@@ -3944,6 +4190,21 @@ int main() {
 				#pragma region Scene Sounds
 
 				
+
+				#pragma endregion
+
+
+				#pragma region Rendering Sprites
+
+				glEnable(GL_BLEND);
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				//spriteShader->Bind();
+				ShaderMaterial::sptr currentMenuMat = nullptr;
+				BackendHandler::SetupShaderForFrame(spriteShader, orthoView, orthoProjection);
+				currentMenuMat = playMenuObj.get<Sprite>().Material;
+				currentMenuMat->Apply();
+				BackendHandler::RenderVAO(spriteShader, menuVAO, orthoViewProjection, playMenuObj.get<Transform>());
+				glDisable(GL_BLEND);
 
 				#pragma endregion
 
@@ -4151,7 +4412,6 @@ int main() {
 				BackendHandler::SetupShaderForFrame(spriteShader, orthoView, orthoProjection);
 				heartMat->Apply();
 				BackendHandler::RenderVAO(spriteShader, heartVao, orthoViewProjection, heart3Obj.get<Transform>());
-				glDisable(GL_BLEND);
 				
 				#pragma endregion
 
@@ -4375,8 +4635,8 @@ int main() {
 				// This is just a note in case you wanted to see how physics bodies are linked
 
 				//LinkBody(Bridge2, bridgeBody);
-				LinkBody(Fireisland1, Fireisland1Body);
-				LinkBody(Fireisland2, Fireisland2Body);
+				//LinkBody(Fireisland1, Fireisland1Body);
+				//LinkBody(Fireisland2, Fireisland2Body);
 
 				#pragma endregion
 

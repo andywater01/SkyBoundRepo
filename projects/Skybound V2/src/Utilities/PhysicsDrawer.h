@@ -11,7 +11,8 @@
 #include <bullet/btBulletCollisionCommon.h>
 #include <bullet/btBulletDynamicsCommon.h>
 
-GLuint VBO, VAO;
+
+//GLuint VBO, VAO;
 class PhysicsDrawer : public btIDebugDraw {
 public:
 	void SetMatrices(const Shader::sptr& shader, const glm::mat4& view, const glm::mat4& projection)
@@ -25,7 +26,7 @@ public:
 	{
 		// Vertex data
 		GLfloat points[12];
-
+		
 		points[0] = from.x();
 		points[1] = from.y();
 		points[2] = from.z();
@@ -59,6 +60,8 @@ public:
 
 	}
 
+	
+
 	virtual void drawContactPoint(const btVector3&, const btVector3&, btScalar, int, const btVector3&) {}
 	virtual void reportErrorWarning(const char*) {}
 	virtual void draw3dText(const btVector3&, const char*) {}
@@ -67,4 +70,7 @@ public:
 	}
 	int getDebugMode(void) const { return 3; }
 	int m;
+
+private:
+	GLuint VBO, VAO;
 };
