@@ -873,6 +873,8 @@ int main() {
 
 		BloomEffect* bloomEffect;
 
+		VignetteEffect* vignetteEffect;
+
 		// We'll add some ImGui controls to control our shader
 		BackendHandler::imGuiCallbacks.push_back([&]() {
 			if (ImGui::CollapsingHeader("Effect Controls"))
@@ -923,6 +925,26 @@ int main() {
 					if (ImGui::SliderFloat("Brightness Threshold", &threshold, 0.0f, 2.0f)) {
 						temp->SetThreshold(threshold);
 					}
+				}
+				if (activeEffect == 5)
+				{
+					ImGui::Text("Active Effect: Vignette Effect");
+
+					VignetteEffect* temp = (VignetteEffect*)effects[activeEffect];
+					float innerRad = temp->GetInnerRadius();
+					float outerRad = temp->GetOuterRadius();
+					float opacity = temp->GetOpacity();
+
+					if (ImGui::SliderFloat("Inner Radius", &innerRad, 0.0f, 1.0f)) {
+						temp->SetInnerRadius(innerRad);
+					}
+					if (ImGui::SliderFloat("Outer Radius", &outerRad, 0.0f, 1.0f)) {
+						temp->SetOuterRadius(outerRad);
+					}
+					if (ImGui::SliderFloat("Opacity", &opacity, 0.0f, 1.0f)) {
+						temp->SetOpacity(opacity);
+					}
+					
 				}
 			}
 			if (ImGui::CollapsingHeader("Scene Level Lighting Settings"))
@@ -1009,7 +1031,7 @@ int main() {
 				}
 			}
 			if (ImGui::CollapsingHeader("Shader Toggles"))
-			{
+			{ 
 				if (ImGui::Checkbox("No Lighting", &lightingToggle))
 				{
 					lightingToggle = true;
@@ -1187,6 +1209,7 @@ int main() {
 				}
 			}
 			
+			
 
 			auto name = controllables[selectedVao].get<GameObjectTag>().Name;
 			ImGui::Text(name.c_str());
@@ -1246,12 +1269,17 @@ int main() {
 		Texture2D::sptr diffuseMp19 = Texture2D::LoadFromFile("images/MailboxColor.png");
 		Texture2D::sptr diffuseMp20 = Texture2D::LoadFromFile("images/flowerTexture.png");
 		Texture2D::sptr diffuseMp21 = Texture2D::LoadFromFile("images/HouseColors.png");
+
 		Texture2D::sptr diffuseMp22 = Texture2D::LoadFromFile("images/FireIslandTextureDone.png");
 		Texture2D::sptr diffuseMp23 = Texture2D::LoadFromFile("images/VolcanoText1.png");
 		Texture2D::sptr diffuseMp24 = Texture2D::LoadFromFile("images/CartoonTree.png");
 		Texture2D::sptr diffuseMp25 = Texture2D::LoadFromFile("images/CreatureTexture.png");
 		Texture2D::sptr diffuseMp26 = Texture2D::LoadFromFile("images/barrel_texture.png");
 		Texture2D::sptr diffuseMp27 = Texture2D::LoadFromFile("images/LavaPlatformTexture2.png");
+
+		Texture2D::sptr diffuseMp28 = Texture2D::LoadFromFile("images/snowman_texture.png");
+		Texture2D::sptr diffuseMp29 = Texture2D::LoadFromFile("images/sled_texture.png");
+		Texture2D::sptr diffuseMp30 = Texture2D::LoadFromFile("images/ice crystal_texture.png");
 
 		//Heart Sprites
 		Texture2D::sptr heartDiffuse = Texture2D::LoadFromFile("images/heart.png");
@@ -1528,6 +1556,29 @@ int main() {
 		material26->Set("s_DiffuseRamp", diffuseRamp);
 		material26->Set("s_SpecularRamp", specularRamp);
 
+		ShaderMaterial::sptr material27 = ShaderMaterial::Create();
+		material27->Shader = shader;
+		material27->Set("s_Diffuse", diffuseMp28);
+		material27->Set("u_Shininess", 4.0f);
+		material27->Set("u_OutlineThickness", 0.3f);
+		material27->Set("s_DiffuseRamp", diffuseRamp);
+		material27->Set("s_SpecularRamp", specularRamp);
+
+		ShaderMaterial::sptr material28 = ShaderMaterial::Create();
+		material28->Shader = shader;
+		material28->Set("s_Diffuse", diffuseMp29);
+		material28->Set("u_Shininess", 4.0f);
+		material28->Set("u_OutlineThickness", 0.1f);
+		material28->Set("s_DiffuseRamp", diffuseRamp);
+		material28->Set("s_SpecularRamp", specularRamp);
+
+		ShaderMaterial::sptr material29 = ShaderMaterial::Create();
+		material29->Shader = shader;
+		material29->Set("s_Diffuse", diffuseMp30);
+		material29->Set("u_Shininess", 4.0f);
+		material29->Set("u_OutlineThickness", 0.1f);
+		material29->Set("s_DiffuseRamp", diffuseRamp);
+		material29->Set("s_SpecularRamp", specularRamp);
 
 		////////
 
@@ -1636,7 +1687,7 @@ int main() {
 			};
 
 
-			heartVao = NotObjLoader::LoadFromFile("sprite.notobj");
+			heartVao = NotObjLoader::LoadFromFile("sprite.notobj"); 
 			heart1Obj.emplace<Sprite>().SetMesh(heartVao).SetMaterial(heartMat);
 			//heart1Obj.emplace<RendererComponent>().SetMesh(heart1Vao).SetMaterial(heart1Mat);
 			heart1Obj.get<Transform>().SetLocalPosition(0.0f, 0.0f, 5.0f);
@@ -2547,6 +2598,13 @@ int main() {
 		}
 		effects.push_back(bloomEffect);
 
+		GameObject vignetteEffectObject = scene->CreateEntity("Vignette Effect");
+		{
+			vignetteEffect = &vignetteEffectObject.emplace<VignetteEffect>();
+			vignetteEffect->Init(width, height);
+		}
+		effects.push_back(vignetteEffect);
+
 		#pragma endregion
 
 
@@ -2600,10 +2658,22 @@ int main() {
 
 			VertexArrayObject::sptr FenceEndVAO = ObjLoader::LoadFromFile("models/hossain/Fence end.obj");
 			FenceEnd.emplace<RendererComponent>().SetMesh(FenceEndVAO).SetMaterial(material13);
-			FenceEnd.get<Transform>().SetLocalPosition(-10.0f, -6.7f, -2.5f);
+			FenceEnd.get<Transform>().SetLocalPosition(-12.0f, -8.7f, -4.5f);
 			FenceEnd.get<Transform>().SetLocalRotation(90.0f, 0.0f, 32.0f);
 			FenceEnd.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(FenceEnd);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
+		GameObject FenceEnd2 = scene2->CreateEntity("Fence End2");
+		{
+
+			VertexArrayObject::sptr FenceEnd2VAO = ObjLoader::LoadFromFile("models/hossain/Fence end.obj");
+			FenceEnd2.emplace<RendererComponent>().SetMesh(FenceEnd2VAO).SetMaterial(material13);
+			FenceEnd2.get<Transform>().SetLocalPosition(-45.0f, 12.7f, -4.5f);
+			FenceEnd2.get<Transform>().SetLocalRotation(90.0f, 0.0f, -32.0f);
+			FenceEnd2.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(FenceEnd2);
 			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
 		}
 
@@ -2617,15 +2687,86 @@ int main() {
 
 			VertexArrayObject::sptr RockVAO = ObjLoader::LoadFromFile("models/Fardeen/Rock.obj");
 			Rock.emplace<RendererComponent>().SetMesh(RockVAO).SetMaterial(material17);
-			Rock.get<Transform>().SetLocalPosition(-6.0f, 6.7f, -2.5f);
+			Rock.get<Transform>().SetLocalPosition(-6.0f, 9.7f, -4.5f);
 			Rock.get<Transform>().SetLocalRotation(90.0f, 0.0f, 70.0f);
 			Rock.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Rock);
 			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
 		}
 
+		GameObject Rock2 = scene2->CreateEntity("Rock");
+		{
+
+			VertexArrayObject::sptr Rock2VAO = ObjLoader::LoadFromFile("models/Fardeen/Rock.obj");
+			Rock2.emplace<RendererComponent>().SetMesh(Rock2VAO).SetMaterial(material17);
+			Rock2.get<Transform>().SetLocalPosition(-5.4f, 10.5f, -4.5f);
+			Rock2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 70.0f);
+			Rock2.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Rock2);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
 		#pragma endregion
 
+		#pragma region Snowman Object
+
+		GameObject Snowman = scene2->CreateEntity("snowman");
+		{
+
+			VertexArrayObject::sptr SnowmanVAO = ObjLoader::LoadFromFile("models/Ethan/snowman.obj");
+			Snowman.emplace<RendererComponent>().SetMesh(SnowmanVAO).SetMaterial(material27);
+			Snowman.get<Transform>().SetLocalPosition(0.0f, -11.0f, -3.5f);
+			Snowman.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
+			Snowman.get<Transform>().SetLocalScale(1.5f, 1.5f, 1.5f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Snowman);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
+		GameObject Snowman2 = scene2->CreateEntity("snowman2");
+		{
+
+			VertexArrayObject::sptr Snowman2VAO = ObjLoader::LoadFromFile("models/Ethan/snowman.obj");
+			Snowman2.emplace<RendererComponent>().SetMesh(Snowman2VAO).SetMaterial(material27);
+			Snowman2.get<Transform>().SetLocalPosition(-45.0f, -11.0f, -3.5f);
+			Snowman2.get<Transform>().SetLocalRotation(90.0f, 0.0f, -45.0f);
+			Snowman2.get<Transform>().SetLocalScale(1.5f, 1.5f, 1.5f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Snowman2);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
+		#pragma endregion
+
+		#pragma region Sled Object
+
+		GameObject Sled = scene2->CreateEntity("sled");
+		{
+
+			VertexArrayObject::sptr SledVAO = ObjLoader::LoadFromFile("models/Ethan/sled.obj");
+			Sled.emplace<RendererComponent>().SetMesh(SledVAO).SetMaterial(material28);
+			Sled.get<Transform>().SetLocalPosition(-30.0f, 11.5f, -3.5f);
+			Sled.get<Transform>().SetLocalRotation(90.0f, 0.0f, 200.0f);
+			Sled.get<Transform>().SetLocalScale(3.0f, 4.0f, 4.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Sled);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
+		#pragma endregion
+
+		#pragma region Ice Crystal Object
+
+		GameObject IceCrystal = scene2->CreateEntity("sled");
+		{
+
+			VertexArrayObject::sptr IceCrystalVAO = ObjLoader::LoadFromFile("models/Ethan/ice crystal.obj");
+			IceCrystal.emplace<RendererComponent>().SetMesh(IceCrystalVAO).SetMaterial(material29);
+			IceCrystal.get<Transform>().SetLocalPosition(-48.0f, 0.0f, -2.0f);
+			IceCrystal.get<Transform>().SetLocalRotation(90.0f, 0.0f, 200.0f);
+			IceCrystal.get<Transform>().SetLocalScale(0.5f, 0.5f, 0.5f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(IceCrystal);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
+		#pragma endregion
 
 		#pragma region Portal (Level 2) Object
 
@@ -2649,7 +2790,7 @@ int main() {
 		{
 			VertexArrayObject::sptr Bridge2VAO = ObjLoader::LoadFromFile("models/hossain/NewBridge.obj");
 			Bridge2.emplace<RendererComponent>().SetMesh(Bridge2VAO).SetMaterial(material13);
-			Bridge2.get<Transform>().SetLocalPosition(-18.0f, -0.0f, -3.0f);
+			Bridge2.get<Transform>().SetLocalPosition(-18.0f, -0.0f, -6.5f);
 			Bridge2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
 			Bridge2.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Bridge2);
@@ -3668,8 +3809,8 @@ int main() {
 			});
 
 			keyToggles.emplace_back(GLFW_KEY_L, [&]() {
-				RenderGroupBool = 4;
-				Application::Instance().ActiveScene = scene4;
+				RenderGroupBool = 2;
+				Application::Instance().ActiveScene = scene2;
 			});
 
 			keyToggles.emplace_back(GLFW_KEY_LEFT, [&]() {
@@ -3912,6 +4053,7 @@ int main() {
 
 			#pragma endregion
 			
+			
 
 			#pragma region Check for Player Falling and Player Jumping 
 
@@ -3938,6 +4080,14 @@ int main() {
 
 			//Switching scenes when player reaches a certain point
 			if (player.get<Transform>().GetLocalPosition().x <= -49.0f && RenderGroupBool == 1)
+			{
+				playerTransform.setOrigin(btVector3(0.0f, 0.0f, 5.0f));
+				playerBody->setWorldTransform(playerTransform);
+				RenderGroupBool = 2;
+				Application::Instance().ActiveScene = scene2;
+			}
+
+			if (player.get<Transform>().GetLocalPosition().x <= -52.0f && RenderGroupBool == 2)
 			{
 				playerTransform.setOrigin(btVector3(0.0f, 0.0f, 5.0f));
 				playerBody->setWorldTransform(playerTransform);
@@ -4828,7 +4978,7 @@ int main() {
 
 				//LinkBody(Bridge2, bridgeBody);
 				LinkBody(Fireisland1, Fireisland1Body);
-				LinkBody(Fireisland2, Fireisland2Body, 2.0f, 0.0f, 0.0f);
+				LinkBody(Fireisland2, Fireisland2Body, 2.0f, 0.0f, 0.0f); 
 				LinkBody(FirePlatform, FirePlatform1Body, 0.0f, 0.0f, 0.2f);
 				LinkBody(FirePlatform2, FirePlatform2Body, 0.0f, 0.0f, 0.2f);
 
@@ -4939,12 +5089,12 @@ int main() {
 		}
 
 		//Delete collision shapes
-		for (int j = 0; j < collisionShapes.size(); j++)
+		/*for (int j = 0; j < collisionShapes.size(); j++)
 		{
 			btCollisionShape* shape = collisionShapes[j];
 			collisionShapes[j] = 0;
 			delete shape;
-		}
+		}*/
 
 		//Delete dynamics world
 		delete dynamicsWorld;
