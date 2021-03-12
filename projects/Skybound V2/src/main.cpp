@@ -3244,6 +3244,25 @@ int main() {
 			//BehaviourBinding::Bind<CameraControlBehaviour>(cameraObject2);
 		}
 
+		// Create an object to be our orthographic camera
+		GameObject orthoCameraObject2 = scene->CreateEntity("OrthoCamera");
+		{
+			//cameraObject.get<Transform>().SetLocalPosition(0, 3, 3).LookAt(glm::vec3(0, 0, 0));
+			//Looking at water and terrain positions
+			//cameraObject.get<Transform>().SetLocalPosition(-43.89, 25.74, 3.89).LookAt(glm::vec3(-40.69, -0.53, -7.83));
+			orthoCameraObject2.get<Transform>().SetLocalPosition(8.0f, 0.0f, 4.0f).LookAt(glm::vec3(0));
+
+			// We'll make our camera a component of the camera object
+			Camera& orthoCamera = orthoCameraObject2.emplace<Camera>();// Camera::Create();
+			orthoCamera.SetPosition(glm::vec3(0, 3, 3));
+			orthoCamera.SetUp(glm::vec3(0, 0, 1));
+			orthoCamera.LookAt(glm::vec3(0));
+			orthoCamera.SetFovDegrees(90.0f); // Set an initial FOV
+			orthoCamera.SetOrthoHeight(3.0f);
+			orthoCameraObject2.get<Camera>().ToggleOrtho();
+			//BehaviourBinding::Bind<CameraControlBehaviour>(orthoCameraObject);
+		}
+
 		#pragma endregion
 
 
@@ -3335,6 +3354,25 @@ int main() {
 			camera.SetFovDegrees(90.0f); // Set an initial FOV
 			camera.SetOrthoHeight(3.0f);
 			//BehaviourBinding::Bind<CameraControlBehaviour>(cameraObject4);
+		}
+
+		// Create an object to be our orthographic camera
+		GameObject orthoCameraObject4 = scene->CreateEntity("OrthoCamera");
+		{
+			//cameraObject.get<Transform>().SetLocalPosition(0, 3, 3).LookAt(glm::vec3(0, 0, 0));
+			//Looking at water and terrain positions
+			//cameraObject.get<Transform>().SetLocalPosition(-43.89, 25.74, 3.89).LookAt(glm::vec3(-40.69, -0.53, -7.83));
+			orthoCameraObject4.get<Transform>().SetLocalPosition(8.0f, 0.0f, 4.0f).LookAt(glm::vec3(0));
+
+			// We'll make our camera a component of the camera object
+			Camera& orthoCamera = orthoCameraObject4.emplace<Camera>();// Camera::Create();
+			orthoCamera.SetPosition(glm::vec3(0, 3, 3));
+			orthoCamera.SetUp(glm::vec3(0, 0, 1));
+			orthoCamera.LookAt(glm::vec3(0));
+			orthoCamera.SetFovDegrees(90.0f); // Set an initial FOV
+			orthoCamera.SetOrthoHeight(3.0f);
+			orthoCameraObject4.get<Camera>().ToggleOrtho();
+			//BehaviourBinding::Bind<CameraControlBehaviour>(orthoCameraObject);
 		}
 
 		#pragma endregion
@@ -4696,9 +4734,11 @@ int main() {
 
 				if (RenderGroupBool == 4)
 				{
+					FirePlatform1Body->setLinearVelocity(btVector3(0, 0, 0));
 					FirePlatform1Transform.setOrigin(btVector3(-25.0f, -5.5f, 0.5f));
 					FirePlatform1Body->setWorldTransform(FirePlatform1Transform);
 
+					FirePlatform2Body->setLinearVelocity(btVector3(0, 0, 0));
 					FirePlatform2Transform.setOrigin(btVector3(-30.0f, 0.5f, 3.0f));
 					FirePlatform2Body->setWorldTransform(FirePlatform2Transform);
 				}
@@ -4994,6 +5034,24 @@ int main() {
 					playerBody->getCenterOfMassTransform().getOrigin().getY(),
 					orthoCameraObject.get<Transform>().GetLocalPosition().z);
 
+			}
+			else if (RenderGroupBool == 2)
+			{
+				cameraObject2.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 8.0f,
+					playerBody->getCenterOfMassTransform().getOrigin().getY(),
+					cameraObject2.get<Transform>().GetLocalPosition().z);
+
+				
+			}
+			else if (RenderGroupBool == 4)
+			{
+				cameraObject4.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 8.0f,
+					playerBody->getCenterOfMassTransform().getOrigin().getY(),
+					playerBody->getCenterOfMassTransform().getOrigin().getZ() + 5.0f);
+			}
+
+			if (RenderGroupBool != 0 || RenderGroupBool != 3)
+			{
 				if (PlayerHealth == 3)
 				{
 					//Sprites
@@ -5039,20 +5097,6 @@ int main() {
 						playerBody->getCenterOfMassTransform().getOrigin().getY() - 1.5f,
 						cameraObject.get<Transform>().GetLocalPosition().z + 6.0f);
 				}
-			}
-			else if (RenderGroupBool == 2)
-			{
-				cameraObject2.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 8.0f,
-					playerBody->getCenterOfMassTransform().getOrigin().getY(),
-					cameraObject2.get<Transform>().GetLocalPosition().z);
-
-				
-			}
-			else if (RenderGroupBool == 4)
-			{
-				cameraObject4.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 8.0f,
-					playerBody->getCenterOfMassTransform().getOrigin().getY(),
-					playerBody->getCenterOfMassTransform().getOrigin().getZ() + 5.0f);
 			}
 
 			#pragma endregion
@@ -5273,7 +5317,6 @@ int main() {
 				glm::mat4 orthoView = glm::inverse(orthoCamTransform.LocalTransform());
 				glm::mat4 orthoProjection = orthoCameraObject.get<Camera>().GetProjection();
 				glm::mat4 orthoViewProjection = orthoProjection * orthoView;
-
 				
 
 				// Sort the renderers by shader and material, we will go for a minimizing context switches approach here,
@@ -5481,6 +5524,12 @@ int main() {
 				glm::mat4 projection = cameraObject2.get<Camera>().GetProjection();
 				glm::mat4 viewProjection = projection * view;
 
+				// Grab out camera info from the camera object
+				Transform& orthoCamTransform = orthoCameraObject2.get<Transform>();
+				glm::mat4 orthoView = glm::inverse(orthoCamTransform.LocalTransform());
+				glm::mat4 orthoProjection = orthoCameraObject2.get<Camera>().GetProjection();
+				glm::mat4 orthoViewProjection = orthoProjection * orthoView;
+
 				if (!scene2ShaderInit)
 				{
 					float scene2AmbientPow = 0.3f;
@@ -5569,6 +5618,26 @@ int main() {
 				#pragma endregion
 
 
+				#pragma region Rendering Sprites
+
+				glEnable(GL_BLEND);
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				//spriteShader->Bind();
+				BackendHandler::SetupShaderForFrame(spriteShader, orthoView, orthoProjection);
+				heartMat->Apply();
+				BackendHandler::RenderVAO(spriteShader, heartVao, orthoViewProjection, heart1Obj.get<Transform>());
+
+				BackendHandler::SetupShaderForFrame(spriteShader, orthoView, orthoProjection);
+				heartMat->Apply();
+				BackendHandler::RenderVAO(spriteShader, heartVao, orthoViewProjection, heart2Obj.get<Transform>());
+
+				BackendHandler::SetupShaderForFrame(spriteShader, orthoView, orthoProjection);
+				heartMat->Apply();
+				BackendHandler::RenderVAO(spriteShader, heartVao, orthoViewProjection, heart3Obj.get<Transform>());
+
+				#pragma endregion
+
+
 				#pragma region Updating Render Transforms with Physics Bodies
 
 				LinkBody(TaigaGround, island1Body, 0.0f, 0.0f, -9.0f);
@@ -5598,6 +5667,12 @@ int main() {
 				glm::mat4 view = glm::inverse(camTransform.LocalTransform());
 				glm::mat4 projection = cameraObject4.get<Camera>().GetProjection();
 				glm::mat4 viewProjection = projection * view;
+
+				// Grab out camera info from the camera object
+				Transform& orthoCamTransform = orthoCameraObject4.get<Transform>();
+				glm::mat4 orthoView = glm::inverse(orthoCamTransform.LocalTransform());
+				glm::mat4 orthoProjection = orthoCameraObject4.get<Camera>().GetProjection();
+				glm::mat4 orthoViewProjection = orthoProjection * orthoView;
 
 				if (!destroyedScene1Objects)
 				{
