@@ -39,6 +39,8 @@
 
 #pragma region Global Variables
 
+int numManifolds;
+
 bool isRotate = true;
 bool isLeft = true;
 int CoinCount = 0;
@@ -67,6 +69,26 @@ bool destroyedScene1Objects = false;
 bool scene1ActiveBodies = false;
 bool scene2ActiveBodies = false;
 bool scene3ActiveBodies = false;
+
+bool scene2ShaderInit = false;
+
+int width, height;
+
+// Collision groups & masks
+#define BIT(x) (1<<(x))
+enum collisiontypes
+{
+	COL_NOTHING = 0,        //< Collide with nothing
+	COL_PLAYER = BIT(1),   //< Collide with player
+	COL_PLATFORM = BIT(2),   //< Collide with players
+	COL_TRIANGLE = BIT(3),   //< Collide with triangles
+	COL_QUAD = BIT(4)    //< Collide with quads
+};
+
+int playerCollidesWith = COL_PLAYER | COL_PLATFORM | COL_TRIANGLE | COL_QUAD;
+int platformCollidesWith = COL_PLAYER | COL_PLATFORM | COL_TRIANGLE;
+int triangleCollidesWith = COL_PLAYER | COL_TRIANGLE | COL_QUAD;
+int quadCollidesWith = COL_PLAYER | COL_QUAD | COL_PLATFORM;
 
 #pragma endregion 
 
@@ -524,9 +546,9 @@ void CheckCoinCollision(GameObject player, GameObject other, float xRangePos, fl
 
 void checkPosition(GameObject object)
 {
-	std::cout << "Player X" << object.get<Transform>().GetLocalPosition().x << std::endl;
-	std::cout << "Player Y" << object.get<Transform>().GetLocalPosition().y << std::endl;
-	std::cout << "Player Z" << object.get<Transform>().GetLocalPosition().z << std::endl;
+	std::cout << "Player X: " << object.get<Transform>().GetLocalPosition().x << std::endl;
+	std::cout << "Player Y: " << object.get<Transform>().GetLocalPosition().y << std::endl;
+	std::cout << "Player Z: " << object.get<Transform>().GetLocalPosition().z << std::endl;
 }
 
 #pragma endregion
@@ -562,10 +584,10 @@ void LinkBody(GameObject object, btRigidBody* body, float adjustX, float adjustY
 
 //Physics callback function
 void myTickCallback(btDynamicsWorld* world, btScalar timeStep) {
-	int numManifolds = world->getDispatcher()->getNumManifolds();
-	printf("numManifolds = %d\n", numManifolds);
+	numManifolds = world->getDispatcher()->getNumManifolds();
+	//printf("numManifolds = %d\n", numManifolds);
 
-	if (numManifolds == 1)
+	if (numManifolds == 0)
 	{
 		//world->removeRigidBody(rigidBody);
 		playerAirborne = true;
@@ -577,6 +599,22 @@ void myTickCallback(btDynamicsWorld* world, btScalar timeStep) {
 }
 
 #pragma endregion
+
+
+struct CustomFilterCallback : public btOverlapFilterCallback
+{
+	// return true when pairs need collision
+	virtual bool	needBroadphaseCollision(btBroadphaseProxy* proxy0, btBroadphaseProxy* proxy1) const
+	{
+		bool collides = (proxy0->m_collisionFilterGroup & proxy1->m_collisionFilterMask) != 0;
+		collides = collides && (proxy1->m_collisionFilterGroup & proxy0->m_collisionFilterMask);
+
+		std::cout << proxy0->getUid() << "  " << proxy1->getUid() << std::endl;
+
+		//add some additional logic here that modified 'collides'
+		return collides;
+	}
+};
 
 
 #pragma region Check Airborne
@@ -699,11 +737,17 @@ int main() {
 		glm::vec3 endPos2 = glm::vec3(-30.0f, 9.5f, -1.0f);
 		glm::vec3 startPos2 = glm::vec3(-30.0f, -9.5f, -1.0f);
 
-		btVector3 firePlatform1Pos1 = btVector3(-25.0f, -1.5f, 0.5f);
-		btVector3 firePlatform1Pos2 = btVector3(-25.0f, 1.5f, 0.5f);
+		btVector3 firePlatform1Pos1 = btVector3(-25.0f, -5.5f, 0.5f);
+		btVector3 firePlatform1Pos2 = btVector3(-25.0f, 5.5f, 0.5f);
 
-		btVector3 firePlatform2Pos1 = btVector3(-30.0f, -1.5f, 3.0f);
-		btVector3 firePlatform2Pos2 = btVector3(-30.0f, 1.5f, 3.0f);
+		//btVector3 firePlatform1Pos1 = btVector3(-25.0f, 0.0f, -2.0f);
+		//btVector3 firePlatform1Pos2 = btVector3(-25.0f, 0.0f, 8.5f);
+
+		//btVector3 firePlatform2Pos1 = btVector3(-30.0f, -5.5f, 3.0f);
+		//btVector3 firePlatform2Pos2 = btVector3(-30.0f, 5.5f, 3.0f);
+
+		btVector3 firePlatform2Pos1 = btVector3(-30.0f, -5.5f, 3.0f);
+		btVector3 firePlatform2Pos2 = btVector3(-30.0f, 5.5f, 3.0f);
 
 		float PhantomTimer = 0.0f;
 		float PhantomTimer2 = 0.0f;
@@ -714,8 +758,8 @@ int main() {
 		float PhantomTimeLimit = 1.0f;
 		float PhantomTimeLimit2 = 2.0f;
 		float JumpTimeLimit = 0.15f;
-		float firePlatform1Limit = 1.0f;
-		float firePlatform2Limit = 1.0f;
+		float firePlatform1Limit = 5.0f;
+		float firePlatform2Limit = 5.0f;
 
 		bool PhantomMove = true;
 		bool PhantomMove2 = true;
@@ -855,7 +899,10 @@ int main() {
 
 		
 		//Basic Effect(does nothing)
+		PostEffect* basicEffect0;
 		PostEffect* basicEffect;
+		PostEffect* basicEffect2;
+		PostEffect* basicEffect3;
 
 		int activeEffect = 4;
 		std::vector<PostEffect*> effects;
@@ -874,6 +921,40 @@ int main() {
 		BloomEffect* bloomEffect;
 
 		VignetteEffect* vignetteEffect;
+
+		//Scene 2 Effects
+		std::vector<PostEffect*> scene2Effects;
+
+		SepiaEffect* sepiaEffect2;
+
+		GreyscaleEffect* greyscaleEffect2;
+
+		ColorCorrectionEffect* colorCorrectionEffect2;
+
+		WarmEffect* warmEffect2;
+
+		CoolEffect* coolEffect2;
+
+		BloomEffect* bloomEffect2;
+
+		VignetteEffect* vignetteEffect2;
+
+		//Scene 3 Effects
+		std::vector<PostEffect*> scene3Effects;
+
+		SepiaEffect* sepiaEffect3;
+
+		GreyscaleEffect* greyscaleEffect3;
+
+		ColorCorrectionEffect* colorCorrectionEffect3;
+
+		WarmEffect* warmEffect3;
+
+		CoolEffect* coolEffect3;
+
+		BloomEffect* bloomEffect3;
+
+		VignetteEffect* vignetteEffect3;
 
 		// We'll add some ImGui controls to control our shader
 		BackendHandler::imGuiCallbacks.push_back([&]() {
@@ -945,6 +1026,146 @@ int main() {
 						temp->SetOpacity(opacity);
 					}
 					
+				}
+			}
+			if (ImGui::CollapsingHeader("Effect Controls for Scene 2"))
+			{
+				ImGui::SliderInt("Chosen Effect", &activeEffect, 0, effects.size() - 1);
+
+				if (activeEffect == 0)
+				{
+					ImGui::Text("Active Effect: Greyscale Effect");
+
+					GreyscaleEffect* temp = (GreyscaleEffect*)scene2Effects[activeEffect];
+					float intensity = temp->GetIntensity();
+
+					if (ImGui::SliderFloat("Intensity", &intensity, 0.0f, 1.0f))
+					{
+						temp->SetIntensity(intensity);
+					}
+				}
+				if (activeEffect == 1)
+				{
+					ImGui::Text("Active Effect: Warm Color Correction Effect");
+
+					WarmEffect* temp = (WarmEffect*)scene2Effects[activeEffect];
+				}
+				if (activeEffect == 2)
+				{
+					ImGui::Text("Active Effect: Cool Color Correction Effect");
+
+					CoolEffect* temp = (CoolEffect*)scene2Effects[activeEffect];
+				}
+				if (activeEffect == 3)
+				{
+					ImGui::Text("Active Effect: Custom Color Correction Effect");
+
+					ColorCorrectionEffect* temp = (ColorCorrectionEffect*)scene2Effects[activeEffect];
+				}
+				if (activeEffect == 4)
+				{
+					ImGui::Text("Active Effect: Bloom Effect");
+
+					BloomEffect* temp = (BloomEffect*)scene2Effects[activeEffect];
+					float passes = temp->GetPasses();
+					float threshold = temp->GetThreshold();
+
+					if (ImGui::SliderFloat("Blur Value", &passes, 0.0f, 40.0f)) {
+						temp->SetPasses(passes);
+					}
+					if (ImGui::SliderFloat("Brightness Threshold", &threshold, 0.0f, 2.0f)) {
+						temp->SetThreshold(threshold);
+					}
+				}
+				if (activeEffect == 5)
+				{
+					ImGui::Text("Active Effect: Vignette Effect");
+
+					VignetteEffect* temp = (VignetteEffect*)scene2Effects[activeEffect];
+					float innerRad = temp->GetInnerRadius();
+					float outerRad = temp->GetOuterRadius();
+					float opacity = temp->GetOpacity();
+
+					if (ImGui::SliderFloat("Inner Radius", &innerRad, 0.0f, 1.0f)) {
+						temp->SetInnerRadius(innerRad);
+					}
+					if (ImGui::SliderFloat("Outer Radius", &outerRad, 0.0f, 1.0f)) {
+						temp->SetOuterRadius(outerRad);
+					}
+					if (ImGui::SliderFloat("Opacity", &opacity, 0.0f, 1.0f)) {
+						temp->SetOpacity(opacity);
+					}
+
+				}
+			}
+			if (ImGui::CollapsingHeader("Effect Controls for Scene 3"))
+			{
+				ImGui::SliderInt("Chosen Effect", &activeEffect, 0, effects.size() - 1);
+
+				if (activeEffect == 0)
+				{
+					ImGui::Text("Active Effect: Greyscale Effect");
+
+					GreyscaleEffect* temp = (GreyscaleEffect*)scene3Effects[activeEffect];
+					float intensity = temp->GetIntensity();
+
+					if (ImGui::SliderFloat("Intensity", &intensity, 0.0f, 1.0f))
+					{
+						temp->SetIntensity(intensity);
+					}
+				}
+				if (activeEffect == 1)
+				{
+					ImGui::Text("Active Effect: Warm Color Correction Effect");
+
+					WarmEffect* temp = (WarmEffect*)scene3Effects[activeEffect];
+				}
+				if (activeEffect == 2)
+				{
+					ImGui::Text("Active Effect: Cool Color Correction Effect");
+
+					CoolEffect* temp = (CoolEffect*)scene3Effects[activeEffect];
+				}
+				if (activeEffect == 3)
+				{
+					ImGui::Text("Active Effect: Custom Color Correction Effect");
+
+					ColorCorrectionEffect* temp = (ColorCorrectionEffect*)scene3Effects[activeEffect];
+				}
+				if (activeEffect == 4)
+				{
+					ImGui::Text("Active Effect: Bloom Effect");
+
+					BloomEffect* temp = (BloomEffect*)scene3Effects[activeEffect];
+					float passes = temp->GetPasses();
+					float threshold = temp->GetThreshold();
+
+					if (ImGui::SliderFloat("Blur Value", &passes, 0.0f, 40.0f)) {
+						temp->SetPasses(passes);
+					}
+					if (ImGui::SliderFloat("Brightness Threshold", &threshold, 0.0f, 2.0f)) {
+						temp->SetThreshold(threshold);
+					}
+				}
+				if (activeEffect == 5)
+				{
+					ImGui::Text("Active Effect: Vignette Effect");
+
+					VignetteEffect* temp = (VignetteEffect*)scene3Effects[activeEffect];
+					float innerRad = temp->GetInnerRadius();
+					float outerRad = temp->GetOuterRadius();
+					float opacity = temp->GetOpacity();
+
+					if (ImGui::SliderFloat("Inner Radius", &innerRad, 0.0f, 1.0f)) {
+						temp->SetInnerRadius(innerRad);
+					}
+					if (ImGui::SliderFloat("Outer Radius", &outerRad, 0.0f, 1.0f)) {
+						temp->SetOuterRadius(outerRad);
+					}
+					if (ImGui::SliderFloat("Opacity", &opacity, 0.0f, 1.0f)) {
+						temp->SetOpacity(opacity);
+					}
+
 				}
 			}
 			if (ImGui::CollapsingHeader("Scene Level Lighting Settings"))
@@ -1281,6 +1502,10 @@ int main() {
 		Texture2D::sptr diffuseMp29 = Texture2D::LoadFromFile("images/sled_texture.png");
 		Texture2D::sptr diffuseMp30 = Texture2D::LoadFromFile("images/ice crystal_texture.png");
 
+		Texture2D::sptr diffuseMp31 = Texture2D::LoadFromFile("images/PineTreeColours.png");
+		Texture2D::sptr diffuseMp32 = Texture2D::LoadFromFile("images/tree1_texture.png");
+		Texture2D::sptr diffuseMp33 = Texture2D::LoadFromFile("images/tree2_texture.png");
+
 		//Heart Sprites
 		Texture2D::sptr heartDiffuse = Texture2D::LoadFromFile("images/heart.png");
 
@@ -1288,6 +1513,9 @@ int main() {
 		Texture2D::sptr playMenuDiffuse = Texture2D::LoadFromFile("images/SkyboundMenuPlay.png");
 		Texture2D::sptr controlsMenuDiffuse = Texture2D::LoadFromFile("images/SkyboundMenuControls.png");
 		Texture2D::sptr exitMenuDiffuse = Texture2D::LoadFromFile("images/SkyboundMenuExit.png");
+
+		//Death Scene Sprites
+		Texture2D::sptr deathMenuDiffuse = Texture2D::LoadFromFile("images/YouDied.png");
 
 		Texture2D::sptr controlsDiffuse = Texture2D::LoadFromFile("images/SkyboundControls.png");
 
@@ -1580,6 +1808,30 @@ int main() {
 		material29->Set("s_DiffuseRamp", diffuseRamp);
 		material29->Set("s_SpecularRamp", specularRamp);
 
+		ShaderMaterial::sptr material30 = ShaderMaterial::Create();
+		material30->Shader = shader;
+		material30->Set("s_Diffuse", diffuseMp31);
+		material30->Set("u_Shininess", 0.2f);
+		material30->Set("u_OutlineThickness", 0.2f);
+		material30->Set("s_DiffuseRamp", diffuseRamp);
+		material30->Set("s_SpecularRamp", specularRamp);
+
+		ShaderMaterial::sptr material31 = ShaderMaterial::Create();
+		material31->Shader = shader;
+		material31->Set("s_Diffuse", diffuseMp32);
+		material31->Set("u_Shininess", 0.2f);
+		material31->Set("u_OutlineThickness", 0.2f);
+		material31->Set("s_DiffuseRamp", diffuseRamp);
+		material31->Set("s_SpecularRamp", specularRamp);
+
+		ShaderMaterial::sptr material32 = ShaderMaterial::Create();
+		material32->Shader = shader;
+		material32->Set("s_Diffuse", diffuseMp33);
+		material32->Set("u_Shininess", 0.2f);
+		material32->Set("u_OutlineThickness", 0.2f);
+		material32->Set("s_DiffuseRamp", diffuseRamp);
+		material32->Set("s_SpecularRamp", specularRamp);
+
 		////////
 
 
@@ -1869,8 +2121,8 @@ int main() {
 
 			//Disabling the calculation of inertia makes the physics shape not rotate
 
-			//if (isPlayerDynamic)
-				//playerShape->calculateLocalInertia(playerMass, localPlayerInertia);
+			/*if (isPlayerDynamic)
+				playerShape->calculateLocalInertia(playerMass, localPlayerInertia);*/
 
 
 			//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
@@ -1878,15 +2130,12 @@ int main() {
 			btRigidBody::btRigidBodyConstructionInfo rbInfo(playerMass, playerMotionState, playerShape, localPlayerInertia);
 			playerBody = new btRigidBody(rbInfo);
 
-			playerBody->setDamping(0.9f, 0.9f);
-
+			playerBody->setDamping(0.95f, 0.95f);
 
 			//add the body to the dynamics world
-			dynamicsWorld->addRigidBody(playerBody);
+			dynamicsWorld->addRigidBody(playerBody, 1, 1);
 
 			//dynamicsWorld->addCollisionObject(playerObj, 1, 1);
-
-			//playerBody->applyGravity();
 
 
 		}
@@ -1946,7 +2195,7 @@ int main() {
 			island1Body = new btRigidBody(rbInfo);
 
 			//add the body to the dynamics world
-			dynamicsWorld->addRigidBody(island1Body);
+			dynamicsWorld->addRigidBody(island1Body, 1, 1);
 			
 		}
 
@@ -1995,7 +2244,7 @@ int main() {
 			island2Body = new btRigidBody(rbInfo);
 
 			//add the body to the dynamics world
-			dynamicsWorld->addRigidBody(island2Body);
+			dynamicsWorld->addRigidBody(island2Body, 1, 1);
 		}
 
 		#pragma endregion
@@ -2061,7 +2310,7 @@ int main() {
 
 
 			//add the body to the dynamics world
-			dynamicsWorld->addRigidBody(wizardBody);
+			dynamicsWorld->addRigidBody(wizardBody, 1, 1);
 		}
 
 		#pragma endregion
@@ -2370,7 +2619,7 @@ int main() {
 			bridgeBody = new btRigidBody(rbInfo);
 
 			//add the body to the dynamics world
-			dynamicsWorld->addRigidBody(bridgeBody);
+			dynamicsWorld->addRigidBody(bridgeBody, 1, 1);
 		}
 
 		#pragma endregion
@@ -2553,7 +2802,6 @@ int main() {
 
 		#pragma region Post-Processing Effect Objects
 
-		int width, height;
 		glfwGetWindowSize(BackendHandler::window, &width, &height);
 
 		
@@ -2648,6 +2896,30 @@ int main() {
 			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
 		}
 
+		GameObject TaigaGround3 = scene2->CreateEntity("Taiga3");
+		{
+
+			VertexArrayObject::sptr Taiga3VAO = ObjLoader::LoadFromFile("models/taiga_island.obj");
+			TaigaGround3.emplace<RendererComponent>().SetMesh(Taiga3VAO).SetMaterial(material10);
+			TaigaGround3.get<Transform>().SetLocalPosition(-20.0f, 50.0f, -13.0f);
+			TaigaGround3.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
+			TaigaGround3.get<Transform>().SetLocalScale(3.0f, 3.0f, 3.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(TaigaGround3);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
+		GameObject TaigaGround4 = scene2->CreateEntity("Taiga4");
+		{
+
+			VertexArrayObject::sptr Taiga4VAO = ObjLoader::LoadFromFile("models/taiga_island.obj");
+			TaigaGround4.emplace<RendererComponent>().SetMesh(Taiga4VAO).SetMaterial(material10);
+			TaigaGround4.get<Transform>().SetLocalPosition(-20.0f, -50.0f, -13.0f);
+			TaigaGround4.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
+			TaigaGround4.get<Transform>().SetLocalScale(3.0f, 3.0f, 3.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(TaigaGround4);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
 		#pragma endregion
 
 
@@ -2708,6 +2980,7 @@ int main() {
 
 		#pragma endregion
 
+
 		#pragma region Snowman Object
 
 		GameObject Snowman = scene2->CreateEntity("snowman");
@@ -2735,6 +3008,7 @@ int main() {
 		}
 
 		#pragma endregion
+		
 
 		#pragma region Sled Object
 
@@ -2750,11 +3024,24 @@ int main() {
 			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
 		}
 
+		GameObject Sled2 = scene2->CreateEntity("sled");
+		{
+
+			VertexArrayObject::sptr Sled2VAO = ObjLoader::LoadFromFile("models/Ethan/sled.obj");
+			Sled2.emplace<RendererComponent>().SetMesh(Sled2VAO).SetMaterial(material28);
+			Sled2.get<Transform>().SetLocalPosition(3.0f, -11.5f, -3.5f);
+			Sled2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
+			Sled2.get<Transform>().SetLocalScale(3.0f, 4.0f, 4.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Sled2);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
 		#pragma endregion
+
 
 		#pragma region Ice Crystal Object
 
-		GameObject IceCrystal = scene2->CreateEntity("sled");
+		GameObject IceCrystal = scene2->CreateEntity("crystal");
 		{
 
 			VertexArrayObject::sptr IceCrystalVAO = ObjLoader::LoadFromFile("models/Ethan/ice crystal.obj");
@@ -2767,6 +3054,7 @@ int main() {
 		}
 
 		#pragma endregion
+
 
 		#pragma region Portal (Level 2) Object
 
@@ -2797,6 +3085,144 @@ int main() {
 			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
 		}
 
+		GameObject Bridge3 = scene2->CreateEntity("Bridge3");
+		{
+			VertexArrayObject::sptr Bridge3VAO = ObjLoader::LoadFromFile("models/hossain/NewBridge.obj");
+			Bridge3.emplace<RendererComponent>().SetMesh(Bridge3VAO).SetMaterial(material13);
+			Bridge3.get<Transform>().SetLocalPosition(-10.0f, -24.0f, -5.0f);
+			Bridge3.get<Transform>().SetLocalRotation(90.0f, 0.0f, 150.0f);
+			Bridge3.get<Transform>().SetLocalScale(1.0f, 1.0f, 2.5f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Bridge3);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
+		GameObject Bridge4 = scene2->CreateEntity("Bridge4");
+		{
+			VertexArrayObject::sptr Bridge4VAO = ObjLoader::LoadFromFile("models/hossain/NewBridge.obj");
+			Bridge4.emplace<RendererComponent>().SetMesh(Bridge4VAO).SetMaterial(material13);
+			Bridge4.get<Transform>().SetLocalPosition(-10.0f, 24.0f, -5.0f);
+			Bridge4.get<Transform>().SetLocalRotation(90.0f, 0.0f, 30.0f);
+			Bridge4.get<Transform>().SetLocalScale(1.0f, 1.0f, 2.5f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Bridge4);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
+		#pragma endregion
+
+
+		#pragma region PineTree (Level 2) Object
+
+		GameObject PineTree1 = scene2->CreateEntity("PineTree1");
+		{
+			VertexArrayObject::sptr PineTree1VAO = ObjLoader::LoadFromFile("models/PineTree/PineTree0.obj");
+			PineTree1.emplace<RendererComponent>().SetMesh(PineTree1VAO).SetMaterial(material30);
+			PineTree1.get<Transform>().SetLocalPosition(-7.5f, 11.5f, -4.8f);
+			PineTree1.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
+			PineTree1.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(PineTree1);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
+		GameObject PineTree2 = scene2->CreateEntity("PineTree2");
+		{
+			VertexArrayObject::sptr PineTree2VAO = ObjLoader::LoadFromFile("models/PineTree/PineTree0.obj");
+			PineTree2.emplace<RendererComponent>().SetMesh(PineTree2VAO).SetMaterial(material30);
+			PineTree2.get<Transform>().SetLocalPosition(-25.0f, -11.0f, -4.8f);
+			PineTree2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
+			PineTree2.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(PineTree2);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
+		GameObject PineTree3 = scene2->CreateEntity("PineTree2");
+		{
+			VertexArrayObject::sptr PineTree3VAO = ObjLoader::LoadFromFile("models/PineTree/PineTree0.obj");
+			PineTree3.emplace<RendererComponent>().SetMesh(PineTree3VAO).SetMaterial(material30);
+			PineTree3.get<Transform>().SetLocalPosition(8.0f, 10.0f, -4.8f);
+			PineTree3.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
+			PineTree3.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(PineTree3);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
+		#pragma endregion
+
+
+		#pragma region Tree2 (Level 2) Object
+
+		GameObject Tree2 = scene2->CreateEntity("Tree2");
+		{
+			VertexArrayObject::sptr Tree2VAO = ObjLoader::LoadFromFile("models/tree1.2.obj");
+			Tree2.emplace<RendererComponent>().SetMesh(Tree2VAO).SetMaterial(material31);
+			Tree2.get<Transform>().SetLocalPosition(-23.5f, -32.5f, -4.8f);
+			Tree2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
+			Tree2.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Tree2);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
+		GameObject Tree2_2 = scene2->CreateEntity("Tree2");
+		{
+			VertexArrayObject::sptr Tree2_2VAO = ObjLoader::LoadFromFile("models/tree1.2.obj");
+			Tree2_2.emplace<RendererComponent>().SetMesh(Tree2_2VAO).SetMaterial(material31);
+			Tree2_2.get<Transform>().SetLocalPosition(-28.5f, 37.5f, -4.8f);
+			Tree2_2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
+			Tree2_2.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Tree2_2);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
+		#pragma endregion
+
+
+		#pragma region Tree3 (Level 2) Object
+
+		GameObject Tree3 = scene2->CreateEntity("Tree3");
+		{
+			VertexArrayObject::sptr Tree3VAO = ObjLoader::LoadFromFile("models/tree2.obj");
+			Tree3.emplace<RendererComponent>().SetMesh(Tree3VAO).SetMaterial(material32);
+			Tree3.get<Transform>().SetLocalPosition(-18.5f, -58.5f, -4.8f);
+			Tree3.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
+			Tree3.get<Transform>().SetLocalScale(1.2f, 1.2f, 1.2f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Tree3);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
+		GameObject Tree3_2 = scene2->CreateEntity("Tree3");
+		{
+			VertexArrayObject::sptr Tree3_2VAO = ObjLoader::LoadFromFile("models/tree2.obj");
+			Tree3_2.emplace<RendererComponent>().SetMesh(Tree3_2VAO).SetMaterial(material32);
+			Tree3_2.get<Transform>().SetLocalPosition(-30.5f, -52.5f, -4.8f);
+			Tree3_2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
+			Tree3_2.get<Transform>().SetLocalScale(1.2f, 1.2f, 1.2f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Tree3_2);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
+		GameObject Tree3_3 = scene2->CreateEntity("Tree3");
+		{
+			VertexArrayObject::sptr Tree3_3VAO = ObjLoader::LoadFromFile("models/tree2.obj");
+			Tree3_3.emplace<RendererComponent>().SetMesh(Tree3_3VAO).SetMaterial(material32);
+			Tree3_3.get<Transform>().SetLocalPosition(-28.5f, 56.5f, -4.8f);
+			Tree3_3.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
+			Tree3_3.get<Transform>().SetLocalScale(1.2f, 1.2f, 1.2f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Tree3_3);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
+		GameObject Tree3_4 = scene2->CreateEntity("Tree3");
+		{
+			VertexArrayObject::sptr Tree3_4VAO = ObjLoader::LoadFromFile("models/tree2.obj");
+			Tree3_4.emplace<RendererComponent>().SetMesh(Tree3_4VAO).SetMaterial(material32);
+			Tree3_4.get<Transform>().SetLocalPosition(-15.5f, 54.5f, -4.8f);
+			Tree3_4.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
+			Tree3_4.get<Transform>().SetLocalScale(1.2f, 1.2f, 1.2f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Tree3_4);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
+
+
 		#pragma endregion
 
 
@@ -2817,6 +3243,62 @@ int main() {
 			camera.SetOrthoHeight(3.0f);
 			//BehaviourBinding::Bind<CameraControlBehaviour>(cameraObject2);
 		}
+
+		#pragma endregion
+
+
+		#pragma region Post-Processing Effect Objects
+
+		//glfwGetWindowSize(BackendHandler::window, &width, &height);
+
+
+		GameObject framebufferObject2 = scene2->CreateEntity("Basic Effect");
+		{
+			basicEffect2 = &framebufferObject2.emplace<PostEffect>();
+			basicEffect2->Init(width, height);
+		}
+
+		GameObject greyscaleEffectObject2 = scene2->CreateEntity("Greyscale Effect");
+		{
+			greyscaleEffect2 = &greyscaleEffectObject2.emplace<GreyscaleEffect>();
+			greyscaleEffect2->Init(width, height);
+		}
+		scene2Effects.push_back(greyscaleEffect2);
+
+		GameObject warmEffectObject2 = scene2->CreateEntity("Warm Color Correction Effect");
+		{
+			warmEffect2 = &warmEffectObject2.emplace<WarmEffect>();
+			warmEffect2->Init(width, height);
+		}
+		scene2Effects.push_back(warmEffect2);
+
+		GameObject coolEffectObject2 = scene2->CreateEntity("Cool Color Correction Effect");
+		{
+			coolEffect2 = &coolEffectObject2.emplace<CoolEffect>();
+			coolEffect2->Init(width, height);
+		}
+		scene2Effects.push_back(coolEffect2);
+
+		GameObject colorCorrectionEffectObject2 = scene2->CreateEntity("Color Correction Effect");
+		{
+			colorCorrectionEffect2 = &colorCorrectionEffectObject2.emplace<ColorCorrectionEffect>();
+			colorCorrectionEffect2->Init(width, height);
+		}
+		scene2Effects.push_back(colorCorrectionEffect2);
+
+		GameObject bloomEffectObject2 = scene2->CreateEntity("Color Correction Effect");
+		{
+			bloomEffect2 = &bloomEffectObject2.emplace<BloomEffect>();
+			bloomEffect2->Init(width, height);
+		}
+		scene2Effects.push_back(bloomEffect2);
+
+		GameObject vignetteEffectObject2 = scene2->CreateEntity("Vignette Effect");
+		{
+			vignetteEffect2 = &vignetteEffectObject2.emplace<VignetteEffect>();
+			vignetteEffect2->Init(width, height);
+		}
+		scene2Effects.push_back(vignetteEffect2);
 
 		#pragma endregion
 
@@ -3111,13 +3593,16 @@ int main() {
 		#pragma endregion
 
 
-		#pragma region Fire Platform Object
+		#pragma region Fire Platform Objects
 
 		btCollisionShape* FirePlatformShape = new btBoxShape(btVector3(1.7f, 2.0f, 0.2f));
 
+		btCollisionObject* firePlatform1Obj = new btCollisionObject();
+		firePlatform1Obj->setCollisionShape(FirePlatformShape);
+
 		btTransform FirePlatform1Transform;
 
-		btScalar FirePlatformMass(0.f);
+		btScalar FirePlatformMass(2.f);
 
 		//rigidbody is dynamic if and only if mass is non zero, otherwise static
 		bool FirePlatformisDynamic = (FirePlatformMass != 0.f);
@@ -3125,8 +3610,10 @@ int main() {
 		btVector3 localFirePlatformInertia(0, 0, 0);
 
 		//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
-		btDefaultMotionState* FirePlatformMotionState;
+		btDefaultMotionState* FirePlatform1MotionState;
 		btRigidBody* FirePlatform1Body;
+		//FirePlatform1Body->isKinematicObject();
+		
 
 		GameObject FirePlatform = scene4->CreateEntity("FirePlatform");
 		{
@@ -3141,22 +3628,24 @@ int main() {
 			//Collision Stuff
 			collisionShapes.push_back(FirePlatformShape);
 			FirePlatform1Transform.setIdentity();
-			FirePlatform1Transform.setOrigin(btVector3(-25.0f, 0.0f, 0.5f));
+			FirePlatform1Transform.setOrigin(btVector3(-25.0f, -5.5f, 0.5f));
 			
 			if (FirePlatformisDynamic)
 				FirePlatformShape->calculateLocalInertia(FirePlatformMass, localFirePlatformInertia);
 
 			//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
-			FirePlatformMotionState = new btDefaultMotionState(FirePlatform1Transform);
-			btRigidBody::btRigidBodyConstructionInfo rbInfo(FirePlatformMass, FirePlatformMotionState, FirePlatformShape, localFirePlatformInertia);
+			FirePlatform1MotionState = new btDefaultMotionState(FirePlatform1Transform);
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(FirePlatformMass, FirePlatform1MotionState, FirePlatformShape, localFirePlatformInertia);
 			FirePlatform1Body = new btRigidBody(rbInfo);
 
 			//add the body to the dynamics world
 			//dynamicsWorld->addRigidBody(Fireisland1Body);
 		}
 
+		btDefaultMotionState* FirePlatform2MotionState;
 		btTransform FirePlatform2Transform;
 		btRigidBody* FirePlatform2Body;
+		//FirePlatform2Body->isKinematicObject();
 
 		GameObject FirePlatform2 = scene4->CreateEntity("FirePlatform2");
 		{
@@ -3177,12 +3666,12 @@ int main() {
 				FirePlatformShape->calculateLocalInertia(FirePlatformMass, localFirePlatformInertia);
 
 			//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
-			FirePlatformMotionState = new btDefaultMotionState(FirePlatform2Transform);
-			btRigidBody::btRigidBodyConstructionInfo rbInfo(FirePlatformMass, FirePlatformMotionState, FirePlatformShape, localFirePlatformInertia);
+			FirePlatform2MotionState = new btDefaultMotionState(FirePlatform2Transform);
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(FirePlatformMass, FirePlatform2MotionState, FirePlatformShape, localFirePlatformInertia);
 			FirePlatform2Body = new btRigidBody(rbInfo);
 
 			//add the body to the dynamics world
-			//dynamicsWorld->addRigidBody(Fireisland1Body);
+			//dynamicsWorld->addRigidBody(Fireisland2Body);
 		}
 
 		#pragma endregion
@@ -3202,6 +3691,61 @@ int main() {
 		}
 
 
+
+		#pragma endregion
+
+
+		#pragma region Post Effects
+		
+		//glfwGetWindowSize(BackendHandler::window, &width, &height);
+
+		GameObject framebufferObject3 = scene4->CreateEntity("Basic Effect");
+		{
+			basicEffect3 = &framebufferObject3.emplace<PostEffect>();
+			basicEffect3->Init(width, height);
+		}
+
+		GameObject greyscaleEffectObject3 = scene4->CreateEntity("Greyscale Effect");
+		{
+			greyscaleEffect3 = &greyscaleEffectObject3.emplace<GreyscaleEffect>();
+			greyscaleEffect3->Init(width, height);
+		}
+		scene3Effects.push_back(greyscaleEffect3);
+
+		GameObject warmEffectObject3 = scene4->CreateEntity("Warm Color Correction Effect");
+		{
+			warmEffect3 = &warmEffectObject3.emplace<WarmEffect>();
+			warmEffect3->Init(width, height);
+		}
+		scene3Effects.push_back(warmEffect3);
+
+		GameObject coolEffectObject3 = scene4->CreateEntity("Cool Color Correction Effect");
+		{
+			coolEffect3 = &coolEffectObject3.emplace<CoolEffect>();
+			coolEffect3->Init(width, height);
+		}
+		scene3Effects.push_back(coolEffect3);
+
+		GameObject colorCorrectionEffectObject3 = scene4->CreateEntity("Color Correction Effect");
+		{
+			colorCorrectionEffect3 = &colorCorrectionEffectObject3.emplace<ColorCorrectionEffect>();
+			colorCorrectionEffect3->Init(width, height);
+		}
+		scene3Effects.push_back(colorCorrectionEffect3);
+
+		GameObject bloomEffectObject3 = scene4->CreateEntity("Color Correction Effect");
+		{
+			bloomEffect3 = &bloomEffectObject3.emplace<BloomEffect>();
+			bloomEffect3->Init(width, height);
+		}
+		scene3Effects.push_back(bloomEffect3);
+
+		GameObject vignetteEffectObject3 = scene4->CreateEntity("Vignette Effect");
+		{
+			vignetteEffect3 = &vignetteEffectObject3.emplace<VignetteEffect>();
+			vignetteEffect3->Init(width, height);
+		}
+		scene3Effects.push_back(vignetteEffect3);
 
 		#pragma endregion
 
@@ -3669,6 +4213,19 @@ int main() {
 
 		#pragma endregion
 
+
+		#pragma region Post Effects
+
+		glfwGetWindowSize(BackendHandler::window, &width, &height);
+
+		GameObject framebufferObject0 = scene0->CreateEntity("Basic Effect");
+		{
+			basicEffect0 = &framebufferObject0.emplace<PostEffect>();
+			basicEffect0->Init(width, height);
+		}
+
+		#pragma endregion
+
 		#pragma endregion
 		///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -3682,6 +4239,16 @@ int main() {
 		// We can create a group ahead of time to make iterating on the group faster
 		entt::basic_group<entt::entity, entt::exclude_t<>, entt::get_t<Transform>, RendererComponent> renderGroup3 =
 			scene3->Registry().group<RendererComponent>(entt::get_t<Transform>());
+
+		#pragma region Materials
+
+		ShaderMaterial::sptr deathMenuMat = ShaderMaterial::Create();
+		deathMenuMat->Shader = spriteShader;
+		deathMenuMat->Set("s_Diffuse", deathMenuDiffuse);
+		deathMenuMat->RenderLayer = 0;
+
+		#pragma endregion
+
 
 		#pragma region Game Over ObjectS
 
@@ -3700,12 +4267,44 @@ int main() {
 		#pragma endregion
 
 
-		#pragma region Camera Object
+		#pragma region Sprite Objects
+
+		VertexArrayObject::sptr deathVAO;
+
+		GameObject deathMenuObj = scene3->CreateEntity("MenuPlay");
+		{
+			GLfloat vertices[] = { -1, -1, 0, // bottom left corner
+						   -1,  1, 0, // top left corner
+							1,  1, 0, // top right corner
+							1, -1, 0 }; // bottom right corner
+
+
+			GLuint elements[] = {
+					0, 1, 2,
+					2, 3, 0
+			};
+
+
+			menuVAO = NotObjLoader::LoadFromFile("sprite.notobj");
+			deathMenuObj.emplace<Sprite>().SetMesh(menuVAO).SetMaterial(deathMenuMat);
+			//daethMenuObj.emplace<RendererComponent>().SetMesh(daethMenuVao).SetMaterial(daethMenuMat);
+			deathMenuObj.get<Transform>().SetLocalPosition(-5.0f, 0.0f, 10.0f);
+			deathMenuObj.get<Transform>().SetLocalRotation(0.0f, 180.0f, 270.0f);
+			//daethMenuObj.get<Transform>().SetLocalRotation(0.0f, 180.0f, 180.0f);
+			deathMenuObj.get<Transform>().SetLocalScale(0.6f, 0.6f, 0.6f);
+			//daethMenuObj.get<Transform>().LookAt(glm::vec3(0));
+
+		}
+
+		#pragma endregion
+
+
+		#pragma region Camera Objects
 
 		// Create an object to be our camera
 		GameObject cameraObject3 = scene3->CreateEntity("Camera");
 		{
-			cameraObject3.get<Transform>().SetLocalPosition(0, 3, 3).LookAt(glm::vec3(-5.0f, 0.0f, 0.0f));
+			cameraObject3.get<Transform>().SetLocalPosition(10.0f, 0.0f, 10.0f).LookAt(playMenuObj.get<Transform>().GetLocalPosition());
 
 			// We'll make our camera a component of the camera object
 			Camera& camera = cameraObject3.emplace<Camera>();// Camera::Create();
@@ -3715,6 +4314,26 @@ int main() {
 			camera.SetFovDegrees(90.0f); // Set an initial FOV
 			camera.SetOrthoHeight(3.0f);
 		}
+
+		// Create an object to be our orthographic camera
+		GameObject orthoCameraObject3 = scene3->CreateEntity("OrthoCamera");
+		{
+			//cameraObject.get<Transform>().SetLocalPosition(0, 3, 3).LookAt(glm::vec3(0, 0, 0));
+			//Looking at water and terrain positions
+			//cameraObject.get<Transform>().SetLocalPosition(-43.89, 25.74, 3.89).LookAt(glm::vec3(-40.69, -0.53, -7.83));
+			orthoCameraObject3.get<Transform>().SetLocalPosition(10.0f, 0.0f, 10.0f).LookAt(deathMenuObj.get<Transform>().GetLocalPosition());
+
+			// We'll make our camera a component of the camera object
+			Camera& orthoCamera = orthoCameraObject3.emplace<Camera>();// Camera::Create();
+			orthoCamera.SetPosition(glm::vec3(0, 3, 3));
+			orthoCamera.SetUp(glm::vec3(0, 0, 1));
+			orthoCamera.LookAt(glm::vec3(0));
+			orthoCamera.SetFovDegrees(90.0f); // Set an initial FOV
+			orthoCamera.SetOrthoHeight(3.0f);
+			orthoCameraObject3.get<Camera>().ToggleOrtho();
+			//BehaviourBinding::Bind<CameraControlBehaviour>(orthoCameraObject);
+		}
+
 
 		#pragma endregion
 
@@ -3809,9 +4428,11 @@ int main() {
 			});
 
 			keyToggles.emplace_back(GLFW_KEY_L, [&]() {
-				RenderGroupBool = 2;
-				Application::Instance().ActiveScene = scene2;
+				RenderGroupBool = 4;
+				Application::Instance().ActiveScene = scene4;
 			});
+
+			#pragma region Main Menu Keys
 
 			keyToggles.emplace_back(GLFW_KEY_LEFT, [&]() {
 				if (RenderGroupBool == 0)
@@ -3899,6 +4520,8 @@ int main() {
 				}
 
 			});
+
+			#pragma endregion
 		}
 
 		// Initialize our timing instance and grab a reference for our use
@@ -3948,6 +4571,8 @@ int main() {
 		PhysicsDrawer mydebugDrawer;
 		dynamicsWorld->setDebugDrawer(&mydebugDrawer);
 
+		btOverlapFilterCallback* filterCallback = new CustomFilterCallback();
+		dynamicsWorld->getPairCache()->setOverlapFilterCallback(filterCallback);
 
 		///// Game loop /////
 		while (!glfwWindowShouldClose(BackendHandler::window)) {
@@ -3963,6 +4588,7 @@ int main() {
 			dynamicsWorld->stepSimulation(time.DeltaTime, 1);
 			myTickCallback(dynamicsWorld, time.DeltaTime);
 			dynamicsWorld->setInternalTickCallback(myTickCallback);
+			dynamicsWorld->getPairCache()->setOverlapFilterCallback(filterCallback);
 
 			#pragma region Update Sound
 
@@ -3999,7 +4625,7 @@ int main() {
 			}
 
 			//checkPosition(player);
-
+			
 			#pragma endregion
 
 
@@ -4025,17 +4651,21 @@ int main() {
 			});
 
 			
-			//dynamicsWorld->setInternalTickCallback(myTickCallback);
+			
 
 			#pragma region Respawning
 
 			if (glfwGetKey(BackendHandler::window, GLFW_KEY_R) == GLFW_PRESS && RenderGroupBool == 3) {
 				PlayerHealth = 3;
 				RenderGroupBool = 1;
+				Application::Instance().ActiveScene = scene;
+
 				CoinCount = 0;
 				gotCoin = false;
 
-				Wizard.get<Transform>().SetLocalPosition(-14.5f, 0.0f, -2.5f);
+				wizardTransform.setOrigin(btVector3(-14.5f, 0.0f, -2.5f));
+				wizardBody->setWorldTransform(wizardTransform);
+				//Wizard.get<Transform>().SetLocalPosition(-14.5f, 0.0f, -2.5f);
 				Coin.get<Transform>().SetLocalPosition(6.0f, -7.0f, 0.0f);
 
 			}
@@ -4053,7 +4683,6 @@ int main() {
 
 			#pragma endregion
 			
-			
 
 			#pragma region Check for Player Falling and Player Jumping 
 
@@ -4064,6 +4693,15 @@ int main() {
 				PlayerHealth--;
 				playerTransform.setOrigin(btVector3(0.0f, 0.0f, 5.0f));
 				playerBody->setWorldTransform(playerTransform);
+
+				if (RenderGroupBool == 4)
+				{
+					FirePlatform1Transform.setOrigin(btVector3(-25.0f, -5.5f, 0.5f));
+					FirePlatform1Body->setWorldTransform(FirePlatform1Transform);
+
+					FirePlatform2Transform.setOrigin(btVector3(-30.0f, 0.5f, 3.0f));
+					FirePlatform2Body->setWorldTransform(FirePlatform2Transform);
+				}
 			}
 
 			#pragma endregion
@@ -4158,13 +4796,12 @@ int main() {
 			#pragma endregion
 
 
-			#pragma region Phantom Movements
-
-			if (RenderGroupBool == 0 || RenderGroupBool == 1)
-				UpdateCatmull(phantomWaypoints, Phantom, time.DeltaTime);
+			#pragma region Phantom and Misc. Objects Movement
 
 			if (RenderGroupBool == 1 || RenderGroupBool == 0)
 			{
+				UpdateCatmull(phantomWaypoints, Phantom, time.DeltaTime);
+
 				PhantomTimer2 += time.DeltaTime;
 
 				if (PhantomTimer2 >= PhantomTimeLimit2)
@@ -4235,13 +4872,26 @@ int main() {
 				Phantom.get<Transform>().SetLocalPosition(100, 100, 100);
 				Phantom2.get<Transform>().SetLocalPosition(100, 100, 100);
 			}
-			/*else if (RenderGroupBool == 4)
+			else if (RenderGroupBool == 4)
 			{
+				FirePlatform1Body->activate(true);
+
+				if (FirePlatform.get<Transform>().GetLocalPosition() == glm::vec3(-25.0f, -5.5f, 0.5f))
+				{
+					FirePlatform1Body->setLinearVelocity(btVector3(0.0, 4.0, 0.0));
+				}
+
+				if (FirePlatform.get<Transform>().GetLocalPosition() == glm::vec3(-25.0f, 5.5f, 0.5f))
+				{
+					FirePlatform1Body->setLinearVelocity(btVector3(0.0, -4.0, 0.0));
+				}
+
+
 				firePlatform1Timer += time.DeltaTime;
 
 				if (firePlatform1Timer >= firePlatform1Limit)
 				{
-					firePlatform1Limit = 0.0f;
+					firePlatform1Timer = 0.0f;
 					firePlatform1Move = !firePlatform1Move;
 				}
 
@@ -4249,13 +4899,32 @@ int main() {
 
 				if (firePlatform1Move == true)
 				{
-					FirePlatform1Transform.setOrigin(LERP(firePlatform1Pos1, firePlatform1Pos2, firePlatform1Tpos));
-					FirePlatform1Body->setWorldTransform(FirePlatform1Transform);
+					//FirePlatform1Transform.setOrigin(LERP(firePlatform1Pos1, firePlatform1Pos2, firePlatform1Tpos));
+					//FirePlatform1Body->setWorldTransform(FirePlatform1Transform);
+					//Greater than -35 less than -20
+					//playerBody->setLinearVelocity(FirePlatform1Body->getLinearVelocity());
+
+					/*if (player.get<Transform>().GetLocalPosition().x < -20.0f &&
+						player.get<Transform>().GetLocalPosition().x > -35.0f &&
+						numManifolds != 0)
+					{
+						playerBody->setLinearVelocity(playerBody->getLinearVelocity() + FirePlatform1Body->getLinearVelocity());
+						std::cout << "Active 1" << std::endl;
+					}*/
 				}
-				else if (PhantomMove2 == false)
+				else if (firePlatform1Move == false)
 				{
-					FirePlatform1Transform.setOrigin(LERP(firePlatform1Pos2, firePlatform1Pos1, firePlatform1Tpos));
-					FirePlatform1Body->setWorldTransform(FirePlatform1Transform);
+					//FirePlatform1Transform.setOrigin(LERP(firePlatform1Pos2, firePlatform1Pos1, firePlatform1Tpos));
+					//FirePlatform1Body->setWorldTransform(FirePlatform1Transform);
+					//playerBody->setLinearVelocity(FirePlatform1Body->getLinearVelocity());
+
+					/*if (player.get<Transform>().GetLocalPosition().x < -20.0f &&
+						player.get<Transform>().GetLocalPosition().x > -35.0f &&
+						numManifolds != 0)
+					{
+						playerBody->setLinearVelocity(playerBody->getLinearVelocity() + FirePlatform1Body->getLinearVelocity());
+						std::cout << "Active 1" << std::endl;
+					}*/
 				}
 
 
@@ -4263,7 +4932,7 @@ int main() {
 
 				if (firePlatform2Timer >= firePlatform2Limit)
 				{
-					firePlatform2Limit = 0.0f;
+					firePlatform2Timer = 0.0f;
 					firePlatform2Move = !firePlatform2Move;
 				}
 
@@ -4271,15 +4940,40 @@ int main() {
 
 				if (firePlatform2Move == true)
 				{
-					FirePlatform2Transform.setOrigin(LERP(firePlatform2Pos1, firePlatform2Pos2, firePlatform2Tpos));
-					FirePlatform2Body->setWorldTransform(FirePlatform2Transform);
+					//FirePlatform2Transform.setOrigin(LERP(firePlatform2Pos2, firePlatform2Pos1, firePlatform2Tpos));
+					//FirePlatform2Body->setWorldTransform(FirePlatform2Transform);
+					//playerBody->setLinearVelocity(FirePlatform2Body->getLinearVelocity());
+
+					/*if (player.get<Transform>().GetLocalPosition().x < -20.0f &&
+						player.get<Transform>().GetLocalPosition().x > -35.0f &&
+						numManifolds != 0)
+					{
+						playerBody->setLinearVelocity(playerBody->getLinearVelocity() + FirePlatform2Body->getLinearVelocity());
+						std::cout << "Active 2" << std::endl;
+					}*/
 				}
-				else if (PhantomMove2 == false)
+				else if (firePlatform2Move == false)
 				{
-					FirePlatform2Transform.setOrigin(LERP(firePlatform2Pos2, firePlatform2Pos1, firePlatform2Tpos));
-					FirePlatform2Body->setWorldTransform(FirePlatform2Transform);
+					//FirePlatform2Transform.setOrigin(LERP(firePlatform2Pos1, firePlatform2Pos2, firePlatform2Tpos));
+					//FirePlatform2Body->setWorldTransform(FirePlatform2Transform);
+					//playerBody->setLinearVelocity(FirePlatform2Body->getLinearVelocity());
+
+					/*if (player.get<Transform>().GetLocalPosition().x < -20.0f &&
+						player.get<Transform>().GetLocalPosition().x > -35.0f &&
+						numManifolds != 0)
+					{
+						playerBody->setLinearVelocity(playerBody->getLinearVelocity() + FirePlatform2Body->getLinearVelocity());
+						std::cout << "Active 2" << std::endl;
+					}*/
 				}
-			}*/
+
+				/*if (player.get<Transform>().GetLocalPosition().x < -20.0f &&
+					player.get<Transform>().GetLocalPosition().x > -35.0f &&
+					numManifolds != 0)
+				{
+					playerBody->setLinearVelocity(FirePlatform2Body->getLinearVelocity());
+				}*/
+			}
 
 			#pragma endregion
 
@@ -4414,15 +5108,26 @@ int main() {
 
 
 			// Clear the screen
+			basicEffect0->Clear();
 			basicEffect->Clear();
+			basicEffect2->Clear();
+			basicEffect3->Clear();
 			/*greyscaleEffect->Clear();
 			sepiaEffect->Clear();*/
 			for (int i = 0; i < effects.size(); i++)
 			{
 				effects[i]->Clear();
 			}
+			for (int i = 0; i < effects.size(); i++)
+			{
+				scene2Effects[i]->Clear();
+			}
+			for (int i = 0; i < effects.size(); i++)
+			{
+				scene3Effects[i]->Clear();
+			}
 
-			glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 			glEnable(GL_DEPTH_TEST);
 			glClearDepth(1.0f);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -4432,6 +5137,7 @@ int main() {
 				t.UpdateWorldMatrix();
 			});
 			
+
 
 			#pragma region Render Menu Scene (Scene 0)
 
@@ -4471,6 +5177,9 @@ int main() {
 				Shader::sptr current = nullptr;
 				ShaderMaterial::sptr currentMat = nullptr;
 
+				activeEffect = 0;
+
+				basicEffect0->BindBuffer(0);
 
 				// Iterate over the render group components and draw them
 				renderGroup0.each([&](entt::entity e, RendererComponent& renderer, Transform& transform) {
@@ -4537,6 +5246,13 @@ int main() {
 
 				#pragma endregion
 
+
+				basicEffect0->UnbindBuffer();
+
+				effects[activeEffect]->ApplyEffect(basicEffect0);
+
+				effects[activeEffect]->DrawToScreen();
+
 			}
 
 			#pragma endregion
@@ -4582,6 +5298,8 @@ int main() {
 				// Start by assuming no shader or material is applied
 				Shader::sptr current = nullptr;
 				ShaderMaterial::sptr currentMat = nullptr;
+
+				activeEffect = 4;
 
 				basicEffect->BindBuffer(0);
 
@@ -4681,10 +5399,10 @@ int main() {
 				}
 
 				//Player Walking on Bridge
-				if (cameraObject.get<Transform>().GetLocalPosition().x < -15.0f && cameraObject.get<Transform>().GetLocalPosition().x > -18.0f)
-					footsteps.SetParameter("isOnBridge", 1.0f);
+				if (player.get<Transform>().GetLocalPosition().x < -15.0f && player.get<Transform>().GetLocalPosition().x > -18.0f)
+					footsteps.SetParameter("isOnBridge", true);
 				else
-					footsteps.SetParameter("isOnBridge", 0.0f);
+					footsteps.SetParameter("isOnBridge", false);
 
 				//Birds Chirping
 				Timer += time.DeltaTime;
@@ -4763,6 +5481,14 @@ int main() {
 				glm::mat4 projection = cameraObject2.get<Camera>().GetProjection();
 				glm::mat4 viewProjection = projection * view;
 
+				if (!scene2ShaderInit)
+				{
+					float scene2AmbientPow = 0.3f;
+					shader->SetUniform("u_AmbientStrength", scene2AmbientPow);
+					morphShader->SetUniform("u_AmbientStrength", ambientPow);
+					scene2ShaderInit = true;
+				}
+
 				// Sort the renderers by shader and material, we will go for a minimizing context switches approach here,
 				// but you could for instance sort front to back to optimize for fill rate if you have intensive fragment shaders
 				renderGroup2.sort<RendererComponent>([](const RendererComponent& l, const RendererComponent& r) {
@@ -4787,7 +5513,7 @@ int main() {
 
 				activeEffect = 2;
 
-				basicEffect->BindBuffer(0);
+				basicEffect2->BindBuffer(0);
 
 				// Iterate over the render group components and draw them
 				renderGroup2.each([&](entt::entity e, RendererComponent& renderer, Transform& transform) {
@@ -4853,11 +5579,11 @@ int main() {
 
 				#pragma endregion
 
-				basicEffect->UnbindBuffer();
+				basicEffect2->UnbindBuffer();
 
-				effects[activeEffect]->ApplyEffect(basicEffect);
+				scene2Effects[activeEffect]->ApplyEffect(basicEffect2);
 
-				effects[activeEffect]->DrawToScreen();
+				scene2Effects[activeEffect]->DrawToScreen();
 			}
 
 			#pragma endregion
@@ -4882,10 +5608,16 @@ int main() {
 					destroyedScene1Objects = true;
 
 					//Adding the current scene's physics bodies
-					dynamicsWorld->addRigidBody(Fireisland1Body);
-					dynamicsWorld->addRigidBody(Fireisland2Body);
-					dynamicsWorld->addRigidBody(FirePlatform1Body);
-					dynamicsWorld->addRigidBody(FirePlatform2Body);
+					dynamicsWorld->addRigidBody(Fireisland1Body, 1, 1);
+					dynamicsWorld->addRigidBody(Fireisland2Body, 1, 1);
+					dynamicsWorld->addRigidBody(FirePlatform1Body, 41, 41);
+					FirePlatform1Body->setGravity(btVector3(0, 0, 0));
+					//FirePlatform1Body->isKinematicObject();
+					dynamicsWorld->addRigidBody(FirePlatform2Body, 41, 41);
+					FirePlatform2Body->setGravity(btVector3(0, 0, 0));
+					//FirePlatform2Body->isKinematicObject();
+
+					//dynamicsWorld->addCollisionObject(firePlatform1Obj, 41, 41);
 				}
 
 				// Sort the renderers by shader and material, we will go for a minimizing context switches approach here,
@@ -4913,7 +5645,7 @@ int main() {
 
 				activeEffect = 1;
 
-				basicEffect->BindBuffer(0);
+				basicEffect3->BindBuffer(0);
 
 				// Iterate over the render group components and draw them
 				renderGroup4.each([&](entt::entity e, RendererComponent& renderer, Transform& transform) {
@@ -4984,13 +5716,15 @@ int main() {
 
 				#pragma endregion
 
+				/*std::cout << "Platform Linear Velocity X: " << playerBody->getLinearVelocity().getX() << std::endl;
+				std::cout << "Platform Linear Velocity Y: " << playerBody->getLinearVelocity().getY() << std::endl;
+				std::cout << "Platform Linear Velocity Z: " << playerBody->getLinearVelocity().getZ() << std::endl;*/
 
+				basicEffect3->UnbindBuffer();
 
-				basicEffect->UnbindBuffer();
+				scene3Effects[activeEffect]->ApplyEffect(basicEffect3);
 
-				effects[activeEffect]->ApplyEffect(basicEffect);
-
-				effects[activeEffect]->DrawToScreen();
+				scene3Effects[activeEffect]->DrawToScreen();
 
 			}
 
@@ -5006,6 +5740,12 @@ int main() {
 				glm::mat4 view = glm::inverse(camTransform.LocalTransform());
 				glm::mat4 projection = cameraObject3.get<Camera>().GetProjection();
 				glm::mat4 viewProjection = projection * view;
+
+				// Grab out camera info from the camera object
+				Transform& orthoCamTransform = orthoCameraObject3.get<Transform>();
+				glm::mat4 orthoView = glm::inverse(orthoCamTransform.LocalTransform());
+				glm::mat4 orthoProjection = orthoCameraObject3.get<Camera>().GetProjection();
+				glm::mat4 orthoViewProjection = orthoProjection * orthoView;
 
 				// Sort the renderers by shader and material, we will go for a minimizing context switches approach here,
 				// but you could for instance sort front to back to optimize for fill rate if you have intensive fragment shaders
@@ -5029,6 +5769,9 @@ int main() {
 				Shader::sptr current = nullptr;
 				ShaderMaterial::sptr currentMat = nullptr;
 
+				activeEffect = 0;
+
+				basicEffect0->BindBuffer(0);
 
 				// Iterate over the render group components and draw them
 				renderGroup3.each([&](entt::entity e, RendererComponent& renderer, Transform& transform) {
@@ -5047,11 +5790,32 @@ int main() {
 					BackendHandler::RenderVAO(renderer.Material->Shader, renderer.Mesh, viewProjection, transform);
 				});
 
+				#pragma region Rendering Sprites
+
+				glEnable(GL_BLEND);
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				//spriteShader->Bind();
+				ShaderMaterial::sptr currentMenuMat = nullptr;
+				BackendHandler::SetupShaderForFrame(spriteShader, orthoView, orthoProjection);
+				currentMenuMat = deathMenuObj.get<Sprite>().Material;
+				currentMenuMat->Apply();
+				BackendHandler::RenderVAO(spriteShader, menuVAO, orthoViewProjection, deathMenuObj.get<Transform>());
+				glDisable(GL_BLEND);
+
+				#pragma endregion
+
+				basicEffect0->UnbindBuffer();
+
+				effects[activeEffect]->ApplyEffect(basicEffect0);
+
+				effects[activeEffect]->DrawToScreen();
 				
 			}
 
 			#pragma endregion
 
+
+			
 
 			//#pragma region Update Sound
 
