@@ -86,6 +86,51 @@ void BackendHandler::GlfwWindowResizedCallback(GLFWwindow* window, int width, in
 	{
 		buf.Reshape(width, height);
 	});
+
+	for (int i = 0; i < Application::Instance().scenes.size(); i++)
+	{
+		Application::Instance().scenes[i]->Registry().view<Camera>().each([=](Camera& cam)
+			{
+				cam.ResizeWindow(width, height);
+			});
+		Application::Instance().scenes[i]->Registry().view<Framebuffer>().each([=](Framebuffer& buf)
+			{
+				buf.Reshape(width, height);
+			});
+		Application::Instance().scenes[i]->Registry().view<PostEffect>().each([=](PostEffect& buf)
+			{
+				buf.Reshape(width, height);
+			});
+		Application::Instance().scenes[i]->Registry().view<GreyscaleEffect>().each([=](GreyscaleEffect& buf)
+			{
+				buf.Reshape(width, height);
+			});
+		Application::Instance().scenes[i]->Registry().view<SepiaEffect>().each([=](SepiaEffect& buf)
+			{
+				buf.Reshape(width, height);
+			});
+		Application::Instance().scenes[i]->Registry().view<ColorCorrectionEffect>().each([=](ColorCorrectionEffect& buf)
+			{
+				buf.Reshape(width, height);
+			});
+		Application::Instance().scenes[i]->Registry().view<WarmEffect>().each([=](WarmEffect& buf)
+			{
+				buf.Reshape(width, height);
+			});
+		Application::Instance().scenes[i]->Registry().view<CoolEffect>().each([=](CoolEffect& buf)
+			{
+				buf.Reshape(width, height);
+			});
+		Application::Instance().scenes[i]->Registry().view<BloomEffect>().each([=](BloomEffect& buf)
+			{
+				buf.Reshape(width, height);
+			});
+		Application::Instance().scenes[i]->Registry().view<VignetteEffect>().each([=](VignetteEffect& buf)
+			{
+				buf.Reshape(width, height);
+			});
+	}
+
 }
 
 bool BackendHandler::InitGLFW()

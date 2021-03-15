@@ -15,4 +15,5 @@ public:
 
 	GLFWwindow* Window;
 	std::shared_ptr<GameScene> ActiveScene;
+	std::vector<std::shared_ptr<GameScene>> scenes;
 };

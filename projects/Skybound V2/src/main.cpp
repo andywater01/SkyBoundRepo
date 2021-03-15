@@ -3336,7 +3336,6 @@ int main() {
 		entt::basic_group<entt::entity, entt::exclude_t<>, entt::get_t<Transform>, RendererComponent> renderGroup4 =
 			scene4->Registry().group<RendererComponent>(entt::get_t<Transform>());
 		
-		//Make Objects Here :D
 
 		#pragma region Camera Object
 
@@ -3640,7 +3639,7 @@ int main() {
 
 		btTransform FirePlatform1Transform;
 
-		btScalar FirePlatformMass(2.f);
+		btScalar FirePlatformMass(1.f);
 
 		//rigidbody is dynamic if and only if mass is non zero, otherwise static
 		bool FirePlatformisDynamic = (FirePlatformMass != 0.f);
@@ -4425,6 +4424,23 @@ int main() {
 			// use std::bind
 			keyToggles.emplace_back(GLFW_KEY_T, [&]() { cameraObject.get<Camera>().ToggleOrtho(); });
 
+			keyToggles.emplace_back(GLFW_KEY_B, [&]() 
+				{ 
+					glfwGetWindowSize(BackendHandler::window, &width, &height);
+
+					std::cout << "\nCurrent Window Width: " << width << std::endl;
+					std::cout << "Current Window Height: " << height << std::endl;
+
+					if (Application::Instance().ActiveScene == scene)
+					{
+						std::cout << "\nIt is Scene 1" << std::endl;
+					}
+					else
+					{
+						std::cout << "\nIt is not Scene 1" << std::endl;
+					}
+				});
+
 			controllables.push_back(player);
 			controllables.push_back(Wizard);
 
@@ -4611,6 +4627,14 @@ int main() {
 
 		btOverlapFilterCallback* filterCallback = new CustomFilterCallback();
 		dynamicsWorld->getPairCache()->setOverlapFilterCallback(filterCallback);
+
+		bool postEffectInit = false;
+
+		Application::Instance().scenes.push_back(scene0);
+		Application::Instance().scenes.push_back(scene);
+		Application::Instance().scenes.push_back(scene2);
+		Application::Instance().scenes.push_back(scene3);
+		Application::Instance().scenes.push_back(scene4);
 
 		///// Game loop /////
 		while (!glfwWindowShouldClose(BackendHandler::window)) {
@@ -5162,11 +5186,11 @@ int main() {
 			{
 				effects[i]->Clear();
 			}
-			for (int i = 0; i < effects.size(); i++)
+			for (int i = 0; i < scene2Effects.size(); i++)
 			{
 				scene2Effects[i]->Clear();
 			}
-			for (int i = 0; i < effects.size(); i++)
+			for (int i = 0; i < scene3Effects.size(); i++)
 			{
 				scene3Effects[i]->Clear();
 			}
@@ -5181,7 +5205,11 @@ int main() {
 				t.UpdateWorldMatrix();
 			});
 			
+			int newWidth, newHeight;
 
+			glfwGetWindowSize(BackendHandler::window, &newWidth, &newHeight);
+
+			glViewport(0, 0, newWidth, newHeight);
 
 			#pragma region Render Menu Scene (Scene 0)
 
@@ -5293,9 +5321,9 @@ int main() {
 
 				basicEffect0->UnbindBuffer();
 
-				effects[activeEffect]->ApplyEffect(basicEffect0);
+				basicEffect0->ApplyEffect(basicEffect0);
 
-				effects[activeEffect]->DrawToScreen();
+				basicEffect0->DrawToScreen();
 
 			}
 
@@ -5344,8 +5372,22 @@ int main() {
 
 				activeEffect = 4;
 
-				basicEffect->BindBuffer(0);
+				/*int newWidth, newHeight;
 
+				glfwGetWindowSize(BackendHandler::window, &newWidth, &newHeight);
+
+				glViewport(0, 0, newWidth, newHeight);*/
+				//basicEffect->BindBuffer(0);
+
+				if (!postEffectInit)
+				{
+					//Application::Instance().ActiveScene = scene;
+					//glfwGetWindowSize(BackendHandler::window, &width, &height);
+					//basicEffect->Init(width, height);
+					//basicEffect->Reshape(newWidth, newHeight);
+					postEffectInit = true;
+				}
+				basicEffect->BindBuffer(0);
 				// Iterate over the render group components and draw them
 				renderGroup.each([&](entt::entity e, RendererComponent& renderer, Transform& transform) {
 					// If the shader has changed, set up it's uniforms
@@ -5504,6 +5546,22 @@ int main() {
 				#pragma endregion
 
 				basicEffect->UnbindBuffer();
+
+				/*if (!postEffectInit)
+				{
+
+					effects[activeEffect]->ApplyEffect(basicEffect0);
+
+					effects[activeEffect]->DrawToScreen();
+
+					postEffectInit = true;
+				}
+				else
+				{
+					effects[activeEffect]->ApplyEffect(basicEffect);
+
+					effects[activeEffect]->DrawToScreen();
+				}*/
 
 				effects[activeEffect]->ApplyEffect(basicEffect);
 
@@ -5961,6 +6019,12 @@ int main() {
 
 		// Nullify scene so that we can release references
 		Application::Instance().ActiveScene = nullptr;
+
+		for (int i = 0; i < Application::Instance().scenes.size(); i++)
+		{
+			Application::Instance().scenes[i] = nullptr;
+		}
+
 		//Clean up the environment generator so we can release references
 		EnvironmentGenerator::CleanUpPointers();
 		BackendHandler::ShutdownImGui();
