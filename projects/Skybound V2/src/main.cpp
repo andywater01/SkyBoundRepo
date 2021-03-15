@@ -654,6 +654,32 @@ int main() {
 	int selectedVao = 0; // select cube by default
 	std::vector<GameObject> controllables;
 
+
+
+	#pragma region Sound Definitions
+
+	//Game.cpp init//
+	Init();
+
+	AudioEngine& engine = AudioEngine::Instance();
+	AudioEvent& BG = engine.GetEvent("music");
+	AudioEvent& popSound = engine.GetEvent("popSound");
+	AudioEvent& loon = engine.GetEvent("loonSound");
+	AudioEvent& footsteps = engine.GetEvent("footstepsSound");
+
+	AudioEvent& menu = engine.GetEvent("menuMusic");
+	AudioEvent& Islandmusic2 = engine.GetEvent("music2");
+	AudioEvent& Islandmusic3 = engine.GetEvent("music3");
+
+
+	AudioEvent& Prelude1 = engine.GetEvent("Narration1");
+	AudioEvent& Prelude2 = engine.GetEvent("Narration2");
+	AudioEvent& Prelude3 = engine.GetEvent("Narration3");
+
+	#pragma endregion
+
+
+
 	BackendHandler::InitAll();
 
 	// Let OpenGL know that we want debug output, and route it to our handler function
@@ -1674,7 +1700,7 @@ int main() {
 		material13->Shader = shader;
 		material13->Set("s_Diffuse", diffuseMp14);
 		material13->Set("u_Shininess", 8.0f);
-		material13->Set("u_OutlineThickness", 0.4f);
+		material13->Set("u_OutlineThickness", 0.0f);
 		material13->Set("s_DiffuseRamp", diffuseRamp);
 		material13->Set("s_SpecularRamp", specularRamp);
 
@@ -4533,6 +4559,7 @@ int main() {
 					}
 				}
 			});
+			
 
 			keyToggles.emplace_back(GLFW_KEY_ENTER, [&]() {
 				if (menuSelect == 0)
@@ -4543,7 +4570,7 @@ int main() {
 				else if (menuSelect == 1)
 				{
 					menuSelect = 3;
-
+					Prelude1.Play();
 					//RenderGroupBool = 1;
 					//Application::Instance().ActiveScene = scene;
 				}
@@ -4554,14 +4581,17 @@ int main() {
 				else if (menuSelect == 3)
 				{
 					menuSelect = 4;
+					Prelude1.StopImmediately();
 				}
 				else if (menuSelect == 4)
 				{
 					menuSelect = 5;
+					Prelude2.StopImmediately();
 				}
 				else if (menuSelect == 5)
 				{
 					menuSelect = 6;
+					Prelude3.StopImmediately();
 				}
 				
 			});
@@ -4601,18 +4631,7 @@ int main() {
 		#pragma endregion
 
 
-		#pragma region Sound Definitions
-
-		//Game.cpp init//
-		Init();
-
-		AudioEngine& engine = AudioEngine::Instance();
-		AudioEvent& BG = engine.GetEvent("music");
-		AudioEvent& popSound = engine.GetEvent("popSound");
-		AudioEvent& loon = engine.GetEvent("loonSound");
-		AudioEvent& footsteps = engine.GetEvent("footstepsSound");
-
-		#pragma endregion
+		
 
 
 		#pragma region Sound Booleans
@@ -4787,6 +4806,8 @@ int main() {
 				playerBody->setWorldTransform(playerTransform);
 				RenderGroupBool = 2;
 				Application::Instance().ActiveScene = scene2;
+				BG.StopImmediately();
+				Islandmusic2.Play();
 			}
 
 			if (player.get<Transform>().GetLocalPosition().x <= -52.0f && RenderGroupBool == 2)
@@ -4795,6 +4816,8 @@ int main() {
 				playerBody->setWorldTransform(playerTransform);
 				RenderGroupBool = 4;
 				Application::Instance().ActiveScene = scene4;
+				Islandmusic2.StopImmediately();
+				Islandmusic3.Play();
 			}
 
 			if (PlayerHealth <= 0)
@@ -4817,7 +4840,7 @@ int main() {
 			if (menuSelect == 3)
 			{
 				playMenuObj.get<Sprite>().SetMaterial(story1Mat);
-
+				Prelude2.Play();
 				storyTimer += time.DeltaTime;
 
 				if (storyTimer > 8.0f)
@@ -4829,7 +4852,7 @@ int main() {
 			else if (menuSelect == 4)
 			{
 				playMenuObj.get<Sprite>().SetMaterial(story2Mat);
-
+				Prelude3.Play();
 				storyTimer += time.DeltaTime;
 
 				if (storyTimer > 8.0f)
@@ -4841,7 +4864,7 @@ int main() {
 			else if (menuSelect == 5)
 			{
 				playMenuObj.get<Sprite>().SetMaterial(story3Mat);
-
+				
 				storyTimer += time.DeltaTime;
 
 				if (storyTimer > 8.0f)
@@ -5463,8 +5486,11 @@ int main() {
 				#pragma region Scene Sounds
 
 				//Background Music
+				
 				BG.Play();
 				Level1Music == true;
+
+				
 
 				//Player Walking
 				if (glfwGetKey(BackendHandler::window, GLFW_KEY_W) == GLFW_PRESS || glfwGetKey(BackendHandler::window, GLFW_KEY_A) == GLFW_PRESS || glfwGetKey(BackendHandler::window, GLFW_KEY_S) == GLFW_PRESS || glfwGetKey(BackendHandler::window, GLFW_KEY_D) == GLFW_PRESS)
