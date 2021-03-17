@@ -36,6 +36,11 @@ public:
 	void render(
 		const Shader::sptr& shader,
 		const glm::mat4& viewProjection,
+		Transform& transform, const glm::mat4& view, const glm::mat4& projection, const glm::mat4& lightSpaceMat);
+
+	void render(
+		const Shader::sptr& shader,
+		const glm::mat4& viewProjection,
 		Transform& transform, const glm::mat4& view, const glm::mat4& projection);
 
 

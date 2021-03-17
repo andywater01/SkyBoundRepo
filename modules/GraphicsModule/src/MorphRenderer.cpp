@@ -123,9 +123,32 @@ void MorphRenderer::SetFrameTime(float frameTime, int anim)
 void MorphRenderer::render(
 	const Shader::sptr& shader,
 	const glm::mat4& viewProjection,
-	Transform& transform, const glm::mat4& view, const glm::mat4& projection)
+	Transform& transform, const glm::mat4& view, const glm::mat4& projection, const glm::mat4& lightSpaceMat)
 {
 	
+	shader->Bind();
+	Material->Apply();
+	shader->SetUniformMatrix("u_View", view);
+	shader->SetUniformMatrix("u_ViewProjection", projection * view);
+	shader->SetUniformMatrix("u_SkyboxMatrix", projection * glm::mat4(glm::mat3(view)));
+	shader->SetUniformMatrix("u_LightSpaceMatrix", lightSpaceMat);
+	glm::vec3 camPos = glm::inverse(view) * glm::vec4(0, 0, 0, 1);
+	shader->SetUniform("u_CamPos", camPos);
+	shader->SetUniformMatrix("u_ModelViewProjection", viewProjection * transform.LocalTransform());
+	shader->SetUniformMatrix("u_Model", transform.LocalTransform());
+	shader->SetUniformMatrix("u_NormalMatrix", transform.NormalMatrix());
+	shader->SetUniform("t", m_t);
+	vao->Render();
+	shader->UnBind();
+}
+
+
+void MorphRenderer::render(
+	const Shader::sptr& shader,
+	const glm::mat4& viewProjection,
+	Transform& transform, const glm::mat4& view, const glm::mat4& projection)
+{
+
 	shader->Bind();
 	Material->Apply();
 	shader->SetUniformMatrix("u_View", view);
@@ -138,6 +161,7 @@ void MorphRenderer::render(
 	shader->SetUniformMatrix("u_NormalMatrix", transform.NormalMatrix());
 	shader->SetUniform("t", m_t);
 	vao->Render();
+	shader->UnBind();
 }
 
 
