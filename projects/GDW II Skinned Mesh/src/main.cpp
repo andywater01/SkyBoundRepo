@@ -72,7 +72,7 @@ int main()
 
 	// INSERT LOADING SKINNED MESH HERE
 	GLTFSkinnedMesh mesh;
-	mesh.LoadFromFile("models/dude.gltf");
+	mesh.LoadFromFile("models/Wizard.gltf");
 	mesh.SetLooping(true);
 
 #pragma region Standard Graphics Code

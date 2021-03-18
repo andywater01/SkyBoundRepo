@@ -632,14 +632,14 @@ struct CustomFilterCallback : public btOverlapFilterCallback
 		bool collides = (proxy0->m_collisionFilterGroup & proxy1->m_collisionFilterMask) != 0;
 		collides = collides && (proxy1->m_collisionFilterGroup & proxy0->m_collisionFilterMask);
 
-		//std::cout << proxy0->getUid() << "  " << proxy1->getUid() << std::endl;
+		std::cout << proxy0->getUid() << "  " << proxy1->getUid() << std::endl;
 
-		if (proxy0->getUid() == 9)
+		if (proxy0->getUid() == 13)
 		{
 			isPlatform1Collision = true;
 		}
 
-		if (proxy0->getUid() == 10)
+		if (proxy0->getUid() == 14)
 		{
 			isPlatform2Collision = true;
 		}
@@ -3111,6 +3111,26 @@ int main() {
 			TaigaGround3.get<Transform>().SetLocalScale(3.0f, 3.0f, 3.0f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(TaigaGround3);
 			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+
+			//Collision Stuff
+			collisionShapes.push_back(taigaIsland3Shape);
+			taigaIsland3Transform.setIdentity();
+			taigaIsland3Transform.setOrigin(btVector3(-40.7f, 0.4f, -6.3f));
+			btQuaternion rotation;
+			rotation.setEuler(0.0f, 0.0f, 0.0f);
+			taigaIsland3Transform.setRotation(rotation);
+			//island3Transform.setRotation(btQuaternion(btVector3(1, 0, 0), btScalar(-1.57)));
+			//island3Transform.setRotation(btQuaternion(btVector3(1, 0, 0), btScalar(-1.57)));
+			//island3Transform.setOrigin(glm2bt(island3.get<Transform>().GetLocalPosition()));
+			//island3Transform.setIdentity();
+
+			if (isTaigaIsland3Dynamic)
+				taigaIsland3Shape->calculateLocalInertia(taigaIsland3Mass, localtaigaIsland3Inertia);
+
+			//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+			taigaIsland3MotionState = new btDefaultMotionState(taigaIsland3Transform);
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(taigaIsland3Mass, taigaIsland3MotionState, taigaIsland3Shape, localtaigaIsland3Inertia);
+			taigaIsland3Body = new btRigidBody(rbInfo);
 		}
 
 
@@ -3563,7 +3583,7 @@ int main() {
 		#pragma endregion
 
 
-		#pragma region Camera Object
+		#pragma region Camera Objects
 
 		// Create an object to be our camera
 		GameObject cameraObject2 = scene2->CreateEntity("Camera");
@@ -3799,27 +3819,27 @@ int main() {
 		GameObject Fireisland2 = scene4->CreateEntity("FireIsland2");
 		{
 
-			VertexArrayObject::sptr FireIsland2VAO = ObjLoader::LoadFromFile("models/FireIslandDone.obj");
-			Fireisland2.emplace<RendererComponent>().SetMesh(FireIsland2VAO).SetMaterial(material21);
-			Fireisland2.get<Transform>().SetLocalPosition(-55.0f, 0.0f, 3.0f);
-			Fireisland2.get<Transform>().SetLocalRotation(-90.0f, 180.0f, 0.0f);
-			Fireisland2.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
-			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Fireisland2);
-			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+			//VertexArrayObject::sptr FireIsland2VAO = ObjLoader::LoadFromFile("models/FireIslandDone.obj");
+			//Fireisland2.emplace<RendererComponent>().SetMesh(FireIsland2VAO).SetMaterial(material21);
+			//Fireisland2.get<Transform>().SetLocalPosition(-55.0f, 0.0f, 3.0f);
+			//Fireisland2.get<Transform>().SetLocalRotation(-90.0f, 180.0f, 0.0f);
+			//Fireisland2.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
+			//BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Fireisland2);
+			////SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
 
-			//Collision Stuff
-			collisionShapes.push_back(Fireisland2Shape);
-			Fireisland2Transform.setIdentity();
-			Fireisland2Transform.setOrigin(btVector3(-55.0f, 0.0f, 3.0f));
-			btQuaternion rotation;
+			////Collision Stuff
+			//collisionShapes.push_back(Fireisland2Shape);
+			//Fireisland2Transform.setIdentity();
+			//Fireisland2Transform.setOrigin(btVector3(-55.0f, 0.0f, 3.0f));
+			//btQuaternion rotation;
 
-			if (Fireisisland2Dynamic)
-				Fireisland2Shape->calculateLocalInertia(Fireisland2Mass, Firelocalisland2Inertia);
+			//if (Fireisisland2Dynamic)
+			//	Fireisland2Shape->calculateLocalInertia(Fireisland2Mass, Firelocalisland2Inertia);
 
-			//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
-			Fireisland2MotionState = new btDefaultMotionState(Fireisland2Transform);
-			btRigidBody::btRigidBodyConstructionInfo rbInfo(Fireisland2Mass, Fireisland2MotionState, Fireisland2Shape, Firelocalisland2Inertia);
-			Fireisland2Body = new btRigidBody(rbInfo);
+			////using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+			//Fireisland2MotionState = new btDefaultMotionState(Fireisland2Transform);
+			//btRigidBody::btRigidBodyConstructionInfo rbInfo(Fireisland2Mass, Fireisland2MotionState, Fireisland2Shape, Firelocalisland2Inertia);
+			//Fireisland2Body = new btRigidBody(rbInfo);
 
 			//add the body to the dynamics world
 			//dynamicsWorld->addRigidBody(Fireisland2Body);
@@ -3909,13 +3929,13 @@ int main() {
 		#pragma region DeadTree3 Object
 		GameObject DeadTree3 = scene4->CreateEntity("DeadTree3");
 		{
-			VertexArrayObject::sptr DeadTreeVAO3 = ObjLoader::LoadFromFile("models/DeadBerchTree.obj");
-			DeadTree3.emplace<RendererComponent>().SetMesh(DeadTreeVAO3).SetMaterial(material23);
-			DeadTree3.get<Transform>().SetLocalPosition(-50.0f, -13.0f, 4.7f);
-			DeadTree3.get<Transform>().SetLocalRotation(90.0f, 0.0f, -30.0f);
-			DeadTree3.get<Transform>().SetLocalScale(1.8f, 1.8f, 1.8f);
-			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(DeadTree3);
-			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+			//VertexArrayObject::sptr DeadTreeVAO3 = ObjLoader::LoadFromFile("models/DeadBerchTree.obj");
+			//DeadTree3.emplace<RendererComponent>().SetMesh(DeadTreeVAO3).SetMaterial(material23);
+			//DeadTree3.get<Transform>().SetLocalPosition(-50.0f, -13.0f, 4.7f);
+			//DeadTree3.get<Transform>().SetLocalRotation(90.0f, 0.0f, -30.0f);
+			//DeadTree3.get<Transform>().SetLocalScale(1.8f, 1.8f, 1.8f);
+			//BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(DeadTree3);
+			////SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
 		}
 		#pragma endregion
 
@@ -3934,13 +3954,13 @@ int main() {
 
 		GameObject CreatureBones2 = scene4->CreateEntity("CreatureBones2");
 		{
-			VertexArrayObject::sptr CreatureBonesVAO2 = ObjLoader::LoadFromFile("models/BoneCreature.obj");
-			CreatureBones2.emplace<RendererComponent>().SetMesh(CreatureBonesVAO2).SetMaterial(material24);
-			CreatureBones2.get<Transform>().SetLocalPosition(-60.0f, 11.0f, 5.0f);
-			CreatureBones2.get<Transform>().SetLocalRotation(90.0f, 0.0f, -150.0f);
-			CreatureBones2.get<Transform>().SetLocalScale(1.3f, 1.3f, 1.3f);
-			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(CreatureBones2);
-			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+			//VertexArrayObject::sptr CreatureBonesVAO2 = ObjLoader::LoadFromFile("models/BoneCreature.obj");
+			//CreatureBones2.emplace<RendererComponent>().SetMesh(CreatureBonesVAO2).SetMaterial(material24);
+			//CreatureBones2.get<Transform>().SetLocalPosition(-60.0f, 11.0f, 5.0f);
+			//CreatureBones2.get<Transform>().SetLocalRotation(90.0f, 0.0f, -150.0f);
+			//CreatureBones2.get<Transform>().SetLocalScale(1.3f, 1.3f, 1.3f);
+			//BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(CreatureBones2);
+			////SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
 		}
 
 		#pragma endregion
@@ -4049,6 +4069,138 @@ int main() {
 			FirePlatform2MotionState = new btDefaultMotionState(FirePlatform2Transform);
 			btRigidBody::btRigidBodyConstructionInfo rbInfo(FirePlatformMass, FirePlatform2MotionState, FirePlatformShape, localFirePlatformInertia);
 			FirePlatform2Body = new btRigidBody(rbInfo);
+
+			//add the body to the dynamics world
+			//dynamicsWorld->addRigidBody(Fireisland2Body);
+		}
+
+
+		btDefaultMotionState* FirePlatform3MotionState;
+		btTransform FirePlatform3Transform;
+		btRigidBody* FirePlatform3Body;
+		//FirePlatform3Body->isKinematicObject();
+
+		GameObject FirePlatform3 = scene4->CreateEntity("FirePlatform3");
+		{
+			VertexArrayObject::sptr FirePlatform3VAO = ObjLoader::LoadFromFile("models/FirePlatform.obj");
+			FirePlatform3.emplace<RendererComponent>().SetMesh(FirePlatform3VAO).SetMaterial(material26);
+			FirePlatform3.get<Transform>().SetLocalPosition(-33.0f, 0.5f, 3.0f);
+			FirePlatform3.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
+			FirePlatform3.get<Transform>().SetLocalScale(1.2f, 1.2f, 1.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(FirePlatform3);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+
+			//Collision Stuff
+			collisionShapes.push_back(FirePlatformShape);
+			FirePlatform3Transform.setIdentity();
+			FirePlatform3Transform.setOrigin(btVector3(-35.0f, 6.5f, 5.5f));
+
+			if (FirePlatformisDynamic)
+				FirePlatformShape->calculateLocalInertia(FirePlatformMass, localFirePlatformInertia);
+
+			//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+			FirePlatform3MotionState = new btDefaultMotionState(FirePlatform3Transform);
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(FirePlatformMass, FirePlatform3MotionState, FirePlatformShape, localFirePlatformInertia);
+			FirePlatform3Body = new btRigidBody(rbInfo);
+
+			//add the body to the dynamics world
+			//dynamicsWorld->addRigidBody(Fireisland2Body);
+		}
+
+
+		btDefaultMotionState* FirePlatform4MotionState;
+		btTransform FirePlatform4Transform;
+		btRigidBody* FirePlatform4Body;
+		//FirePlatform4Body->isKinematicObject();
+
+		GameObject FirePlatform4 = scene4->CreateEntity("FirePlatform4");
+		{
+			VertexArrayObject::sptr FirePlatform4VAO = ObjLoader::LoadFromFile("models/FirePlatform.obj");
+			FirePlatform4.emplace<RendererComponent>().SetMesh(FirePlatform4VAO).SetMaterial(material26);
+			FirePlatform4.get<Transform>().SetLocalPosition(-33.0f, 0.5f, 3.0f);
+			FirePlatform4.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
+			FirePlatform4.get<Transform>().SetLocalScale(1.2f, 1.2f, 1.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(FirePlatform4);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+
+			//Collision Stuff
+			collisionShapes.push_back(FirePlatformShape);
+			FirePlatform4Transform.setIdentity();
+			FirePlatform4Transform.setOrigin(btVector3(-40.0f, 0.5f, 8.0f));
+
+			if (FirePlatformisDynamic)
+				FirePlatformShape->calculateLocalInertia(FirePlatformMass, localFirePlatformInertia);
+
+			//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+			FirePlatform4MotionState = new btDefaultMotionState(FirePlatform4Transform);
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(FirePlatformMass, FirePlatform4MotionState, FirePlatformShape, localFirePlatformInertia);
+			FirePlatform4Body = new btRigidBody(rbInfo);
+
+			//add the body to the dynamics world
+			//dynamicsWorld->addRigidBody(Fireisland2Body);
+		}
+
+
+		btDefaultMotionState* FirePlatform5MotionState;
+		btTransform FirePlatform5Transform;
+		btRigidBody* FirePlatform5Body;
+		//FirePlatform5Body->isKinematicObject();
+
+		GameObject FirePlatform5 = scene4->CreateEntity("FirePlatform5");
+		{
+			VertexArrayObject::sptr FirePlatform5VAO = ObjLoader::LoadFromFile("models/FirePlatform.obj");
+			FirePlatform5.emplace<RendererComponent>().SetMesh(FirePlatform5VAO).SetMaterial(material26);
+			FirePlatform5.get<Transform>().SetLocalPosition(-33.0f, 0.5f, 3.0f);
+			FirePlatform5.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
+			FirePlatform5.get<Transform>().SetLocalScale(1.2f, 1.2f, 1.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(FirePlatform5);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+
+			//Collision Stuff
+			collisionShapes.push_back(FirePlatformShape);
+			FirePlatform5Transform.setIdentity();
+			FirePlatform5Transform.setOrigin(btVector3(-45.0f, -5.5f, 10.5f));
+
+			if (FirePlatformisDynamic)
+				FirePlatformShape->calculateLocalInertia(FirePlatformMass, localFirePlatformInertia);
+
+			//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+			FirePlatform5MotionState = new btDefaultMotionState(FirePlatform5Transform);
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(FirePlatformMass, FirePlatform5MotionState, FirePlatformShape, localFirePlatformInertia);
+			FirePlatform5Body = new btRigidBody(rbInfo);
+
+			//add the body to the dynamics world
+			//dynamicsWorld->addRigidBody(Fireisland2Body);
+		}
+
+
+		btDefaultMotionState* FirePlatform6MotionState;
+		btTransform FirePlatform6Transform;
+		btRigidBody* FirePlatform6Body;
+		//FirePlatform6Body->isKinematicObject();
+
+		GameObject FirePlatform6 = scene4->CreateEntity("FirePlatform6");
+		{
+			VertexArrayObject::sptr FirePlatform6VAO = ObjLoader::LoadFromFile("models/FirePlatform.obj");
+			FirePlatform6.emplace<RendererComponent>().SetMesh(FirePlatform6VAO).SetMaterial(material26);
+			FirePlatform6.get<Transform>().SetLocalPosition(-33.0f, 0.5f, 3.0f);
+			FirePlatform6.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
+			FirePlatform6.get<Transform>().SetLocalScale(1.2f, 1.2f, 1.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(FirePlatform6);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+
+			//Collision Stuff
+			collisionShapes.push_back(FirePlatformShape);
+			FirePlatform6Transform.setIdentity();
+			FirePlatform6Transform.setOrigin(btVector3(-50.0f, 0.5f, 13.0f));
+
+			if (FirePlatformisDynamic)
+				FirePlatformShape->calculateLocalInertia(FirePlatformMass, localFirePlatformInertia);
+
+			//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+			FirePlatform6MotionState = new btDefaultMotionState(FirePlatform6Transform);
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(FirePlatformMass, FirePlatform6MotionState, FirePlatformShape, localFirePlatformInertia);
+			FirePlatform6Body = new btRigidBody(rbInfo);
 
 			//add the body to the dynamics world
 			//dynamicsWorld->addRigidBody(Fireisland2Body);
@@ -4897,6 +5049,7 @@ int main() {
 				else if (menuSelect == 1)
 				{
 					menuSelect = 3;
+					//menu.StopImmediately();
 					Prelude1.Play();
 					//RenderGroupBool = 1;
 					//Application::Instance().ActiveScene = scene;
@@ -5106,7 +5259,7 @@ int main() {
 
 			if (player.get<Transform>().GetLocalPosition().z <= -7.0f)
 			{
-				//PlayerHealth--;
+				PlayerHealth--;
 				playerTransform.setOrigin(btVector3(0.0f, 0.0f, 5.0f));
 				playerBody->setWorldTransform(playerTransform);
 
@@ -5212,6 +5365,7 @@ int main() {
 			{
 				menuSelect = 7;
 				RenderGroupBool = 1;
+				menu.StopImmediately();
 				Application::Instance().ActiveScene = scene;
 			}
 
@@ -5706,7 +5860,7 @@ int main() {
 
 				#pragma region Scene Sounds
 
-				
+				menu.Play();
 
 				#pragma endregion
 
@@ -6195,6 +6349,28 @@ int main() {
 
 				#pragma endregion
 
+
+				#pragma region Scene Sounds
+
+				//Player Walking
+				if (glfwGetKey(BackendHandler::window, GLFW_KEY_W) == GLFW_PRESS || glfwGetKey(BackendHandler::window, GLFW_KEY_A) == GLFW_PRESS || glfwGetKey(BackendHandler::window, GLFW_KEY_S) == GLFW_PRESS || glfwGetKey(BackendHandler::window, GLFW_KEY_D) == GLFW_PRESS)
+				{
+					footsteps.Play();
+				}
+				else
+				{
+					footsteps.StopImmediately();
+				}
+
+				//Player Death
+				if (PlayerHealth <= 0)
+				{
+					Islandmusic2.StopImmediately();
+					footsteps.StopImmediately();
+				}
+
+				#pragma endregion
+
 				shadowBuffer->UnbindTexture(30);
 				basicEffect->UnbindBuffer();
 
@@ -6232,14 +6408,16 @@ int main() {
 				if (!destroyedScene2Objects)
 				{
 					//Removing the last scene's physics bodies
-					dynamicsWorld->removeRigidBody(island1Body);
-					dynamicsWorld->removeRigidBody(island2Body);
-					dynamicsWorld->removeRigidBody(bridgeBody);
+					dynamicsWorld->removeRigidBody(taigaIsland1Body);
+					dynamicsWorld->removeRigidBody(taigaIsland2Body);
+					dynamicsWorld->removeRigidBody(bridge2Body);
+					dynamicsWorld->removeRigidBody(bridge3Body);
+					dynamicsWorld->removeRigidBody(bridge4Body);
 					destroyedScene2Objects = true;
 
 					//Adding the current scene's physics bodies
 					dynamicsWorld->addRigidBody(Fireisland1Body, 1, 1);
-					dynamicsWorld->addRigidBody(Fireisland2Body, 1, 1);
+					//dynamicsWorld->addRigidBody(Fireisland2Body, 1, 1);
 					dynamicsWorld->addRigidBody(FirePlatform1Body, 41, 41);
 					//FirePlatform1Body->setGravity(btVector3(0, 0, 0));
 					FirePlatform1Body->setLinearFactor(btVector3(0, 0, 0));
@@ -6249,6 +6427,22 @@ int main() {
 					//FirePlatform2Body->setGravity(btVector3(0, 0, 0));
 					FirePlatform2Body->setLinearFactor(btVector3(0, 0, 0));
 					FirePlatform2Body->setAngularFactor(btVector3(0, 0, 0));
+
+					dynamicsWorld->addRigidBody(FirePlatform3Body, 1, 1);
+					FirePlatform3Body->setLinearFactor(btVector3(0, 0, 0));
+					FirePlatform3Body->setAngularFactor(btVector3(0, 0, 0));
+
+					dynamicsWorld->addRigidBody(FirePlatform4Body, 1, 1);
+					FirePlatform4Body->setLinearFactor(btVector3(0, 0, 0));
+					FirePlatform4Body->setAngularFactor(btVector3(0, 0, 0));
+
+					dynamicsWorld->addRigidBody(FirePlatform5Body, 1, 1);
+					FirePlatform5Body->setLinearFactor(btVector3(0, 0, 0));
+					FirePlatform5Body->setAngularFactor(btVector3(0, 0, 0));
+
+					dynamicsWorld->addRigidBody(FirePlatform6Body, 1, 1);
+					FirePlatform6Body->setLinearFactor(btVector3(0, 0, 0));
+					FirePlatform6Body->setAngularFactor(btVector3(0, 0, 0));
 					//FirePlatform2Body->isKinematicObject();
 
 					//dynamicsWorld->addCollisionObject(firePlatform1Obj, 41, 41);
@@ -6283,12 +6477,12 @@ int main() {
 				//renderGroup.each([&](entt::entity e, RendererComponent& renderer, Transform& transform)
 
 				renderGroup4.each([&](entt::entity e, RendererComponent& renderer, Transform& transform) {
-					// Render the mesh
-					if (renderer.CastShadows)
-					{
-						BackendHandler::RenderVAO(simpleDepthShader, renderer.Mesh, viewProjection, transform, lightSpaceViewProj);
-					}
-					});
+				// Render the mesh
+				if (renderer.CastShadows)
+				{
+					BackendHandler::RenderVAO(simpleDepthShader, renderer.Mesh, viewProjection, transform, lightSpaceViewProj);
+				}
+				});
 
 				player.get<MorphRenderer>().render(simpleDepthShader, viewProjection, player.get<Transform>(), view, viewProjection, lightSpaceViewProj);
 
@@ -6366,9 +6560,35 @@ int main() {
 
 				//LinkBody(Bridge2, bridgeBody);
 				LinkBody(Fireisland1, Fireisland1Body);
-				LinkBody(Fireisland2, Fireisland2Body, 2.0f, 0.0f, 0.0f); 
+				//LinkBody(Fireisland2, Fireisland2Body, 2.0f, 0.0f, 0.0f);
 				LinkBody(FirePlatform, FirePlatform1Body, 0.0f, 0.0f, 0.2f);
 				LinkBody(FirePlatform2, FirePlatform2Body, 0.0f, 0.0f, 0.2f);
+				LinkBody(FirePlatform3, FirePlatform3Body, 0.0f, 0.0f, 0.2f);
+				LinkBody(FirePlatform4, FirePlatform4Body, 0.0f, 0.0f, 0.2f);
+				LinkBody(FirePlatform5, FirePlatform5Body, 0.0f, 0.0f, 0.2f);
+				LinkBody(FirePlatform6, FirePlatform6Body, 0.0f, 0.0f, 0.2f);
+
+				#pragma endregion
+
+
+				#pragma region Scene Sounds
+
+				//Player Walking
+				if (glfwGetKey(BackendHandler::window, GLFW_KEY_W) == GLFW_PRESS || glfwGetKey(BackendHandler::window, GLFW_KEY_A) == GLFW_PRESS || glfwGetKey(BackendHandler::window, GLFW_KEY_S) == GLFW_PRESS || glfwGetKey(BackendHandler::window, GLFW_KEY_D) == GLFW_PRESS)
+				{
+					footsteps.Play();
+				}
+				else
+				{
+					footsteps.StopImmediately();
+				}
+
+				//Player Death
+				if (PlayerHealth <= 0)
+				{
+					Islandmusic3.StopImmediately();
+					footsteps.StopImmediately();
+				}
 
 				#pragma endregion
 
