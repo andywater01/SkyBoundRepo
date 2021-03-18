@@ -3221,7 +3221,7 @@ int main() {
 
 			VertexArrayObject::sptr Snowman2VAO = ObjLoader::LoadFromFile("models/Ethan/snowman.obj");
 			Snowman2.emplace<RendererComponent>().SetMesh(Snowman2VAO).SetMaterial(material27);
-			Snowman2.get<Transform>().SetLocalPosition(-48.0f, -11.0f, -2.5f);
+			Snowman2.get<Transform>().SetLocalPosition(-48.0f, -11.0f, -3.5f);
 			Snowman2.get<Transform>().SetLocalRotation(90.0f, 0.0f, -45.0f);
 			Snowman2.get<Transform>().SetLocalScale(1.5f, 1.5f, 1.5f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Snowman2);
@@ -3238,7 +3238,7 @@ int main() {
 
 			VertexArrayObject::sptr SledVAO = ObjLoader::LoadFromFile("models/Ethan/sled.obj");
 			Sled.emplace<RendererComponent>().SetMesh(SledVAO).SetMaterial(material28);
-			Sled.get<Transform>().SetLocalPosition(-33.0f, 11.5f, -5.0f);
+			Sled.get<Transform>().SetLocalPosition(-33.0f, 11.5f, -4.0f);
 			Sled.get<Transform>().SetLocalRotation(90.0f, 0.0f, 200.0f);
 			Sled.get<Transform>().SetLocalScale(3.0f, 4.0f, 4.0f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Sled);
@@ -3250,7 +3250,7 @@ int main() {
 
 			VertexArrayObject::sptr Sled2VAO = ObjLoader::LoadFromFile("models/Ethan/sled.obj");
 			Sled2.emplace<RendererComponent>().SetMesh(Sled2VAO).SetMaterial(material28);
-			Sled2.get<Transform>().SetLocalPosition(4.0f, -11.5f, -2.0f);
+			Sled2.get<Transform>().SetLocalPosition(4.0f, -11.5f, -4.0f);
 			Sled2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
 			Sled2.get<Transform>().SetLocalScale(3.0f, 4.0f, 4.0f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Sled2);
@@ -3453,7 +3453,7 @@ int main() {
 		{
 			VertexArrayObject::sptr PineTree1VAO = ObjLoader::LoadFromFile("models/PineTree/PineTree0.obj");
 			PineTree1.emplace<RendererComponent>().SetMesh(PineTree1VAO).SetMaterial(material30);
-			PineTree1.get<Transform>().SetLocalPosition(-7.5f, 11.5f, -4.8f);
+			PineTree1.get<Transform>().SetLocalPosition(-10.5f, 11.5f, -5.0f);
 			PineTree1.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
 			PineTree1.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(PineTree1);
@@ -3464,7 +3464,7 @@ int main() {
 		{
 			VertexArrayObject::sptr PineTree2VAO = ObjLoader::LoadFromFile("models/PineTree/PineTree0.obj");
 			PineTree2.emplace<RendererComponent>().SetMesh(PineTree2VAO).SetMaterial(material30);
-			PineTree2.get<Transform>().SetLocalPosition(-25.0f, -11.0f, -2.3f);
+			PineTree2.get<Transform>().SetLocalPosition(-30.0f, -11.0f, -5.0f);
 			PineTree2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
 			PineTree2.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(PineTree2);
@@ -3578,7 +3578,7 @@ int main() {
 			camera.LookAt(glm::vec3(0));
 			camera.SetFovDegrees(90.0f); // Set an initial FOV
 			camera.SetOrthoHeight(3.0f);
-			BehaviourBinding::Bind<CameraControlBehaviour>(cameraObject2);
+			//BehaviourBinding::Bind<CameraControlBehaviour>(cameraObject2);
 		}
 
 		// Create an object to be our orthographic camera
