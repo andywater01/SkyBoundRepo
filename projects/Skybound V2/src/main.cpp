@@ -53,6 +53,7 @@ bool gotCoin = false;
 //Scene number
 int RenderGroupBool = 0;
 int PlayerHealth = 3;
+bool playerJump = false;
 
 bool canMoveForward = true;
 bool canMoveLeft = true;
@@ -70,6 +71,7 @@ bool playerAirborne = false;
 int menuSelect = 1;
 
 bool destroyedScene1Objects = false;
+bool destroyedScene2Objects = false;
 bool scene1ActiveBodies = false;
 bool scene2ActiveBodies = false;
 bool scene3ActiveBodies = false;
@@ -108,7 +110,9 @@ void PlayerInput(GameObject& transform, float dt, float speed, btRigidBody* body
 		//transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(0.0f, -1.0f * dt * speed, 0.0f));
 		transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 180.0f);
 		body->activate(true);
-		body->applyForce(btVector3(0.0f, -8000.0f, 0.0f) * dt * speed, btVector3(0.0f, 0.0f, 0.0f));
+		//body->applyForce(btVector3(0.0f, -8000.0f, 0.0f) * dt * speed, btVector3(0.0f, 0.0f, 0.0f));
+		body->applyCentralImpulse(btVector3(0.0f, -80.0f, 0.0f) * dt * speed);
+		//body->setLinearVelocity(btVector3(1.0f, -200.0f, 1.0f) * dt * speed);
 		firstFrame = 0;
 		lastFrame = 4;
 	}
@@ -116,7 +120,9 @@ void PlayerInput(GameObject& transform, float dt, float speed, btRigidBody* body
 		//transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(0.0f, 1.0f * dt * speed, 0.0f));
 		transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
 		body->activate(true);
-		body->applyForce(btVector3(0.0f, 8000.0f, 0.0f) * dt * speed, btVector3(0.0f, 0.0f, 0.0f));
+		//body->applyForce(btVector3(0.0f, 8000.0f, 0.0f) * dt * speed, btVector3(0.0f, 0.0f, 0.0f));
+		body->applyCentralImpulse(btVector3(0.0f, 80.0f, 0.0f) * dt * speed);
+		//body->setLinearVelocity(btVector3(1.0f, 200.0f, 1.0f) * dt * speed);
 		firstFrame = 0;
 		lastFrame = 4;
 		//body->activate(true);
@@ -131,7 +137,9 @@ void PlayerInput(GameObject& transform, float dt, float speed, btRigidBody* body
 		//transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(-1.0f * dt * speed, 0.0f, 0.0f));
 		transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
 		body->activate(true);
-		body->applyForce(btVector3(-8000.0f, 0.0f, 0.0f) * dt * speed, btVector3(0.0f, 0.0f, 0.0f));
+		//body->applyForce(btVector3(-8000.0f, 0.0f, 0.0f) * dt * speed, btVector3(0.0f, 0.0f, 0.0f));
+		body->applyCentralImpulse(btVector3(-80.0f, 0.0f, 0.0f) * dt * speed);
+		//body->setLinearVelocity(btVector3(-200.0f, 1.0f, 1.0f) * dt * speed);
 		firstFrame = 0;
 		lastFrame = 4;
 		//transform.SetLocalRotation(90.0f, 0.0f, 192.0f);
@@ -143,7 +151,9 @@ void PlayerInput(GameObject& transform, float dt, float speed, btRigidBody* body
 		//transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(1.0f * dt * speed, 0.0f, 0.0f));
 		transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 270.0f);
 		body->activate(true);
-		body->applyForce(btVector3(8000.0f, 0.0f, 0.0f) * dt * speed, btVector3(0.0f, 0.0f, 0.0f));
+		//body->applyForce(btVector3(8000.0f, 0.0f, 0.0f) * dt * speed, btVector3(0.0f, 0.0f, 0.0f));
+		body->applyCentralImpulse(btVector3(80.0f, 0.0f, 0.0f) * dt * speed);
+		//body->setLinearVelocity(btVector3(200.0f, 1.0f, 1.0f) * dt * speed);
 		firstFrame = 0;
 		lastFrame = 4;
 		//transform.SetLocalRotation(90.0f, 0.0f, 12.0f);
@@ -155,8 +165,6 @@ void PlayerInput(GameObject& transform, float dt, float speed, btRigidBody* body
 	if (glfwGetKey(BackendHandler::window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS && RenderGroupBool != 0) {
 		//transform.MoveLocal(0.0f, 0.0f, -1.0f * dt);
 	}
-
-	
 	else
 	{
 		firstFrame = 5;
@@ -501,7 +509,7 @@ void CheckCoinCollision(GameObject player, GameObject other, float xRangePos, fl
 	{
 		other.get<Transform>().SetLocalPosition(other.get<Transform>().GetLocalPosition().x,
 												other.get<Transform>().GetLocalPosition().y,
-												-25.0f);
+												100.0f);
 		CoinCount++;
 	}
 
@@ -513,7 +521,7 @@ void CheckCoinCollision(GameObject player, GameObject other, float xRangePos, fl
 	{
 		other.get<Transform>().SetLocalPosition(other.get<Transform>().GetLocalPosition().x,
 												other.get<Transform>().GetLocalPosition().y,
-												-25.0f);
+												100.0f);
 		CoinCount++;
 	}
 
@@ -526,7 +534,7 @@ void CheckCoinCollision(GameObject player, GameObject other, float xRangePos, fl
 	{
 		other.get<Transform>().SetLocalPosition(other.get<Transform>().GetLocalPosition().x,
 												other.get<Transform>().GetLocalPosition().y,
-												-25.0f);
+												100.0f);
 		CoinCount++;
 	}
 
@@ -538,7 +546,7 @@ void CheckCoinCollision(GameObject player, GameObject other, float xRangePos, fl
 	{
 		other.get<Transform>().SetLocalPosition(other.get<Transform>().GetLocalPosition().x,
 												other.get<Transform>().GetLocalPosition().y,
-												-25.0f);
+												100.0f);
 		CoinCount++;
 	}
 
@@ -1025,6 +1033,9 @@ int main() {
 		BloomEffect* bloomEffect3;
 
 		VignetteEffect* vignetteEffect3;
+
+		glm::vec3 angleRotation = glm::vec3(0, 0, 0);
+		glm::vec3 bodyTranslation = glm::vec3(0, 0, 0);
 
 		// We'll add some ImGui controls to control our shader
 		BackendHandler::imGuiCallbacks.push_back([&]() {
@@ -1514,6 +1525,12 @@ int main() {
 				{
 					directionalLightBuffer.SendData(reinterpret_cast<void*>(&theSun), sizeof(DirectionalLight));
 				}
+			}
+			if (ImGui::DragFloat3("Translation", glm::value_ptr(bodyTranslation), 0.1f, -50.0f, 50.0f)) {
+				
+			}
+			if (ImGui::DragFloat3("Rotation", glm::value_ptr(angleRotation), 0.01f, -360.0f, 360.0f)) {
+
 			}
 			
 			
@@ -2967,29 +2984,122 @@ int main() {
 
 		#pragma region Second Level Island (Taiga Island) Objects
 
+		btCollisionShape* taigaIsland1Shape = new btCylinderShapeZ(btVector3(20.5f, 20.5f, 2.0f));
+
+		btTransform taigaIsland1Transform;
+
+		btScalar taigaIsland1Mass(0.f);
+
+		//rigidbody is dynamic if and only if mass is non zero, otherwise static
+		bool isTaigaIsland1Dynamic = (taigaIsland1Mass != 0.f);
+
+		btVector3 localtaigaIsland1Inertia(0, 0, 0);
+
+		//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+		btDefaultMotionState* taigaIsland1MotionState;
+		btRigidBody* taigaIsland1Body;
+
 		GameObject TaigaGround = scene2->CreateEntity("Taiga");
 		{
 
 			VertexArrayObject::sptr TaigaVAO = ObjLoader::LoadFromFile("models/taiga_island.obj");
 			TaigaGround.emplace<RendererComponent>().SetMesh(TaigaVAO).SetMaterial(material10);
-			TaigaGround.get<Transform>().SetLocalPosition(4.0f, -0.0f, -11.5f);
+			TaigaGround.get<Transform>().SetLocalPosition(4.0f, 0.0f, -11.5f);
 			TaigaGround.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
 			TaigaGround.get<Transform>().SetLocalScale(3.0f, 3.0f, 3.0f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(TaigaGround);
 			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+
+			//Collision Stuff
+			collisionShapes.push_back(taigaIsland1Shape);
+			taigaIsland1Transform.setIdentity();
+			taigaIsland1Transform.setOrigin(btVector3(2.0f, 0.0f, -6.4f));
+			btQuaternion rotation;
+			//rotation.setEuler(0.0f, 0.0f, 0.0f);
+			//island1Transform.setRotation(rotation);
+			taigaIsland1Transform.setRotation(btQuaternion(btVector3(0, 0, 1), btScalar(3.)));
+			//island1Transform.setRotation(btQuaternion(btVector3(1, 0, 0), btScalar(-1.57)));
+			//island1Transform.setRotation(btQuaternion(btVector3(1, 0, 0), btScalar(-1.57)));
+			//island1Transform.setOrigin(glm2bt(island1.get<Transform>().GetLocalPosition()));
+			//island1Transform.setIdentity();
+
+			if (isTaigaIsland1Dynamic)
+				taigaIsland1Shape->calculateLocalInertia(taigaIsland1Mass, localtaigaIsland1Inertia);
+
+			//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+			taigaIsland1MotionState = new btDefaultMotionState(taigaIsland1Transform);
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(taigaIsland1Mass, taigaIsland1MotionState, taigaIsland1Shape, localtaigaIsland1Inertia);
+			taigaIsland1Body = new btRigidBody(rbInfo);
+
+
+
+			//add the body to the dynamics world
+			//dynamicsWorld->addRigidBody(taigaIsland1Body, 1, 1);
 		}
+
+
+		btCollisionShape* taigaIsland2Shape = new btCylinderShapeZ(btVector3(20.5f, 20.5f, 2.0f));
+
+		btTransform taigaIsland2Transform;
+
+		btScalar taigaIsland2Mass(0.f);
+
+		//rigidbody is dynamic if and only if mass is non zero, otherwise static
+		bool isTaigaIsland2Dynamic = (taigaIsland2Mass != 0.f);
+
+		btVector3 localtaigaIsland2Inertia(0, 0, 0);
+
+		//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+		btDefaultMotionState* taigaIsland2MotionState;
+		btRigidBody* taigaIsland2Body;
 
 		GameObject TaigaGround2 = scene2->CreateEntity("Taiga2");
 		{
 
 			VertexArrayObject::sptr Taiga2VAO = ObjLoader::LoadFromFile("models/taiga_island.obj");
 			TaigaGround2.emplace<RendererComponent>().SetMesh(Taiga2VAO).SetMaterial(material10);
-			TaigaGround2.get<Transform>().SetLocalPosition(-35.0f, 0.0f, -11.5f);
+			TaigaGround2.get<Transform>().SetLocalPosition(-35.0f, 0.0f, -20.5f); //-11.5
 			TaigaGround2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
 			TaigaGround2.get<Transform>().SetLocalScale(3.0f, 3.0f, 3.0f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(TaigaGround2);
 			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+
+			//Collision Stuff
+			collisionShapes.push_back(taigaIsland2Shape);
+			taigaIsland2Transform.setIdentity();
+			taigaIsland2Transform.setOrigin(btVector3(-40.7f, 0.4f, -6.3f));
+			btQuaternion rotation;
+			rotation.setEuler(0.0f, 0.0f, 0.0f);
+			taigaIsland2Transform.setRotation(rotation);
+			//island2Transform.setRotation(btQuaternion(btVector3(1, 0, 0), btScalar(-1.57)));
+			//island2Transform.setRotation(btQuaternion(btVector3(1, 0, 0), btScalar(-1.57)));
+			//island2Transform.setOrigin(glm2bt(island2.get<Transform>().GetLocalPosition()));
+			//island2Transform.setIdentity();
+
+			if (isTaigaIsland2Dynamic)
+				taigaIsland2Shape->calculateLocalInertia(taigaIsland2Mass, localtaigaIsland2Inertia);
+
+			//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+			taigaIsland2MotionState = new btDefaultMotionState(taigaIsland2Transform);
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(taigaIsland2Mass, taigaIsland2MotionState, taigaIsland2Shape, localtaigaIsland2Inertia);
+			taigaIsland2Body = new btRigidBody(rbInfo);
+
 		}
+
+		btCollisionShape* taigaIsland3Shape = new btCylinderShapeZ(btVector3(20.5f, 20.5f, 2.0f));
+
+		btTransform taigaIsland3Transform;
+
+		btScalar taigaIsland3Mass(0.f);
+
+		//rigidbody is dynamic if and only if mass is non zero, otherwise static
+		bool isTaigaIsland3Dynamic = (taigaIsland3Mass != 0.f);
+
+		btVector3 localtaigaIsland3Inertia(0, 0, 0);
+
+		//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+		btDefaultMotionState* taigaIsland3MotionState;
+		btRigidBody* taigaIsland3Body;
 
 		GameObject TaigaGround3 = scene2->CreateEntity("Taiga3");
 		{
@@ -3002,6 +3112,22 @@ int main() {
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(TaigaGround3);
 			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
 		}
+
+
+		btCollisionShape* taigaIsland4Shape = new btCylinderShapeZ(btVector3(20.5f, 20.5f, 2.0f));
+
+		btTransform taigaIsland4Transform;
+
+		btScalar taigaIsland4Mass(0.f);
+
+		//rigidbody is dynamic if and only if mass is non zero, otherwise static
+		bool isTaigaIsland4Dynamic = (taigaIsland4Mass != 0.f);
+
+		btVector3 localtaigaIsland4Inertia(0, 0, 0);
+
+		//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+		btDefaultMotionState* taigaIsland4MotionState;
+		btRigidBody* taigaIsland4Body;
 
 		GameObject TaigaGround4 = scene2->CreateEntity("Taiga4");
 		{
@@ -3095,7 +3221,7 @@ int main() {
 
 			VertexArrayObject::sptr Snowman2VAO = ObjLoader::LoadFromFile("models/Ethan/snowman.obj");
 			Snowman2.emplace<RendererComponent>().SetMesh(Snowman2VAO).SetMaterial(material27);
-			Snowman2.get<Transform>().SetLocalPosition(-45.0f, -11.0f, -3.5f);
+			Snowman2.get<Transform>().SetLocalPosition(-48.0f, -11.0f, -2.5f);
 			Snowman2.get<Transform>().SetLocalRotation(90.0f, 0.0f, -45.0f);
 			Snowman2.get<Transform>().SetLocalScale(1.5f, 1.5f, 1.5f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Snowman2);
@@ -3112,7 +3238,7 @@ int main() {
 
 			VertexArrayObject::sptr SledVAO = ObjLoader::LoadFromFile("models/Ethan/sled.obj");
 			Sled.emplace<RendererComponent>().SetMesh(SledVAO).SetMaterial(material28);
-			Sled.get<Transform>().SetLocalPosition(-30.0f, 11.5f, -3.5f);
+			Sled.get<Transform>().SetLocalPosition(-33.0f, 11.5f, -5.0f);
 			Sled.get<Transform>().SetLocalRotation(90.0f, 0.0f, 200.0f);
 			Sled.get<Transform>().SetLocalScale(3.0f, 4.0f, 4.0f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Sled);
@@ -3124,7 +3250,7 @@ int main() {
 
 			VertexArrayObject::sptr Sled2VAO = ObjLoader::LoadFromFile("models/Ethan/sled.obj");
 			Sled2.emplace<RendererComponent>().SetMesh(Sled2VAO).SetMaterial(material28);
-			Sled2.get<Transform>().SetLocalPosition(3.0f, -11.5f, -3.5f);
+			Sled2.get<Transform>().SetLocalPosition(4.0f, -11.5f, -2.0f);
 			Sled2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
 			Sled2.get<Transform>().SetLocalScale(3.0f, 4.0f, 4.0f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Sled2);
@@ -3169,18 +3295,75 @@ int main() {
 
 		#pragma region Bridge (Level 2) Object
 
-		GameObject Bridge2 = scene2->CreateEntity("Bridge2");
+		btCollisionShape* bridge2Shape = new btBoxShape(btVector3(3.0f, 2.0f, 0.8f));
+
+		btTransform bridge2Transform;
+
+		btScalar bridge2Mass(0.f);
+
+		//rigidbody is dynamic if and only if mass is non zero, otherwise static
+		bool isbridge2Dynamic = (bridge2Mass != 0.f);
+
+		btVector3 localbridge2Inertia(0, 0, 0);
+
+		//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+		btDefaultMotionState* bridge2MotionState;
+		btRigidBody* bridge2Body;
+
+		GameObject Bridge2 = scene2->CreateEntity("Middle Bridge");
 		{
 			VertexArrayObject::sptr Bridge2VAO = ObjLoader::LoadFromFile("models/hossain/NewBridge.obj");
 			Bridge2.emplace<RendererComponent>().SetMesh(Bridge2VAO).SetMaterial(material13);
-			Bridge2.get<Transform>().SetLocalPosition(-18.0f, -0.0f, -6.5f);
+			Bridge2.get<Transform>().SetLocalPosition(-18.0f, 0.0f, -6.5f);
 			Bridge2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
 			Bridge2.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Bridge2);
 			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+
+			//Collision Stuff
+			collisionShapes.push_back(bridge2Shape);
+			bridge2Transform.setIdentity();
+			bridge2Transform.setOrigin(btVector3(-20.0f, 0.0f, -5.15f));
+			btQuaternion rotation;
+			//rotation.setEuler(90.0f, 0.0f, 90.0f);
+			//bridge2Transform.setRotation(rotation);
+			//bridge2Transform.setRotation(btQuaternion(btVector3(0, 0, 1), btScalar(3.)));
+			//island1Transform.setRotation(btQuaternion(btVector3(1, 0, 0), btScalar(-1.57)));
+			//island1Transform.setRotation(btQuaternion(btVector3(1, 0, 0), btScalar(-1.57)));
+			//island1Transform.setOrigin(glm2bt(island1.get<Transform>().GetLocalPosition()));
+			//island1Transform.setIdentity();
+
+			if (isbridge2Dynamic)
+				bridge2Shape->calculateLocalInertia(bridge2Mass, localbridge2Inertia);
+
+			//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+			bridge2MotionState = new btDefaultMotionState(bridge2Transform);
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(bridge2Mass, bridge2MotionState, bridge2Shape, localbridge2Inertia);
+			bridge2Body = new btRigidBody(rbInfo);
+
+
+
+			//add the body to the dynamics world
+			//dynamicsWorld->addRigidBody(bridge2Body, 1, 1);
 		}
 
-		GameObject Bridge3 = scene2->CreateEntity("Bridge3");
+
+		btCollisionShape* bridge3Shape = new btBoxShape(btVector3(6.0f, 2.0f, 0.8f));
+
+		btTransform bridge3Transform;
+
+		btScalar bridge3Mass(0.f);
+
+		//rigidbody is dynamic if and only if mass is non zero, otherwise static
+		bool isbridge3Dynamic = (bridge3Mass != 0.f);
+
+		btVector3 localbridge3Inertia(0, 0, 0);
+
+		//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+		btDefaultMotionState* bridge3MotionState;
+		btRigidBody* bridge3Body;
+
+		GameObject Bridge3 = scene2->CreateEntity("Left Bridge");
 		{
 			VertexArrayObject::sptr Bridge3VAO = ObjLoader::LoadFromFile("models/hossain/NewBridge.obj");
 			Bridge3.emplace<RendererComponent>().SetMesh(Bridge3VAO).SetMaterial(material13);
@@ -3189,9 +3372,47 @@ int main() {
 			Bridge3.get<Transform>().SetLocalScale(1.0f, 1.0f, 2.5f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Bridge3);
 			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+
+			//Collision Stuff
+			collisionShapes.push_back(bridge3Shape);
+			bridge3Transform.setIdentity();
+			bridge3Transform.setOrigin(btVector3(-10.0f, -24.0f, -5.15f));
+			btQuaternion rotation;
+			rotation.setEuler(0.0f, 0.0f, 1.06f);
+			bridge3Transform.setRotation(rotation);
+			//bridge3Transform.setRotation(btQuaternion(btVector3(0, 0, 1), btScalar(3.)));
+			//island1Transform.setRotation(btQuaternion(btVector3(1, 0, 0), btScalar(-1.57)));
+			//island1Transform.setRotation(btQuaternion(btVector3(1, 0, 0), btScalar(-1.57)));
+			//island1Transform.setOrigin(glm2bt(island1.get<Transform>().GetLocalPosition()));
+			//island1Transform.setIdentity();
+
+			if (isbridge3Dynamic)
+				bridge3Shape->calculateLocalInertia(bridge3Mass, localbridge3Inertia);
+
+			//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+			bridge3MotionState = new btDefaultMotionState(bridge3Transform);
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(bridge3Mass, bridge3MotionState, bridge3Shape, localbridge3Inertia);
+			bridge3Body = new btRigidBody(rbInfo);
+
 		}
 
-		GameObject Bridge4 = scene2->CreateEntity("Bridge4");
+
+		btCollisionShape* bridge4Shape = new btBoxShape(btVector3(8.0f, 2.0f, 0.8f));
+
+		btTransform bridge4Transform;
+
+		btScalar bridge4Mass(0.f);
+
+		//rigidbody is dynamic if and only if mass is non zero, otherwise static
+		bool isbridge4Dynamic = (bridge4Mass != 0.f);
+
+		btVector3 localbridge4Inertia(0, 0, 0);
+
+		//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+		btDefaultMotionState* bridge4MotionState;
+		btRigidBody* bridge4Body;
+
+		GameObject Bridge4 = scene2->CreateEntity("Right Bridge");
 		{
 			VertexArrayObject::sptr Bridge4VAO = ObjLoader::LoadFromFile("models/hossain/NewBridge.obj");
 			Bridge4.emplace<RendererComponent>().SetMesh(Bridge4VAO).SetMaterial(material13);
@@ -3200,6 +3421,27 @@ int main() {
 			Bridge4.get<Transform>().SetLocalScale(1.0f, 1.0f, 2.5f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Bridge4);
 			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+
+			//Collision Stuff
+			collisionShapes.push_back(bridge4Shape);
+			bridge4Transform.setIdentity();
+			bridge4Transform.setOrigin(btVector3(-10.8f, 25.2f, -5.15f));
+			btQuaternion rotation;
+			rotation.setEuler(0.0f, 0.0f, 2.1f);
+			bridge4Transform.setRotation(rotation);
+			//bridge4Transform.setRotation(btQuaternion(btVector3(0, 0, 1), btScalar(3.)));
+			//island1Transform.setRotation(btQuaternion(btVector3(1, 0, 0), btScalar(-1.57)));
+			//island1Transform.setRotation(btQuaternion(btVector3(1, 0, 0), btScalar(-1.57)));
+			//island1Transform.setOrigin(glm2bt(island1.get<Transform>().GetLocalPosition()));
+			//island1Transform.setIdentity();
+
+			if (isbridge4Dynamic)
+				bridge4Shape->calculateLocalInertia(bridge4Mass, localbridge4Inertia);
+
+			//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+			bridge4MotionState = new btDefaultMotionState(bridge4Transform);
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(bridge4Mass, bridge4MotionState, bridge4Shape, localbridge4Inertia);
+			bridge4Body = new btRigidBody(rbInfo);
 		}
 
 		#pragma endregion
@@ -3222,7 +3464,7 @@ int main() {
 		{
 			VertexArrayObject::sptr PineTree2VAO = ObjLoader::LoadFromFile("models/PineTree/PineTree0.obj");
 			PineTree2.emplace<RendererComponent>().SetMesh(PineTree2VAO).SetMaterial(material30);
-			PineTree2.get<Transform>().SetLocalPosition(-25.0f, -11.0f, -4.8f);
+			PineTree2.get<Transform>().SetLocalPosition(-25.0f, -11.0f, -2.3f);
 			PineTree2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
 			PineTree2.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(PineTree2);
@@ -3336,7 +3578,7 @@ int main() {
 			camera.LookAt(glm::vec3(0));
 			camera.SetFovDegrees(90.0f); // Set an initial FOV
 			camera.SetOrthoHeight(3.0f);
-			//BehaviourBinding::Bind<CameraControlBehaviour>(cameraObject2);
+			BehaviourBinding::Bind<CameraControlBehaviour>(cameraObject2);
 		}
 
 		// Create an object to be our orthographic camera
@@ -4533,21 +4775,21 @@ int main() {
 			keyToggles.emplace_back(GLFW_KEY_T, [&]() { cameraObject.get<Camera>().ToggleOrtho(); });
 
 			keyToggles.emplace_back(GLFW_KEY_B, [&]() 
-				{ 
-					glfwGetWindowSize(BackendHandler::window, &width, &height);
+			{ 
+				glfwGetWindowSize(BackendHandler::window, &width, &height);
 
-					std::cout << "\nCurrent Window Width: " << width << std::endl;
-					std::cout << "Current Window Height: " << height << std::endl;
+				std::cout << "\nCurrent Window Width: " << width << std::endl;
+				std::cout << "Current Window Height: " << height << std::endl;
 
-					/*if (Application::Instance().ActiveScene == scene)
-					{
-						std::cout << "\nIt is Scene 1" << std::endl;
-					}
-					else
-					{
-						std::cout << "\nIt is not Scene 1" << std::endl;
-					}*/
-				});
+				/*if (Application::Instance().ActiveScene == scene)
+				{
+					std::cout << "\nIt is Scene 1" << std::endl;
+				}
+				else
+				{
+					std::cout << "\nIt is not Scene 1" << std::endl;
+				}*/
+			});
 
 			controllables.push_back(player);
 			controllables.push_back(Wizard);
@@ -4574,7 +4816,10 @@ int main() {
 
 			keyToggles.emplace_back(GLFW_KEY_SPACE, [&]() {
 				if (!playerAirborne)
-					playerBody->applyForce(btVector3(0.0f, 0.0f, 3000.0f), btVector3(0.0f, 0.0f, 0.0f));
+				{
+					//playerBody->applyForce(btVector3(0.0f, 0.0f, 3000.0f), btVector3(0.0f, 0.0f, 0.0f));
+					playerJump = true;
+				}
 			});
 
 			keyToggles.emplace_back(GLFW_KEY_J, [&]() {
@@ -4590,8 +4835,8 @@ int main() {
 			});
 
 			keyToggles.emplace_back(GLFW_KEY_L, [&]() {
-				RenderGroupBool = 4;
-				Application::Instance().ActiveScene = scene4;
+				RenderGroupBool = 2;
+				Application::Instance().ActiveScene = scene2;
 			});
 
 			#pragma region Main Menu Keys
@@ -4793,6 +5038,13 @@ int main() {
 			#pragma endregion
 
 
+			btQuaternion rotation;
+			rotation.setEuler(angleRotation.x, angleRotation.y, angleRotation.z);
+			taigaIsland2Transform.setRotation(rotation);
+			//taigaIsland2Transform.setOrigin(btVector3(bodyTranslation.x, bodyTranslation.y, bodyTranslation.z));
+
+			taigaIsland2Body->setWorldTransform(taigaIsland2Transform);
+
 			// We'll make sure our UI isn't focused before we start handling input for our game
 			if (!ImGui::IsAnyWindowFocused()) {
 				// We need to poll our key watchers so they can do their logic with the GLFW state
@@ -4854,7 +5106,7 @@ int main() {
 
 			if (player.get<Transform>().GetLocalPosition().z <= -7.0f)
 			{
-				PlayerHealth--;
+				//PlayerHealth--;
 				playerTransform.setOrigin(btVector3(0.0f, 0.0f, 5.0f));
 				playerBody->setWorldTransform(playerTransform);
 
@@ -5275,8 +5527,25 @@ int main() {
 
 			#pragma region Player and Wizard Physics
 
-			playerBody->applyDamping(time.DeltaTime);
+			//playerBody->applyDamping(time.DeltaTime);
 			playerBody->setAngularFactor(btVector3(0, 0, 0));
+
+			if (playerJump)
+			{
+				playerBody->activate(true);
+				playerBody->applyCentralImpulse(btVector3(0.0f, 0.0f, 3000.0f) * time.DeltaTime * speed);
+				playerJump = false;
+			}
+
+			//Zero Velocity when not moving
+			if (glfwGetKey(BackendHandler::window, GLFW_KEY_W) != GLFW_PRESS &&
+				glfwGetKey(BackendHandler::window, GLFW_KEY_A) != GLFW_PRESS &&
+				glfwGetKey(BackendHandler::window, GLFW_KEY_S) != GLFW_PRESS &&
+				glfwGetKey(BackendHandler::window, GLFW_KEY_D) != GLFW_PRESS &&
+				glfwGetKey(BackendHandler::window, GLFW_KEY_SPACE) != GLFW_PRESS)
+			{
+				playerBody->setLinearVelocity(btVector3(0, 0, playerBody->getLinearVelocity().getZ()));
+			}
 
 			player.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX(), playerBody->getCenterOfMassTransform().getOrigin().getY(), playerBody->getCenterOfMassTransform().getOrigin().getZ());
 
@@ -5769,6 +6038,25 @@ int main() {
 					scene2ShaderInit = true;
 				}
 
+				if (!destroyedScene1Objects)
+				{
+					//Removing the last scene's physics bodies
+					dynamicsWorld->removeRigidBody(island1Body);
+					dynamicsWorld->removeRigidBody(island2Body);
+					dynamicsWorld->removeRigidBody(bridgeBody);
+					dynamicsWorld->removeRigidBody(wizardBody);
+					destroyedScene1Objects = true;
+
+					//Adding the current scene's physics bodies
+					dynamicsWorld->addRigidBody(taigaIsland1Body, 1, 1);
+					dynamicsWorld->addRigidBody(taigaIsland2Body, 1, 1);
+					dynamicsWorld->addRigidBody(bridge2Body, 1, 1);
+					dynamicsWorld->addRigidBody(bridge3Body, 1, 1);
+					dynamicsWorld->addRigidBody(bridge4Body, 1, 1);
+					
+
+				}
+
 				// Sort the renderers by shader and material, we will go for a minimizing context switches approach here,
 				// but you could for instance sort front to back to optimize for fill rate if you have intensive fragment shaders
 				renderGroup2.sort<RendererComponent>([](const RendererComponent& l, const RendererComponent& r) {
@@ -5893,11 +6181,17 @@ int main() {
 
 				#pragma region Updating Render Transforms with Physics Bodies
 
-				LinkBody(TaigaGround, island1Body, 0.0f, 0.0f, -9.0f);
+				LinkBody(TaigaGround, taigaIsland1Body, 0.0f, 0.0f, -7.0f);
+				LinkBody(TaigaGround2, taigaIsland2Body, 0.0f, 0.0f, -7.0f);
 
-				LinkBody(TaigaGround2, island2Body, 0.0f, 0.0f, -9.0f);
+				LinkBody(Bridge2, bridge2Body);
+				LinkBody(Bridge3, bridge3Body);
 
-				LinkBody(Bridge2, bridgeBody);
+
+
+				//LinkBody(TaigaGround2, island2Body, 0.0f, 0.0f, -9.0f);
+
+				//LinkBody(Bridge2, bridgeBody);
 
 				#pragma endregion
 
@@ -5905,6 +6199,8 @@ int main() {
 				basicEffect->UnbindBuffer();
 
 				effects[activeEffect]->ApplyEffect(basicEffect);
+
+				effects[4]->ApplyEffect(effects[activeEffect]);
 
 				effects[activeEffect]->DrawToScreen();
 			}
@@ -5933,13 +6229,13 @@ int main() {
 				glm::mat4 orthoProjection = orthoCameraObject4.get<Camera>().GetProjection();
 				glm::mat4 orthoViewProjection = orthoProjection * orthoView;
 
-				if (!destroyedScene1Objects)
+				if (!destroyedScene2Objects)
 				{
 					//Removing the last scene's physics bodies
 					dynamicsWorld->removeRigidBody(island1Body);
 					dynamicsWorld->removeRigidBody(island2Body);
 					dynamicsWorld->removeRigidBody(bridgeBody);
-					destroyedScene1Objects = true;
+					destroyedScene2Objects = true;
 
 					//Adding the current scene's physics bodies
 					dynamicsWorld->addRigidBody(Fireisland1Body, 1, 1);

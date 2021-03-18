@@ -20,6 +20,8 @@
 #include <Transform.h>
 #include <VertexArrayObject.h>
 #include <Shader.h>
+#include <tiny_gltf.h>
+#include "SkinnedMesh.h"
 
 #include <Application.h>
 #include <Camera.h>
