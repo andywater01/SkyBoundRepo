@@ -5838,7 +5838,17 @@ int main() {
 			if (playerJump)
 			{
 				playerBody->activate(true);
-				playerBody->applyCentralImpulse(btVector3(0.0f, 0.0f, 3000.0f) * time.DeltaTime * speed);
+
+				glfwGetWindowSize(BackendHandler::window, &width, &height);
+
+				if (width > 900)
+				{
+					playerBody->applyCentralImpulse(btVector3(0.0f, 0.0f, 6000.0f) * time.DeltaTime * speed);
+				}
+				else
+				{
+					playerBody->applyCentralImpulse(btVector3(0.0f, 0.0f, 3000.0f)* time.DeltaTime* speed);
+				}
 				playerJump = false;
 			}
 
