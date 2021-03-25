@@ -59,6 +59,7 @@ bool canMoveForward = true;
 bool canMoveLeft = true;
 bool canMoveBack = true;
 bool canMoveRight = true;
+bool playerControlLock = false;
 
 
 int firstFrame = 0;
@@ -69,6 +70,9 @@ bool drawPhysics = false;
 bool playerAirborne = false;
 
 int menuSelect = 1;
+
+bool initScene1 = true;
+bool initScene4 = true;
 
 bool destroyedScene1Objects = false;
 bool destroyedScene2Objects = false;
@@ -103,6 +107,77 @@ int quadCollidesWith = COL_PLAYER | COL_QUAD | COL_PLATFORM;
 
 #pragma region Player Controls
 
+//void PlayerInput(GameObject& transform, float dt, float speed, btRigidBody* body) {
+//	if (glfwGetKey(BackendHandler::window, GLFW_KEY_A) == GLFW_PRESS && canMoveLeft == true && RenderGroupBool != 0) {
+//		//transform->MoveLocal(0.0f, 0.0f, -1.0f * dt * speed);
+//		//transform.MoveLocalFixed(0.0f, -1.0f * dt * speed, 0.0f);
+//		//transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(0.0f, -1.0f * dt * speed, 0.0f));
+//		transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 180.0f);
+//		body->activate(true);
+//		//body->applyForce(btVector3(0.0f, -8000.0f, 0.0f) * dt * speed, btVector3(0.0f, 0.0f, 0.0f));
+//		body->applyCentralImpulse(btVector3(0.0f, -80.0f, 0.0f) * dt * speed);
+//		//body->setLinearVelocity(btVector3(1.0f, -200.0f, 1.0f) * dt * speed);
+//		firstFrame = 0;
+//		lastFrame = 4;
+//	}
+//	if (glfwGetKey(BackendHandler::window, GLFW_KEY_D) == GLFW_PRESS && canMoveRight == true && RenderGroupBool != 0) {
+//		//transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(0.0f, 1.0f * dt * speed, 0.0f));
+//		transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
+//		body->activate(true);
+//		//body->applyForce(btVector3(0.0f, 8000.0f, 0.0f) * dt * speed, btVector3(0.0f, 0.0f, 0.0f));
+//		body->applyCentralImpulse(btVector3(0.0f, 80.0f, 0.0f) * dt * speed);
+//		//body->setLinearVelocity(btVector3(1.0f, 200.0f, 1.0f) * dt * speed);
+//		firstFrame = 0;
+//		lastFrame = 4;
+//		//body->activate(true);
+//		//body->setLinearVelocity(btVector3(0, 4, 0));
+//		//body->applyForce(btVector3(0, 1000, 0), btVector3(0, 1000, 0));
+//		//transform.MoveLocalFixed(0.0f, 1.0f * dt * speed, 0.0f);
+//		//transform.SetLocalRotation(90.0f, 0.0f, 102.0f);
+//	}
+//	if (glfwGetKey(BackendHandler::window, GLFW_KEY_W) == GLFW_PRESS && canMoveForward == true && RenderGroupBool != 0) {
+//		//transform->MoveLocal(1.0f * dt * speed, 0.0f, 0.0f);
+//		//transform.MoveLocalFixed(-1.0f * dt * speed, 0.0f, 0.0f);
+//		//transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(-1.0f * dt * speed, 0.0f, 0.0f));
+//		transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
+//		body->activate(true);
+//		//body->applyForce(btVector3(-8000.0f, 0.0f, 0.0f) * dt * speed, btVector3(0.0f, 0.0f, 0.0f));
+//		body->applyCentralImpulse(btVector3(-80.0f, 0.0f, 0.0f) * dt * speed);
+//		//body->setLinearVelocity(btVector3(-200.0f, 1.0f, 1.0f) * dt * speed);
+//		firstFrame = 0;
+//		lastFrame = 4;
+//		//transform.SetLocalRotation(90.0f, 0.0f, 192.0f);
+//		//camera->SetPosition(camera->GetPosition() + glm::vec3(-1.0f, 0.0f, 0.0f) * dt);
+//	}
+//	if (glfwGetKey(BackendHandler::window, GLFW_KEY_S) == GLFW_PRESS && canMoveBack == true && RenderGroupBool != 0) {
+//		//transform->MoveLocal(-1.0f * dt * speed, 0.0f, 0.0f);
+//		//transform.MoveLocalFixed(1.0f * dt * speed, 0.0f, 0.0f);
+//		//transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(1.0f * dt * speed, 0.0f, 0.0f));
+//		transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 270.0f);
+//		body->activate(true);
+//		//body->applyForce(btVector3(8000.0f, 0.0f, 0.0f) * dt * speed, btVector3(0.0f, 0.0f, 0.0f));
+//		body->applyCentralImpulse(btVector3(80.0f, 0.0f, 0.0f) * dt * speed);
+//		//body->setLinearVelocity(btVector3(200.0f, 1.0f, 1.0f) * dt * speed);
+//		firstFrame = 0;
+//		lastFrame = 4;
+//		//transform.SetLocalRotation(90.0f, 0.0f, 12.0f);
+//		//camera->SetPosition(camera->GetPosition() + glm::vec3(1.0f, 0.0f, 0.0f) * dt);
+//	}
+//	if (glfwGetKey(BackendHandler::window, GLFW_KEY_SPACE) == GLFW_PRESS && RenderGroupBool != 0) {
+//		//transform.MoveLocal(0.0f, 0.0f, 1.0f * dt);
+//	}
+//	if (glfwGetKey(BackendHandler::window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS && RenderGroupBool != 0) {
+//		//transform.MoveLocal(0.0f, 0.0f, -1.0f * dt);
+//	}
+//	else
+//	{
+//		firstFrame = 5;
+//		lastFrame = 7;
+//	}
+//
+//}
+
+
 void PlayerInput(GameObject& transform, float dt, float speed, btRigidBody* body) {
 	if (glfwGetKey(BackendHandler::window, GLFW_KEY_A) == GLFW_PRESS && canMoveLeft == true && RenderGroupBool != 0) {
 		//transform->MoveLocal(0.0f, 0.0f, -1.0f * dt * speed);
@@ -116,7 +191,7 @@ void PlayerInput(GameObject& transform, float dt, float speed, btRigidBody* body
 		firstFrame = 0;
 		lastFrame = 4;
 	}
-	if (glfwGetKey(BackendHandler::window, GLFW_KEY_D) == GLFW_PRESS && canMoveRight == true && RenderGroupBool != 0) {
+	else if (glfwGetKey(BackendHandler::window, GLFW_KEY_D) == GLFW_PRESS && canMoveRight == true && RenderGroupBool != 0) {
 		//transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(0.0f, 1.0f * dt * speed, 0.0f));
 		transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
 		body->activate(true);
@@ -131,7 +206,8 @@ void PlayerInput(GameObject& transform, float dt, float speed, btRigidBody* body
 		//transform.MoveLocalFixed(0.0f, 1.0f * dt * speed, 0.0f);
 		//transform.SetLocalRotation(90.0f, 0.0f, 102.0f);
 	}
-	if (glfwGetKey(BackendHandler::window, GLFW_KEY_W) == GLFW_PRESS && canMoveForward == true && RenderGroupBool != 0) {
+
+	else if (glfwGetKey(BackendHandler::window, GLFW_KEY_W) == GLFW_PRESS && canMoveForward == true && RenderGroupBool != 0) {
 		//transform->MoveLocal(1.0f * dt * speed, 0.0f, 0.0f);
 		//transform.MoveLocalFixed(-1.0f * dt * speed, 0.0f, 0.0f);
 		//transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(-1.0f * dt * speed, 0.0f, 0.0f));
@@ -145,7 +221,7 @@ void PlayerInput(GameObject& transform, float dt, float speed, btRigidBody* body
 		//transform.SetLocalRotation(90.0f, 0.0f, 192.0f);
 		//camera->SetPosition(camera->GetPosition() + glm::vec3(-1.0f, 0.0f, 0.0f) * dt);
 	}
-	if (glfwGetKey(BackendHandler::window, GLFW_KEY_S) == GLFW_PRESS && canMoveBack == true && RenderGroupBool != 0) {
+	else if (glfwGetKey(BackendHandler::window, GLFW_KEY_S) == GLFW_PRESS && canMoveBack == true && RenderGroupBool != 0) {
 		//transform->MoveLocal(-1.0f * dt * speed, 0.0f, 0.0f);
 		//transform.MoveLocalFixed(1.0f * dt * speed, 0.0f, 0.0f);
 		//transform.get<Transform>().SetLocalPosition(transform.get<Transform>().GetLocalPosition() + glm::vec3(1.0f * dt * speed, 0.0f, 0.0f));
@@ -159,6 +235,51 @@ void PlayerInput(GameObject& transform, float dt, float speed, btRigidBody* body
 		//transform.SetLocalRotation(90.0f, 0.0f, 12.0f);
 		//camera->SetPosition(camera->GetPosition() + glm::vec3(1.0f, 0.0f, 0.0f) * dt);
 	}
+	if (glfwGetKey(BackendHandler::window, GLFW_KEY_W) == GLFW_PRESS && glfwGetKey(BackendHandler::window, GLFW_KEY_A) == GLFW_PRESS)
+	{
+		transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 135.0f);
+		body->activate(true);
+		//body->applyForce(btVector3(8000.0f, 0.0f, 0.0f) * dt * speed, btVector3(0.0f, 0.0f, 0.0f));
+		body->applyCentralImpulse(btVector3(-20.0f, -20.0f, 0.0f) * dt * speed);
+
+		firstFrame = 0;
+		lastFrame = 4;
+	}
+
+	else if (glfwGetKey(BackendHandler::window, GLFW_KEY_W) == GLFW_PRESS && glfwGetKey(BackendHandler::window, GLFW_KEY_D) == GLFW_PRESS)
+	{
+		transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 45.0f);
+		body->activate(true);
+		//body->applyForce(btVector3(8000.0f, 0.0f, 0.0f) * dt * speed, btVector3(0.0f, 0.0f, 0.0f));
+		body->applyCentralImpulse(btVector3(-20.0f, 20.0f, 0.0f) * dt * speed);
+		//body->setLinearVelocity(btVector3(200.0f, 1.0f, 1.0f) * dt * speed);
+		firstFrame = 0;
+		lastFrame = 4;
+	}
+
+	else if (glfwGetKey(BackendHandler::window, GLFW_KEY_S) == GLFW_PRESS && glfwGetKey(BackendHandler::window, GLFW_KEY_A) == GLFW_PRESS)
+	{
+		transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 215.0f);
+		body->activate(true);
+		//body->applyForce(btVector3(8000.0f, 0.0f, 0.0f) * dt * speed, btVector3(0.0f, 0.0f, 0.0f));
+		body->applyCentralImpulse(btVector3(20.0f, -20.0f, 0.0f) * dt * speed);
+		//body->setLinearVelocity(btVector3(200.0f, 1.0f, 1.0f) * dt * speed);
+		firstFrame = 0;
+		lastFrame = 4;
+	}
+
+	else if (glfwGetKey(BackendHandler::window, GLFW_KEY_S) == GLFW_PRESS && glfwGetKey(BackendHandler::window, GLFW_KEY_D) == GLFW_PRESS)
+	{
+		transform.get<Transform>().SetLocalRotation(90.0f, 0.0f, 305.0f);
+		body->activate(true);
+		//body->applyForce(btVector3(8000.0f, 0.0f, 0.0f) * dt * speed, btVector3(0.0f, 0.0f, 0.0f));
+		body->applyCentralImpulse(btVector3(20.0f, 20.0f, 0.0f) * dt * speed);
+		//body->setLinearVelocity(btVector3(200.0f, 1.0f, 1.0f) * dt * speed);
+		firstFrame = 0;
+		lastFrame = 4;
+	}
+
+
 	if (glfwGetKey(BackendHandler::window, GLFW_KEY_SPACE) == GLFW_PRESS && RenderGroupBool != 0) {
 		//transform.MoveLocal(0.0f, 0.0f, 1.0f * dt);
 	}
@@ -4966,6 +5087,21 @@ int main() {
 				behaviour->Relative = !behaviour->Relative;
 				});
 
+			keyToggles.emplace_back(GLFW_KEY_C, [&]() {
+
+				if (!playerControlLock)
+				{
+					BehaviourBinding::Bind<CameraControlBehaviour>(cameraObject);
+					playerControlLock = true;
+				}
+				else
+				{
+					BehaviourBinding::BindDisabled<CameraControlBehaviour>(cameraObject);
+					playerControlLock = false;
+				}
+
+			});
+
 			keyToggles.emplace_back(GLFW_KEY_SPACE, [&]() {
 				if (!playerAirborne)
 				{
@@ -5049,7 +5185,7 @@ int main() {
 				else if (menuSelect == 1)
 				{
 					menuSelect = 3;
-					//menu.StopImmediately();
+					menu.StopImmediately();
 					Prelude1.Play();
 					//RenderGroupBool = 1;
 					//Application::Instance().ActiveScene = scene;
@@ -5582,76 +5718,91 @@ int main() {
 			}
 			else if (RenderGroupBool == 1)
 			{
-				cameraObject.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 8.0f,
-					playerBody->getCenterOfMassTransform().getOrigin().getY(),
-					cameraObject.get<Transform>().GetLocalPosition().z);
+				if (!playerControlLock)
+				{
+					cameraObject.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 8.0f,
+						playerBody->getCenterOfMassTransform().getOrigin().getY(),
+						cameraObject.get<Transform>().GetLocalPosition().z);
 
-				orthoCameraObject.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 8.0f,
-					playerBody->getCenterOfMassTransform().getOrigin().getY(),
-					orthoCameraObject.get<Transform>().GetLocalPosition().z);
+					orthoCameraObject.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 8.0f,
+						playerBody->getCenterOfMassTransform().getOrigin().getY(),
+						orthoCameraObject.get<Transform>().GetLocalPosition().z);
+				}
 
 			}
 			else if (RenderGroupBool == 2)
 			{
-				cameraObject2.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 8.0f,
-					playerBody->getCenterOfMassTransform().getOrigin().getY(),
-					cameraObject2.get<Transform>().GetLocalPosition().z);
+				if (!playerControlLock)
+				{
+					cameraObject2.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 8.0f,
+						playerBody->getCenterOfMassTransform().getOrigin().getY(),
+						cameraObject2.get<Transform>().GetLocalPosition().z);
 
-				
+					orthoCameraObject2.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 8.0f,
+						playerBody->getCenterOfMassTransform().getOrigin().getY(),
+						orthoCameraObject2.get<Transform>().GetLocalPosition().z);
+
+				}
 			}
 			else if (RenderGroupBool == 4)
 			{
-				cameraObject4.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 8.0f,
-					playerBody->getCenterOfMassTransform().getOrigin().getY(),
-					playerBody->getCenterOfMassTransform().getOrigin().getZ() + 5.0f);
+				if (!playerControlLock)
+				{
+					cameraObject4.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 8.0f,
+						playerBody->getCenterOfMassTransform().getOrigin().getY(),
+						playerBody->getCenterOfMassTransform().getOrigin().getZ() + 5.0f);
+				}
 			}
 
 			if (RenderGroupBool != 0 || RenderGroupBool != 3)
 			{
-				if (PlayerHealth == 3)
+				if (!playerControlLock)
 				{
-					//Sprites
-					heart1Obj.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 2.0f,
-						playerBody->getCenterOfMassTransform().getOrigin().getY() - 2.5f,
-						cameraObject.get<Transform>().GetLocalPosition().z - 0.02f);
+					if (PlayerHealth == 3)
+					{
+						//Sprites
+						heart1Obj.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 2.0f,
+							playerBody->getCenterOfMassTransform().getOrigin().getY() - 2.5f,
+							cameraObject.get<Transform>().GetLocalPosition().z - 0.02f);
 
-					heart2Obj.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 2.0f,
-						playerBody->getCenterOfMassTransform().getOrigin().getY() - 2.0f,
-						cameraObject.get<Transform>().GetLocalPosition().z - 0.02f);
+						heart2Obj.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 2.0f,
+							playerBody->getCenterOfMassTransform().getOrigin().getY() - 2.0f,
+							cameraObject.get<Transform>().GetLocalPosition().z - 0.02f);
 
-					heart3Obj.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 2.0f,
-						playerBody->getCenterOfMassTransform().getOrigin().getY() - 1.5f,
-						cameraObject.get<Transform>().GetLocalPosition().z - 0.02f);
-				}
-				else if (PlayerHealth == 2)
-				{
-					//Sprites
-					heart1Obj.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 2.0f,
-						playerBody->getCenterOfMassTransform().getOrigin().getY() - 2.5f,
-						cameraObject.get<Transform>().GetLocalPosition().z - 0.02f);
+						heart3Obj.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 2.0f,
+							playerBody->getCenterOfMassTransform().getOrigin().getY() - 1.5f,
+							cameraObject.get<Transform>().GetLocalPosition().z - 0.02f);
+					}
+					else if (PlayerHealth == 2)
+					{
+						//Sprites
+						heart1Obj.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 2.0f,
+							playerBody->getCenterOfMassTransform().getOrigin().getY() - 2.5f,
+							cameraObject.get<Transform>().GetLocalPosition().z - 0.02f);
 
-					heart2Obj.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 2.0f,
-						playerBody->getCenterOfMassTransform().getOrigin().getY() - 2.0f,
-						cameraObject.get<Transform>().GetLocalPosition().z - 0.02f);
+						heart2Obj.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 2.0f,
+							playerBody->getCenterOfMassTransform().getOrigin().getY() - 2.0f,
+							cameraObject.get<Transform>().GetLocalPosition().z - 0.02f);
 
-					heart3Obj.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 2.0f,
-						playerBody->getCenterOfMassTransform().getOrigin().getY() - 1.5f,
-						cameraObject.get<Transform>().GetLocalPosition().z + 6.0f);
-				}
-				else if (PlayerHealth == 1)
-				{
-					//Sprites
-					heart1Obj.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 2.0f,
-						playerBody->getCenterOfMassTransform().getOrigin().getY() - 2.5f,
-						cameraObject.get<Transform>().GetLocalPosition().z - 0.02f);
+						heart3Obj.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 2.0f,
+							playerBody->getCenterOfMassTransform().getOrigin().getY() - 1.5f,
+							cameraObject.get<Transform>().GetLocalPosition().z + 6.0f);
+					}
+					else if (PlayerHealth == 1)
+					{
+						//Sprites
+						heart1Obj.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 2.0f,
+							playerBody->getCenterOfMassTransform().getOrigin().getY() - 2.5f,
+							cameraObject.get<Transform>().GetLocalPosition().z - 0.02f);
 
-					heart2Obj.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 2.0f,
-						playerBody->getCenterOfMassTransform().getOrigin().getY() - 2.0f,
-						cameraObject.get<Transform>().GetLocalPosition().z + 6.0f);
+						heart2Obj.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 2.0f,
+							playerBody->getCenterOfMassTransform().getOrigin().getY() - 2.0f,
+							cameraObject.get<Transform>().GetLocalPosition().z + 6.0f);
 
-					heart3Obj.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 2.0f,
-						playerBody->getCenterOfMassTransform().getOrigin().getY() - 1.5f,
-						cameraObject.get<Transform>().GetLocalPosition().z + 6.0f);
+						heart3Obj.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 2.0f,
+							playerBody->getCenterOfMassTransform().getOrigin().getY() - 1.5f,
+							cameraObject.get<Transform>().GetLocalPosition().z + 6.0f);
+					}
 				}
 			}
 
@@ -5914,6 +6065,14 @@ int main() {
 				glm::mat4 orthoViewProjection = orthoProjection * orthoView;
 				
 
+				//Initializes first frame variables
+				if (initScene1)
+				{
+					activeEffect = 4;
+					
+					initScene1 = false;
+				}
+
 				// Sort the renderers by shader and material, we will go for a minimizing context switches approach here,
 				// but you could for instance sort front to back to optimize for fill rate if you have intensive fragment shaders
 				renderGroup.sort<RendererComponent>([](const RendererComponent& l, const RendererComponent& r) {
@@ -5959,8 +6118,6 @@ int main() {
 				Coin.get<MorphRenderer>().render(simpleDepthShader, viewProjection, Coin.get<Transform>(), view, viewProjection, lightSpaceViewProj);
 
 				shadowBuffer->Unbind();
-
-				activeEffect = 4;
 
 				glfwGetWindowSize(BackendHandler::window, &width, &height);
 
@@ -6040,7 +6197,8 @@ int main() {
 				shadowBuffer->BindDepthAsTexture(30);
 				player.get<MorphRenderer>().render(morphShader, viewProjection, player.get<Transform>(), view, viewProjection, lightSpaceViewProj);
 
-				PlayerInput(player, time.DeltaTime, speed, playerBody);
+				if(!playerControlLock)
+					PlayerInput(player, time.DeltaTime, speed, playerBody);
 
 				#pragma endregion
 
@@ -6048,11 +6206,9 @@ int main() {
 				#pragma region Scene Sounds
 
 				//Background Music
-				
 				BG.Play();
 				Level1Music == true;
 
-				
 
 				//Player Walking
 				if (glfwGetKey(BackendHandler::window, GLFW_KEY_W) == GLFW_PRESS || glfwGetKey(BackendHandler::window, GLFW_KEY_A) == GLFW_PRESS || glfwGetKey(BackendHandler::window, GLFW_KEY_S) == GLFW_PRESS || glfwGetKey(BackendHandler::window, GLFW_KEY_D) == GLFW_PRESS)
@@ -6115,21 +6271,24 @@ int main() {
 
 
 				#pragma region Rendering Sprites
+				
+				if (!playerControlLock)
+				{
+					glEnable(GL_BLEND);
+					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+					//spriteShader->Bind();
+					BackendHandler::SetupShaderForFrame(spriteShader, orthoView, orthoProjection);
+					heartMat->Apply();
+					BackendHandler::RenderVAO(spriteShader, heartVao, orthoViewProjection, heart1Obj.get<Transform>());
 
-				glEnable(GL_BLEND);
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-				//spriteShader->Bind();
-				BackendHandler::SetupShaderForFrame(spriteShader, orthoView, orthoProjection);
-				heartMat->Apply();
-				BackendHandler::RenderVAO(spriteShader, heartVao, orthoViewProjection, heart1Obj.get<Transform>());
+					BackendHandler::SetupShaderForFrame(spriteShader, orthoView, orthoProjection);
+					heartMat->Apply();
+					BackendHandler::RenderVAO(spriteShader, heartVao, orthoViewProjection, heart2Obj.get<Transform>());
 
-				BackendHandler::SetupShaderForFrame(spriteShader, orthoView, orthoProjection);
-				heartMat->Apply();
-				BackendHandler::RenderVAO(spriteShader, heartVao, orthoViewProjection, heart2Obj.get<Transform>());
-
-				BackendHandler::SetupShaderForFrame(spriteShader, orthoView, orthoProjection);
-				heartMat->Apply();
-				BackendHandler::RenderVAO(spriteShader, heartVao, orthoViewProjection, heart3Obj.get<Transform>());
+					BackendHandler::SetupShaderForFrame(spriteShader, orthoView, orthoProjection);
+					heartMat->Apply();
+					BackendHandler::RenderVAO(spriteShader, heartVao, orthoViewProjection, heart3Obj.get<Transform>());
+				}
 				
 				#pragma endregion
 
@@ -6187,8 +6346,9 @@ int main() {
 					float scene2AmbientPow = 0.3f;
 					theSun._ambientPow = scene2AmbientPow;
 					directionalLightBuffer.SendData(reinterpret_cast<void*>(&theSun), sizeof(DirectionalLight));
-					//shader->SetUniform("u_AmbientStrength", scene2AmbientPow);
-					//morphShader->SetUniform("u_AmbientStrength", ambientPow);
+					
+					activeEffect = 2;
+
 					scene2ShaderInit = true;
 				}
 
@@ -6250,7 +6410,6 @@ int main() {
 
 				shadowBuffer->Unbind();
 
-				activeEffect = 2;
 
 				glfwGetWindowSize(BackendHandler::window, &width, &height);
 
@@ -6308,27 +6467,31 @@ int main() {
 				shadowBuffer->BindDepthAsTexture(30);
 				player.get<MorphRenderer>().render(morphShader, viewProjection, player.get<Transform>(), view, viewProjection);
 
-				PlayerInput(player, time.DeltaTime, speed, playerBody);
+				if (!playerControlLock)
+					PlayerInput(player, time.DeltaTime, speed, playerBody);
 
 				#pragma endregion
 
 
 				#pragma region Rendering Sprites
 
-				glEnable(GL_BLEND);
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-				//spriteShader->Bind();
-				BackendHandler::SetupShaderForFrame(spriteShader, orthoView, orthoProjection);
-				heartMat->Apply();
-				BackendHandler::RenderVAO(spriteShader, heartVao, orthoViewProjection, heart1Obj.get<Transform>());
+				if (!playerControlLock)
+				{
+					glEnable(GL_BLEND);
+					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+					//spriteShader->Bind();
+					BackendHandler::SetupShaderForFrame(spriteShader, orthoView, orthoProjection);
+					heartMat->Apply();
+					BackendHandler::RenderVAO(spriteShader, heartVao, orthoViewProjection, heart1Obj.get<Transform>());
 
-				BackendHandler::SetupShaderForFrame(spriteShader, orthoView, orthoProjection);
-				heartMat->Apply();
-				BackendHandler::RenderVAO(spriteShader, heartVao, orthoViewProjection, heart2Obj.get<Transform>());
+					BackendHandler::SetupShaderForFrame(spriteShader, orthoView, orthoProjection);
+					heartMat->Apply();
+					BackendHandler::RenderVAO(spriteShader, heartVao, orthoViewProjection, heart2Obj.get<Transform>());
 
-				BackendHandler::SetupShaderForFrame(spriteShader, orthoView, orthoProjection);
-				heartMat->Apply();
-				BackendHandler::RenderVAO(spriteShader, heartVao, orthoViewProjection, heart3Obj.get<Transform>());
+					BackendHandler::SetupShaderForFrame(spriteShader, orthoView, orthoProjection);
+					heartMat->Apply();
+					BackendHandler::RenderVAO(spriteShader, heartVao, orthoViewProjection, heart3Obj.get<Transform>());
+				}
 
 				#pragma endregion
 
@@ -6405,6 +6568,13 @@ int main() {
 				glm::mat4 orthoProjection = orthoCameraObject4.get<Camera>().GetProjection();
 				glm::mat4 orthoViewProjection = orthoProjection * orthoView;
 
+				if (initScene4)
+				{
+					activeEffect = 1;
+
+					initScene4 = false;
+				}
+
 				if (!destroyedScene2Objects)
 				{
 					//Removing the last scene's physics bodies
@@ -6418,29 +6588,29 @@ int main() {
 					//Adding the current scene's physics bodies
 					dynamicsWorld->addRigidBody(Fireisland1Body, 1, 1);
 					//dynamicsWorld->addRigidBody(Fireisland2Body, 1, 1);
-					dynamicsWorld->addRigidBody(FirePlatform1Body, 41, 41);
+					dynamicsWorld->addRigidBody(FirePlatform1Body, -1, -1);
 					//FirePlatform1Body->setGravity(btVector3(0, 0, 0));
 					FirePlatform1Body->setLinearFactor(btVector3(0, 0, 0));
 					FirePlatform1Body->setAngularFactor(btVector3(0, 0, 0));
 					//FirePlatform1Body->isKinematicObject();
-					dynamicsWorld->addRigidBody(FirePlatform2Body, 41, 41);
+					dynamicsWorld->addRigidBody(FirePlatform2Body, -1, -1);
 					//FirePlatform2Body->setGravity(btVector3(0, 0, 0));
 					FirePlatform2Body->setLinearFactor(btVector3(0, 0, 0));
 					FirePlatform2Body->setAngularFactor(btVector3(0, 0, 0));
 
-					dynamicsWorld->addRigidBody(FirePlatform3Body, 1, 1);
+					dynamicsWorld->addRigidBody(FirePlatform3Body, -1, -1);
 					FirePlatform3Body->setLinearFactor(btVector3(0, 0, 0));
 					FirePlatform3Body->setAngularFactor(btVector3(0, 0, 0));
 
-					dynamicsWorld->addRigidBody(FirePlatform4Body, 1, 1);
+					dynamicsWorld->addRigidBody(FirePlatform4Body, -1, -1);
 					FirePlatform4Body->setLinearFactor(btVector3(0, 0, 0));
 					FirePlatform4Body->setAngularFactor(btVector3(0, 0, 0));
 
-					dynamicsWorld->addRigidBody(FirePlatform5Body, 1, 1);
+					dynamicsWorld->addRigidBody(FirePlatform5Body, -1, -1);
 					FirePlatform5Body->setLinearFactor(btVector3(0, 0, 0));
 					FirePlatform5Body->setAngularFactor(btVector3(0, 0, 0));
 
-					dynamicsWorld->addRigidBody(FirePlatform6Body, 1, 1);
+					dynamicsWorld->addRigidBody(FirePlatform6Body, -1, -1);
 					FirePlatform6Body->setLinearFactor(btVector3(0, 0, 0));
 					FirePlatform6Body->setAngularFactor(btVector3(0, 0, 0));
 					//FirePlatform2Body->isKinematicObject();
@@ -6488,7 +6658,6 @@ int main() {
 
 				shadowBuffer->Unbind();
 
-				activeEffect = 1;
 
 				glfwGetWindowSize(BackendHandler::window, &width, &height);
 
@@ -6546,7 +6715,8 @@ int main() {
 				shadowBuffer->BindDepthAsTexture(30);
 				player.get<MorphRenderer>().render(morphShader, viewProjection, player.get<Transform>(), view, viewProjection);
 
-				PlayerInput(player, time.DeltaTime, speed, playerBody);
+				if (!playerControlLock)
+					PlayerInput(player, time.DeltaTime, speed, playerBody);
 
 				#pragma endregion
 
