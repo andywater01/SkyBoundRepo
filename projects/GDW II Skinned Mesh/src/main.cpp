@@ -25,6 +25,7 @@
 #define NEAR_PLANE 0.1f
 #define FAR_PLANE 1000.0f
 
+
 #pragma region Standard Graphics Code
 
 GLFWwindow* window;
@@ -70,11 +71,13 @@ int main()
 	}
 #pragma endregion Standard Graphics Code
 
+	
+
 	// INSERT LOADING SKINNED MESH HERE
 	GLTFSkinnedMesh mesh;
-	mesh.LoadFromFile("models/Wizard.gltf");
+	mesh.LoadFromFile("models/Wizard.glb");
 	mesh.SetLooping(true);
-
+	
 #pragma region Standard Graphics Code
 
 		{

@@ -3,6 +3,9 @@
 layout(location = 0) in vec3 inPos;
 layout(location = 1) in vec3 inColor;
 layout(location = 2) in vec3 inNormal;
+layout(location = 3) in vec2 inUV;
+
+uniform sampler2D s_Diffuse;
 
 uniform vec3  u_AmbientCol;
 uniform float u_AmbientStrength;
@@ -45,7 +48,9 @@ void main() {
 	float spec = pow(max(dot(N, h), 0.0), u_Shininess); // Shininess coefficient (can be a uniform)
 	vec3 specular = u_SpecularLightStrength * spec * u_LightCol; // Can also use a specular color
 
-	vec3 result = (ambient + diffuse + specular) * inColor;
+	vec3 textureColor = vec3(inUV, 1.0);
+
+	vec3 result = (ambient + diffuse + specular) * textureColor * inColor;
 
 	frag_color = vec4(result, 1.0);
 

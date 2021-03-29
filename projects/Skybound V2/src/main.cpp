@@ -1155,8 +1155,14 @@ int main() {
 
 		VignetteEffect* vignetteEffect3;
 
+		//Physics Body Control
 		glm::vec3 angleRotation = glm::vec3(0, 0, 0);
 		glm::vec3 bodyTranslation = glm::vec3(0, 0, 0);
+
+		//Shadow Control
+		glm::vec2 leftRight = glm::vec2(-50.0f, 50.0f);
+		glm::vec2 bottomTop = glm::vec2(-50.0f, 50.0f);
+		glm::vec2 nearFar = glm::vec2(-30.0f, 30.0f);
 
 		// We'll add some ImGui controls to control our shader
 		BackendHandler::imGuiCallbacks.push_back([&]() {
@@ -1647,12 +1653,31 @@ int main() {
 					directionalLightBuffer.SendData(reinterpret_cast<void*>(&theSun), sizeof(DirectionalLight));
 				}
 			}
-			if (ImGui::DragFloat3("Translation", glm::value_ptr(bodyTranslation), 0.1f, -50.0f, 50.0f)) {
-				
-			}
-			if (ImGui::DragFloat3("Rotation", glm::value_ptr(angleRotation), 0.01f, -360.0f, 360.0f)) {
+			if (ImGui::CollapsingHeader("Physics Controls"))
+			{
+				if (ImGui::DragFloat3("Translation", glm::value_ptr(bodyTranslation), 0.1f, -50.0f, 50.0f)) {
 
+				}
+				if (ImGui::DragFloat3("Rotation", glm::value_ptr(angleRotation), 0.01f, -360.0f, 360.0f)) {
+
+				}
 			}
+			if (ImGui::CollapsingHeader("Shadow Controls"))
+			{
+				if (ImGui::DragFloat2("Left and Right", glm::value_ptr(leftRight), 0.1, -1000.0f, 1000.0f))
+				{
+
+				}
+				if (ImGui::DragFloat2("Bottom and Top", glm::value_ptr(bottomTop), 0.1, -1000.0f, 1000.0f))
+				{
+
+				}
+				if (ImGui::DragFloat2("Near and Far", glm::value_ptr(nearFar), 0.1, -1000.0f, 1000.0f))
+				{
+
+				}
+			}
+			
 			
 			
 
@@ -3236,7 +3261,7 @@ int main() {
 			//Collision Stuff
 			collisionShapes.push_back(taigaIsland3Shape);
 			taigaIsland3Transform.setIdentity();
-			taigaIsland3Transform.setOrigin(btVector3(-40.7f, 0.4f, -6.3f));
+			taigaIsland3Transform.setOrigin(btVector3(-22.0f, -49.1f, -6.4f));
 			btQuaternion rotation;
 			rotation.setEuler(0.0f, 0.0f, 0.0f);
 			taigaIsland3Transform.setRotation(rotation);
@@ -3280,6 +3305,26 @@ int main() {
 			TaigaGround4.get<Transform>().SetLocalScale(3.0f, 3.0f, 3.0f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(TaigaGround4);
 			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+
+			//Collision Stuff
+			collisionShapes.push_back(taigaIsland4Shape);
+			taigaIsland4Transform.setIdentity();
+			taigaIsland4Transform.setOrigin(btVector3(-22.0f, 48.9f, -6.3f));
+			btQuaternion rotation;
+			rotation.setEuler(0.0f, 0.0f, 0.0f);
+			taigaIsland4Transform.setRotation(rotation);
+			//island4Transform.setRotation(btQuaternion(btVector3(1, 0, 0), btScalar(-1.57)));
+			//island4Transform.setRotation(btQuaternion(btVector3(1, 0, 0), btScalar(-1.57)));
+			//island4Transform.setOrigin(glm2bt(island4.get<Transform>().GetLocalPosition()));
+			//island4Transform.setIdentity();
+
+			if (isTaigaIsland4Dynamic)
+				taigaIsland4Shape->calculateLocalInertia(taigaIsland4Mass, localtaigaIsland4Inertia);
+
+			//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+			taigaIsland4MotionState = new btDefaultMotionState(taigaIsland4Transform);
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(taigaIsland4Mass, taigaIsland4MotionState, taigaIsland4Shape, localtaigaIsland4Inertia);
+			taigaIsland4Body = new btRigidBody(rbInfo);
 		}
 
 		#pragma endregion
@@ -5185,7 +5230,7 @@ int main() {
 				else if (menuSelect == 1)
 				{
 					menuSelect = 3;
-					menu.StopImmediately();
+					//menu.StopImmediately();
 					Prelude1.Play();
 					//RenderGroupBool = 1;
 					//Application::Instance().ActiveScene = scene;
@@ -5247,9 +5292,6 @@ int main() {
 		#pragma endregion
 
 
-		
-
-
 		#pragma region Sound Booleans
 
 		bool Level1Music = false;
@@ -5271,6 +5313,8 @@ int main() {
 		Application::Instance().scenes.push_back(scene2);
 		Application::Instance().scenes.push_back(scene3);
 		Application::Instance().scenes.push_back(scene4);
+
+		menu.Play();
 
 		///// Game loop /////
 		while (!glfwWindowShouldClose(BackendHandler::window)) {
@@ -5327,12 +5371,13 @@ int main() {
 			#pragma endregion
 
 
+			//Physics Body Slider
 			btQuaternion rotation;
 			rotation.setEuler(angleRotation.x, angleRotation.y, angleRotation.z);
-			taigaIsland2Transform.setRotation(rotation);
-			//taigaIsland2Transform.setOrigin(btVector3(bodyTranslation.x, bodyTranslation.y, bodyTranslation.z));
+			taigaIsland4Transform.setRotation(rotation);
+			taigaIsland4Transform.setOrigin(btVector3(bodyTranslation.x, bodyTranslation.y, bodyTranslation.z));
 
-			taigaIsland2Body->setWorldTransform(taigaIsland2Transform);
+			//taigaIsland4Body->setWorldTransform(taigaIsland4Transform);
 
 			// We'll make sure our UI isn't focused before we start handling input for our game
 			if (!ImGui::IsAnyWindowFocused()) {
@@ -5463,6 +5508,7 @@ int main() {
 
 			if (menuSelect == 3)
 			{
+				menu.StopImmediately();
 				playMenuObj.get<Sprite>().SetMaterial(story1Mat);
 				Prelude2.Play();
 				storyTimer += time.DeltaTime;
@@ -5501,7 +5547,7 @@ int main() {
 			{
 				menuSelect = 7;
 				RenderGroupBool = 1;
-				menu.StopImmediately();
+				//menu.StopImmediately();
 				Application::Instance().ActiveScene = scene;
 			}
 
@@ -5843,7 +5889,7 @@ int main() {
 
 				if (width > 900)
 				{
-					playerBody->applyCentralImpulse(btVector3(0.0f, 0.0f, 6000.0f) * time.DeltaTime * speed);
+					playerBody->applyCentralImpulse(btVector3(0.0f, 0.0f, 3000.0f) * time.DeltaTime * speed);
 				}
 				else
 				{
@@ -6021,7 +6067,7 @@ int main() {
 
 				#pragma region Scene Sounds
 
-				menu.Play();
+				//menu.Play();
 
 				#pragma endregion
 
@@ -6341,7 +6387,8 @@ int main() {
 				glm::mat4 viewProjection = projection * view;
 
 				//Set up light space matrix (Increase ortho values to expand size for scene)
-				glm::mat4 lightProjectionMatrix = glm::ortho(-50.0f, 50.0f, -50.0f, 50.0f, -30.0f, 30.0f);
+				glm::mat4 lightProjectionMatrix = glm::ortho(leftRight.x, leftRight.y, bottomTop.x, bottomTop.y, nearFar.x, nearFar.y);
+				//glm::mat4 lightProjectionMatrix = glm::ortho(-50.0f, 50.0f, -50.0f, 50.0f, -30.0f, 30.0f);
 				glm::mat4 lightViewMatrix = glm::lookAt(glm::vec3(-theSun._lightDirection), glm::vec3(), glm::vec3(0.0f, 0.0f, 1.0f));
 				glm::mat4 lightSpaceViewProj = lightProjectionMatrix * lightViewMatrix;
 
@@ -6374,6 +6421,8 @@ int main() {
 					//Adding the current scene's physics bodies
 					dynamicsWorld->addRigidBody(taigaIsland1Body, 1, 1);
 					dynamicsWorld->addRigidBody(taigaIsland2Body, 1, 1);
+					dynamicsWorld->addRigidBody(taigaIsland3Body, 1, 1);
+					dynamicsWorld->addRigidBody(taigaIsland4Body, 1, 1);
 					dynamicsWorld->addRigidBody(bridge2Body, 1, 1);
 					dynamicsWorld->addRigidBody(bridge3Body, 1, 1);
 					dynamicsWorld->addRigidBody(bridge4Body, 1, 1);
@@ -6510,6 +6559,8 @@ int main() {
 
 				LinkBody(TaigaGround, taigaIsland1Body, 0.0f, 0.0f, -7.0f);
 				LinkBody(TaigaGround2, taigaIsland2Body, 0.0f, 0.0f, -7.0f);
+				LinkBody(TaigaGround3, taigaIsland3Body, 0.0f, 0.0f, -7.0f);
+				LinkBody(TaigaGround4, taigaIsland4Body, 0.0f, 0.0f, -7.0f);
 
 				LinkBody(Bridge2, bridge2Body);
 				LinkBody(Bridge3, bridge3Body);
@@ -6829,6 +6880,17 @@ int main() {
 				activeEffect = 0;
 
 				basicEffect0->BindBuffer(0);
+
+				glfwGetWindowSize(BackendHandler::window, &width, &height);
+
+				if (width > 900)
+				{
+					deathMenuObj.get<Transform>().SetLocalScale(1.14f, 1.0f, 0.6f);
+				}
+				else
+				{
+					deathMenuObj.get<Transform>().SetLocalScale(0.6f, 0.6f, 0.6f);
+				}
 
 				// Iterate over the render group components and draw them
 				renderGroup3.each([&](entt::entity e, RendererComponent& renderer, Transform& transform) {

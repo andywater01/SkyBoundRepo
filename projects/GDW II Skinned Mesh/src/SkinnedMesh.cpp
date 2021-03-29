@@ -207,7 +207,7 @@ bool GLTFSkinnedMesh::LoadMesh(int const meshIndex, int const associatedSkin)
 		IndexBuffer::sptr ebo = IndexBuffer::Create();
 		ebo->LoadData(indices.data(), indices.size());
 
-		VertexArrayObject::sptr vao = VertexArrayObject::Create();
+		//VertexArrayObject::sptr vao = VertexArrayObject::Create();
 		vao->AddVertexBuffer(vbo, VertexPosNormTexJointWeight::V_DECL);
 		vao->SetIndexBuffer(ebo);
 

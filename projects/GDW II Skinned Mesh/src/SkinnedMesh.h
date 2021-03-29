@@ -12,7 +12,7 @@
 #include "SimpleTransform.h"
 
 // Ensure this is the same number as your vertex shader
-#define MAX_BONES 12
+#define MAX_BONES 20
 
 // Custom vertex for VAO to store per-vertex joint and weight information
 struct VertexPosNormTexJointWeight
@@ -119,6 +119,8 @@ private:
 
     bool m_animationLooping = false;
     float m_animationTime = 0.0f;
+
+	VertexArrayObject::sptr vao = VertexArrayObject::Create();
 };
 
 #endif // !_SKINNED_MESH_H
