@@ -86,6 +86,8 @@ int width, height;
 int shadowWidth = 4096;
 int shadowHeight = 4096;
 
+bool ToggleTextures = true;
+
 // Collision groups & masks
 #define BIT(x) (1<<(x))
 enum collisiontypes
@@ -292,6 +294,23 @@ void PlayerInput(GameObject& transform, float dt, float speed, btRigidBody* body
 		lastFrame = 7;
 	}
 
+}
+
+#pragma endregion
+
+
+#pragma region Print Position
+
+void printObjectPosition(GameObject& transform)
+{
+	float x, y, z;
+	x = transform.get<Transform>().GetLocalPosition().x;
+	y = transform.get<Transform>().GetLocalPosition().y;
+	z = transform.get<Transform>().GetLocalPosition().z;
+
+	std::cout << "\nObject's X: " << x << std::endl;
+	std::cout << "Object's Y: " << y << std::endl;
+	std::cout << "Object's Z: " << z << std::endl;
 }
 
 #pragma endregion
@@ -753,7 +772,7 @@ struct CustomFilterCallback : public btOverlapFilterCallback
 		bool collides = (proxy0->m_collisionFilterGroup & proxy1->m_collisionFilterMask) != 0;
 		collides = collides && (proxy1->m_collisionFilterGroup & proxy0->m_collisionFilterMask);
 
-		std::cout << proxy0->getUid() << "  " << proxy1->getUid() << std::endl;
+		//std::cout << proxy0->getUid() << "  " << proxy1->getUid() << std::endl;
 
 		if (proxy0->getUid() == 13)
 		{
@@ -1164,6 +1183,9 @@ int main() {
 		glm::vec2 bottomTop = glm::vec2(-50.0f, 50.0f);
 		glm::vec2 nearFar = glm::vec2(-30.0f, 30.0f);
 
+		//Shifting Camera
+		glm::vec3 shiftCamera = glm::vec3(0, 0, 0);
+
 		// We'll add some ImGui controls to control our shader
 		BackendHandler::imGuiCallbacks.push_back([&]() {
 			if (ImGui::CollapsingHeader("Effect Controls"))
@@ -1234,6 +1256,10 @@ int main() {
 						temp->SetOpacity(opacity);
 					}
 					
+				}
+				if (ImGui::Button("Toggle Textures"))
+				{
+					ToggleTextures = !ToggleTextures;
 				}
 			}
 			if (ImGui::CollapsingHeader("Effect Controls for Scene 2"))
@@ -1677,6 +1703,13 @@ int main() {
 
 				}
 			}
+			if (ImGui::CollapsingHeader("Camera Controls"))
+			{
+				if (ImGui::DragFloat3("Camera Controls: ", glm::value_ptr(shiftCamera), 0.1, -100.0f, 100.0f))
+				{
+
+				}
+			}
 			
 			
 			
@@ -1754,6 +1787,8 @@ int main() {
 		Texture2D::sptr diffuseMp31 = Texture2D::LoadFromFile("images/PineTreeColours.png");
 		Texture2D::sptr diffuseMp32 = Texture2D::LoadFromFile("images/tree1_texture.png");
 		Texture2D::sptr diffuseMp33 = Texture2D::LoadFromFile("images/tree2_texture.png");
+
+		Texture2D::sptr WhiteDiffuse = Texture2D::LoadFromFile("images/White.png");
 
 		//Heart Sprites
 		Texture2D::sptr heartDiffuse = Texture2D::LoadFromFile("images/heart.png");
@@ -2082,6 +2117,12 @@ int main() {
 		material32->Set("u_Shininess", 0.2f);
 		material32->Set("u_OutlineThickness", 0.2f);
 		material32->Set("s_DiffuseRamp", diffuseRamp);
+		material32->Set("s_SpecularRamp", specularRamp);
+
+		ShaderMaterial::sptr material33 = ShaderMaterial::Create();
+		material33->Shader = shader;
+		material33->Set("s_Diffuse", WhiteDiffuse);
+		material33->Set("s_DiffuseRamp", diffuseRamp);
 		material32->Set("s_SpecularRamp", specularRamp);
 
 		////////
@@ -3851,6 +3892,88 @@ int main() {
 		#pragma endregion
 
 
+		#pragma region Sprite Objects
+
+		VertexArrayObject::sptr heartVao2;
+
+		GameObject heart1Obj2 = scene2->CreateEntity("HeartSprite");
+		{
+			GLfloat vertices[] = { -1, -1, 0, // bottom left corner
+						   -1,  1, 0, // top left corner
+							1,  1, 0, // top right corner
+							1, -1, 0 }; // bottom right corner
+
+
+			GLuint elements[] = {
+					0, 1, 2,
+					2, 3, 0
+			};
+
+
+			heartVao2 = NotObjLoader::LoadFromFile("sprite.notobj");
+			heart1Obj2.emplace<Sprite>().SetMesh(heartVao2).SetMaterial(heartMat);
+			//heart1Obj.emplace<RendererComponent>().SetMesh(heart1Vao).SetMaterial(heart1Mat);
+			heart1Obj2.get<Transform>().SetLocalPosition(0.0f, 0.0f, 5.0f);
+			heart1Obj2.get<Transform>().SetLocalRotation(0.0f, 180.0f, 270.0f);
+			//heart1Obj.get<Transform>().SetLocalRotation(0.0f, 180.0f, 180.0f);
+			heart1Obj2.get<Transform>().SetLocalScale(0.07f, 0.07f, 0.07f);
+			//heart1Obj.get<Transform>().LookAt(glm::vec3(0));
+
+		}
+
+		GameObject heart2Obj2 = scene2->CreateEntity("HeartSprite");
+		{
+			GLfloat vertices[] = { -1, -1, 0, // bottom left corner
+						   -1,  1, 0, // top left corner
+							1,  1, 0, // top right corner
+							1, -1, 0 }; // bottom right corner
+
+
+			GLuint elements[] = {
+					0, 1, 2,
+					2, 3, 0
+			};
+
+
+			heartVao2 = NotObjLoader::LoadFromFile("sprite.notobj");
+			heart2Obj2.emplace<Sprite>().SetMesh(heartVao2).SetMaterial(heartMat);
+			//heart1Obj.emplace<RendererComponent>().SetMesh(heart1Vao).SetMaterial(heart1Mat);
+			heart2Obj2.get<Transform>().SetLocalPosition(0.0f, 0.0f, 5.0f);
+			heart2Obj2.get<Transform>().SetLocalRotation(0.0f, 180.0f, 270.0f);
+			//heart1Obj.get<Transform>().SetLocalRotation(0.0f, 180.0f, 180.0f);
+			heart2Obj2.get<Transform>().SetLocalScale(0.07f, 0.07f, 0.07f);
+			//heart1Obj.get<Transform>().LookAt(glm::vec3(0));
+
+		}
+
+		GameObject heart3Obj2 = scene2->CreateEntity("HeartSprite");
+		{
+			GLfloat vertices[] = { -1, -1, 0, // bottom left corner
+						   -1,  1, 0, // top left corner
+							1,  1, 0, // top right corner
+							1, -1, 0 }; // bottom right corner
+
+
+			GLuint elements[] = {
+					0, 1, 2,
+					2, 3, 0
+			};
+
+
+			heartVao2 = NotObjLoader::LoadFromFile("sprite.notobj");
+			heart3Obj2.emplace<Sprite>().SetMesh(heartVao2).SetMaterial(heartMat);
+			//heart1Obj.emplace<RendererComponent>().SetMesh(heart1Vao).SetMaterial(heart1Mat);
+			heart3Obj2.get<Transform>().SetLocalPosition(0.0f, 0.0f, 5.0f);
+			heart3Obj2.get<Transform>().SetLocalRotation(0.0f, 180.0f, 270.0f);
+			//heart1Obj.get<Transform>().SetLocalRotation(0.0f, 180.0f, 180.0f);
+			heart3Obj2.get<Transform>().SetLocalScale(0.07f, 0.07f, 0.07f);
+			//heart1Obj.get<Transform>().LookAt(glm::vec3(0));
+
+		}
+
+		#pragma endregion
+
+
 		#pragma endregion
 		///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -4451,6 +4574,88 @@ int main() {
 			vignetteEffect3->Init(width, height);
 		}
 		scene3Effects.push_back(vignetteEffect3);
+
+		#pragma endregion
+
+
+		#pragma region Sprite Objects
+
+		VertexArrayObject::sptr heartVao3;
+
+		GameObject heart1Obj3 = scene4->CreateEntity("HeartSprite4");
+		{
+			GLfloat vertices[] = { -1, -1, 0, // bottom left corner
+						   -1,  1, 0, // top left corner
+							1,  1, 0, // top right corner
+							1, -1, 0 }; // bottom right corner
+
+
+			GLuint elements[] = {
+					0, 1, 2,
+					2, 3, 0
+			};
+
+
+			heartVao3 = NotObjLoader::LoadFromFile("sprite.notobj");
+			heart1Obj3.emplace<Sprite>().SetMesh(heartVao3).SetMaterial(heartMat);
+			//heart1Obj.emplace<RendererComponent>().SetMesh(heart1Vao).SetMaterial(heart1Mat);
+			heart1Obj3.get<Transform>().SetLocalPosition(0.0f, 0.0f, 5.0f);
+			heart1Obj3.get<Transform>().SetLocalRotation(0.0f, 180.0f, 270.0f);
+			//heart1Obj.get<Transform>().SetLocalRotation(0.0f, 180.0f, 180.0f);
+			heart1Obj3.get<Transform>().SetLocalScale(0.07f, 0.07f, 0.07f);
+			//heart1Obj.get<Transform>().LookAt(glm::vec3(0));
+
+		}
+
+		GameObject heart2Obj3 = scene4->CreateEntity("HeartSprite4");
+		{
+			GLfloat vertices[] = { -1, -1, 0, // bottom left corner
+						   -1,  1, 0, // top left corner
+							1,  1, 0, // top right corner
+							1, -1, 0 }; // bottom right corner
+
+
+			GLuint elements[] = {
+					0, 1, 2,
+					2, 3, 0
+			};
+
+
+			heartVao3 = NotObjLoader::LoadFromFile("sprite.notobj");
+			heart2Obj3.emplace<Sprite>().SetMesh(heartVao3).SetMaterial(heartMat);
+			//heart1Obj.emplace<RendererComponent>().SetMesh(heart1Vao).SetMaterial(heart1Mat);
+			heart2Obj3.get<Transform>().SetLocalPosition(0.0f, 0.0f, 5.0f);
+			heart2Obj3.get<Transform>().SetLocalRotation(0.0f, 180.0f, 270.0f);
+			//heart1Obj.get<Transform>().SetLocalRotation(0.0f, 180.0f, 180.0f);
+			heart2Obj3.get<Transform>().SetLocalScale(0.07f, 0.07f, 0.07f);
+			//heart1Obj.get<Transform>().LookAt(glm::vec3(0));
+
+		}
+
+		GameObject heart3Obj3 = scene4->CreateEntity("HeartSprite4");
+		{
+			GLfloat vertices[] = { -1, -1, 0, // bottom left corner
+						   -1,  1, 0, // top left corner
+							1,  1, 0, // top right corner
+							1, -1, 0 }; // bottom right corner
+
+
+			GLuint elements[] = {
+					0, 1, 2,
+					2, 3, 0
+			};
+
+
+			heartVao3 = NotObjLoader::LoadFromFile("sprite.notobj");
+			heart3Obj3.emplace<Sprite>().SetMesh(heartVao3).SetMaterial(heartMat);
+			//heart1Obj.emplace<RendererComponent>().SetMesh(heart1Vao).SetMaterial(heart1Mat);
+			heart3Obj3.get<Transform>().SetLocalPosition(0.0f, 0.0f, 5.0f);
+			heart3Obj3.get<Transform>().SetLocalRotation(0.0f, 180.0f, 270.0f);
+			//heart1Obj.get<Transform>().SetLocalRotation(0.0f, 180.0f, 180.0f);
+			heart3Obj3.get<Transform>().SetLocalScale(0.07f, 0.07f, 0.07f);
+			//heart1Obj.get<Transform>().LookAt(glm::vec3(0));
+
+		}
 
 		#pragma endregion
 
@@ -5371,6 +5576,8 @@ int main() {
 			#pragma endregion
 
 
+			printObjectPosition(heart1Obj3);
+
 			//Physics Body Slider
 			btQuaternion rotation;
 			rotation.setEuler(angleRotation.x, angleRotation.y, angleRotation.z);
@@ -5401,6 +5608,90 @@ int main() {
 			});
 
 			
+			#pragma region Texture Toggles
+
+			if (ToggleTextures == false)
+			{
+
+				material0->Set("s_Diffuse", WhiteDiffuse);
+				material1->Set("s_Diffuse", WhiteDiffuse);
+				material2->Set("s_Diffuse", WhiteDiffuse);
+				material3->Set("s_Diffuse", WhiteDiffuse);
+				material4->Set("s_Diffuse", WhiteDiffuse);
+				material5->Set("s_Diffuse", WhiteDiffuse);
+				material6->Set("s_Diffuse", WhiteDiffuse);
+				material7->Set("s_Diffuse", WhiteDiffuse);
+				material8->Set("s_Diffuse", WhiteDiffuse);
+				material9->Set("s_Diffuse", WhiteDiffuse);
+				material10->Set("s_Diffuse", WhiteDiffuse);
+				material11->Set("s_Diffuse", WhiteDiffuse);
+				material12->Set("s_Diffuse", WhiteDiffuse);
+				material13->Set("s_Diffuse", WhiteDiffuse);
+				material14->Set("s_Diffuse", WhiteDiffuse);
+				material15->Set("s_Diffuse", WhiteDiffuse);
+				material16->Set("s_Diffuse", WhiteDiffuse);
+				material17->Set("s_Diffuse", WhiteDiffuse);
+				material18->Set("s_Diffuse", WhiteDiffuse);
+				material19->Set("s_Diffuse", WhiteDiffuse);
+				material20->Set("s_Diffuse", WhiteDiffuse);
+				material21->Set("s_Diffuse", WhiteDiffuse);
+				material22->Set("s_Diffuse", WhiteDiffuse);
+				material23->Set("s_Diffuse", WhiteDiffuse);
+				material24->Set("s_Diffuse", WhiteDiffuse);
+				material25->Set("s_Diffuse", WhiteDiffuse);
+				material26->Set("s_Diffuse", WhiteDiffuse);
+				material27->Set("s_Diffuse", WhiteDiffuse);
+				material28->Set("s_Diffuse", WhiteDiffuse);
+				material29->Set("s_Diffuse", WhiteDiffuse);
+				material30->Set("s_Diffuse", WhiteDiffuse);
+				material31->Set("s_Diffuse", WhiteDiffuse);
+				material32->Set("s_Diffuse", WhiteDiffuse);
+				material33->Set("s_Diffuse", WhiteDiffuse);
+
+			}
+			else if (ToggleTextures == true)
+			{
+
+				material0->Set("s_Diffuse", PlayerDiffuse);
+				material1->Set("s_Diffuse", diffuseMp02);
+				material2->Set("s_Diffuse", diffuseMp03);
+				material3->Set("s_Diffuse", diffuseMp04);
+				material4->Set("s_Diffuse", diffuseMp05);
+				material5->Set("s_Diffuse", diffuseMp06);
+				material6->Set("s_Diffuse", diffuseMp07);
+				material7->Set("s_Diffuse", diffuseMp08);
+				material8->Set("s_Diffuse", diffuseMp09);
+				material9->Set("s_Diffuse", diffuseMp10);
+				material10->Set("s_Diffuse", diffuseMp11);
+				material11->Set("s_Diffuse", diffuseMp12);
+				material12->Set("s_Diffuse", diffuseMp13);
+				material13->Set("s_Diffuse", diffuseMp14);
+				material14->Set("s_Diffuse", diffuseMp15);
+				material15->Set("s_Diffuse", diffuseMp16);
+				material16->Set("s_Diffuse", diffuseMp17);
+				material17->Set("s_Diffuse", diffuseMp18);
+				material18->Set("s_Diffuse", diffuseMp19);
+				material19->Set("s_Diffuse", diffuseMp20);
+				material20->Set("s_Diffuse", diffuseMp21);
+				material21->Set("s_Diffuse", diffuseMp22);
+				material22->Set("s_Diffuse", diffuseMp23);
+				material23->Set("s_Diffuse", diffuseMp24);
+				material24->Set("s_Diffuse", diffuseMp25);
+				material25->Set("s_Diffuse", diffuseMp26);
+				material26->Set("s_Diffuse", diffuseMp27);
+				material27->Set("s_Diffuse", diffuseMp28);
+				material28->Set("s_Diffuse", diffuseMp29);
+				material29->Set("s_Diffuse", diffuseMp30);
+				material30->Set("s_Diffuse", diffuseMp31);
+				material31->Set("s_Diffuse", diffuseMp32);
+				material32->Set("s_Diffuse", diffuseMp33);
+
+
+			}
+
+
+
+			#pragma endregion
 			
 
 			#pragma region Respawning
@@ -5773,37 +6064,9 @@ int main() {
 					orthoCameraObject.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 8.0f,
 						playerBody->getCenterOfMassTransform().getOrigin().getY(),
 						orthoCameraObject.get<Transform>().GetLocalPosition().z);
-				}
 
-			}
-			else if (RenderGroupBool == 2)
-			{
-				if (!playerControlLock)
-				{
-					cameraObject2.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 8.0f,
-						playerBody->getCenterOfMassTransform().getOrigin().getY(),
-						cameraObject2.get<Transform>().GetLocalPosition().z);
+					#pragma region Player Health
 
-					orthoCameraObject2.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 8.0f,
-						playerBody->getCenterOfMassTransform().getOrigin().getY(),
-						orthoCameraObject2.get<Transform>().GetLocalPosition().z);
-
-				}
-			}
-			else if (RenderGroupBool == 4)
-			{
-				if (!playerControlLock)
-				{
-					cameraObject4.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 8.0f,
-						playerBody->getCenterOfMassTransform().getOrigin().getY(),
-						playerBody->getCenterOfMassTransform().getOrigin().getZ() + 5.0f);
-				}
-			}
-
-			if (RenderGroupBool != 0 || RenderGroupBool != 3)
-			{
-				if (!playerControlLock)
-				{
 					if (PlayerHealth == 3)
 					{
 						//Sprites
@@ -5849,8 +6112,139 @@ int main() {
 							playerBody->getCenterOfMassTransform().getOrigin().getY() - 1.5f,
 							cameraObject.get<Transform>().GetLocalPosition().z + 6.0f);
 					}
+
+					#pragma endregion
+				}
+
+			}
+			else if (RenderGroupBool == 2)
+			{
+				if (!playerControlLock)
+				{
+					cameraObject2.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 8.0f,
+						playerBody->getCenterOfMassTransform().getOrigin().getY(),
+						cameraObject2.get<Transform>().GetLocalPosition().z);
+
+					orthoCameraObject2.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 8.0f,
+						playerBody->getCenterOfMassTransform().getOrigin().getY(),
+						orthoCameraObject2.get<Transform>().GetLocalPosition().z);
+
+					#pragma region Player Health
+
+					if (PlayerHealth == 3)
+					{
+						//Sprites
+						heart1Obj2.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 2.0f,
+							playerBody->getCenterOfMassTransform().getOrigin().getY() - 2.5f,
+							cameraObject2.get<Transform>().GetLocalPosition().z - 0.02f);
+
+						heart2Obj2.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 2.0f,
+							playerBody->getCenterOfMassTransform().getOrigin().getY() - 2.0f,
+							cameraObject2.get<Transform>().GetLocalPosition().z - 0.02f);
+
+						heart3Obj2.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 2.0f,
+							playerBody->getCenterOfMassTransform().getOrigin().getY() - 1.5f,
+							cameraObject2.get<Transform>().GetLocalPosition().z - 0.02f);
+					}
+					else if (PlayerHealth == 2)
+					{
+						//Sprites
+						heart1Obj2.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 2.0f,
+							playerBody->getCenterOfMassTransform().getOrigin().getY() - 2.5f,
+							cameraObject2.get<Transform>().GetLocalPosition().z - 0.02f);
+
+						heart2Obj2.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 2.0f,
+							playerBody->getCenterOfMassTransform().getOrigin().getY() - 2.0f,
+							cameraObject2.get<Transform>().GetLocalPosition().z - 0.02f);
+
+						heart3Obj2.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 2.0f,
+							playerBody->getCenterOfMassTransform().getOrigin().getY() - 1.5f,
+							cameraObject2.get<Transform>().GetLocalPosition().z + 6.0f);
+					}
+					else if (PlayerHealth == 1)
+					{
+						//Sprites
+						heart1Obj2.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 2.0f,
+							playerBody->getCenterOfMassTransform().getOrigin().getY() - 2.5f,
+							cameraObject2.get<Transform>().GetLocalPosition().z - 0.02f);
+
+						heart2Obj2.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 2.0f,
+							playerBody->getCenterOfMassTransform().getOrigin().getY() - 2.0f,
+							cameraObject2.get<Transform>().GetLocalPosition().z + 6.0f);
+
+						heart3Obj2.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 2.0f,
+							playerBody->getCenterOfMassTransform().getOrigin().getY() - 1.5f,
+							cameraObject2.get<Transform>().GetLocalPosition().z + 6.0f);
+					}
+
+					#pragma endregion
+
 				}
 			}
+			else if (RenderGroupBool == 4)
+			{
+				if (!playerControlLock)
+				{
+					cameraObject4.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 8.0f,
+						playerBody->getCenterOfMassTransform().getOrigin().getY(),
+						playerBody->getCenterOfMassTransform().getOrigin().getZ() + 5.0f);
+
+					orthoCameraObject4.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 8.0f,
+						playerBody->getCenterOfMassTransform().getOrigin().getY(),
+						orthoCameraObject4.get<Transform>().GetLocalPosition().z);
+
+					#pragma region Player Health
+
+					if (PlayerHealth == 3)
+					{
+						//Sprites
+						heart1Obj3.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 2.0f,
+							playerBody->getCenterOfMassTransform().getOrigin().getY() - 2.5f,
+							3.98f);
+
+						heart2Obj3.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 2.0f,
+							playerBody->getCenterOfMassTransform().getOrigin().getY() - 2.0f,
+							3.98f);
+
+						heart3Obj3.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 2.0f,
+							playerBody->getCenterOfMassTransform().getOrigin().getY() - 1.5f,
+							3.98f);
+					}
+					else if (PlayerHealth == 2)
+					{
+						//Sprites
+						heart1Obj3.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 2.0f,
+							playerBody->getCenterOfMassTransform().getOrigin().getY() - 2.5f,
+							3.98f);
+
+						heart2Obj3.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 2.0f,
+							playerBody->getCenterOfMassTransform().getOrigin().getY() - 2.0f,
+							3.98f);
+
+						heart3Obj3.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 2.0f,
+							playerBody->getCenterOfMassTransform().getOrigin().getY() - 1.5f,
+							6.0f);
+					}
+					else if (PlayerHealth == 1)
+					{
+						//Sprites
+						heart1Obj3.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 2.0f,
+							playerBody->getCenterOfMassTransform().getOrigin().getY() - 2.5f,
+							3.98f);
+
+						heart2Obj3.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 2.0f,
+							playerBody->getCenterOfMassTransform().getOrigin().getY() - 2.0f,
+							6.0f);
+
+						heart3Obj3.get<Transform>().SetLocalPosition(playerBody->getCenterOfMassTransform().getOrigin().getX() + 2.0f,
+							playerBody->getCenterOfMassTransform().getOrigin().getY() - 1.5f,
+							6.0f);
+					}
+
+					#pragma endregion
+				}
+			}
+
 
 			#pragma endregion
 
@@ -5889,11 +6283,11 @@ int main() {
 
 				if (width > 900)
 				{
-					playerBody->applyCentralImpulse(btVector3(0.0f, 0.0f, 3000.0f) * time.DeltaTime * speed);
+					playerBody->applyCentralImpulse(btVector3(0.0f, 0.0f, 6000.0f) * time.DeltaTime);
 				}
 				else
 				{
-					playerBody->applyCentralImpulse(btVector3(0.0f, 0.0f, 3000.0f)* time.DeltaTime* speed);
+					playerBody->applyCentralImpulse(btVector3(0.0f, 0.0f, 3000.0f)* time.DeltaTime);
 				}
 				playerJump = false;
 			}
@@ -6541,15 +6935,15 @@ int main() {
 					//spriteShader->Bind();
 					BackendHandler::SetupShaderForFrame(spriteShader, orthoView, orthoProjection);
 					heartMat->Apply();
-					BackendHandler::RenderVAO(spriteShader, heartVao, orthoViewProjection, heart1Obj.get<Transform>());
+					BackendHandler::RenderVAO(spriteShader, heartVao2, orthoViewProjection, heart1Obj2.get<Transform>());
 
 					BackendHandler::SetupShaderForFrame(spriteShader, orthoView, orthoProjection);
 					heartMat->Apply();
-					BackendHandler::RenderVAO(spriteShader, heartVao, orthoViewProjection, heart2Obj.get<Transform>());
+					BackendHandler::RenderVAO(spriteShader, heartVao2, orthoViewProjection, heart2Obj2.get<Transform>());
 
 					BackendHandler::SetupShaderForFrame(spriteShader, orthoView, orthoProjection);
 					heartMat->Apply();
-					BackendHandler::RenderVAO(spriteShader, heartVao, orthoViewProjection, heart3Obj.get<Transform>());
+					BackendHandler::RenderVAO(spriteShader, heartVao2, orthoViewProjection, heart3Obj2.get<Transform>());
 				}
 
 				#pragma endregion
@@ -6778,6 +7172,29 @@ int main() {
 
 				if (!playerControlLock)
 					PlayerInput(player, time.DeltaTime, speed, playerBody);
+
+				#pragma endregion
+
+
+				#pragma region Rendering Sprites
+
+				if (!playerControlLock)
+				{
+					glEnable(GL_BLEND);
+					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+					//spriteShader->Bind();
+					BackendHandler::SetupShaderForFrame(spriteShader, orthoView, orthoProjection);
+					heartMat->Apply();
+					BackendHandler::RenderVAO(spriteShader, heartVao3, orthoViewProjection, heart1Obj3.get<Transform>());
+
+					BackendHandler::SetupShaderForFrame(spriteShader, orthoView, orthoProjection);
+					heartMat->Apply();
+					BackendHandler::RenderVAO(spriteShader, heartVao3, orthoViewProjection, heart2Obj3.get<Transform>());
+
+					BackendHandler::SetupShaderForFrame(spriteShader, orthoView, orthoProjection);
+					heartMat->Apply();
+					BackendHandler::RenderVAO(spriteShader, heartVao3, orthoViewProjection, heart3Obj3.get<Transform>());
+				}
 
 				#pragma endregion
 
