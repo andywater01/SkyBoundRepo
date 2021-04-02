@@ -950,6 +950,7 @@ int main() {
 
 		float PhantomTimer = 0.0f;
 		float PhantomTimer2 = 0.0f;
+		float PhantomLevel2Timer = 0.0f;
 		float JumpTimer = 0.0f;
 		float firePlatform1Timer = 0.0f;
 		float firePlatform2Timer = 0.0f;
@@ -974,9 +975,22 @@ int main() {
 		bool moundMove = true;
 		bool wellMove = true;
 
+		bool Phantom2Move = false;
+		bool Phantom2Move2 = false;
+
 		glm::vec3 endPos3 = glm::vec3(-13.0f, 17.0f, -1.35f);
 		glm::vec3 startPos3 = glm::vec3(-13.0f, 17.0f, -0.85f);
+
+		glm::vec3 endPos5 = glm::vec3(-27.5f, -55.0f, -2.9f);
+		glm::vec3 startPos5 = glm::vec3(-9.5f, -55.0f, -2.9f);
+
+		glm::vec3 endPos6 = glm::vec3(-9.5f, -45.0f, -2.9f);
+		glm::vec3 startPos6 = glm::vec3(-27.5f, -45.0f, -2.9f);
+		glm::vec3 currentPosition;
+		glm::vec3 currentPosition2;
+
 		float ObjectTimer2 = 0.0f;
+		float Object2Timer2 = 0.0f;
 		float ObjectTimeLimit = 2.0f;
 
 		//Phantom Rotation Lerp
@@ -985,6 +999,8 @@ int main() {
 
 		glm::quat startPhantomRot2 = glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
 		glm::quat endPhantomRot2 = glm::angleAxis(glm::radians(180.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+
+
 
 		float PhantomRotTimer = 0.0f;
 		float PhantomRotTimeLimit = 4.0f;
@@ -1773,12 +1789,12 @@ int main() {
 		Texture2D::sptr diffuseMp20 = Texture2D::LoadFromFile("images/flowerTexture.png");
 		Texture2D::sptr diffuseMp21 = Texture2D::LoadFromFile("images/HouseColors.png");
 
-		Texture2D::sptr diffuseMp22 = Texture2D::LoadFromFile("images/FireIslandTextureDone.png");
-		Texture2D::sptr diffuseMp23 = Texture2D::LoadFromFile("images/VolcanoText1.png");
-		Texture2D::sptr diffuseMp24 = Texture2D::LoadFromFile("images/CartoonTree.png");
+		Texture2D::sptr diffuseMp22 = Texture2D::LoadFromFile("images/FireIsland_Texture.png");
+		Texture2D::sptr diffuseMp23 = Texture2D::LoadFromFile("images/Volcano_Texture.png");
+		Texture2D::sptr diffuseMp24 = Texture2D::LoadFromFile("images/DeadBirchTreeTexture.png");
 		Texture2D::sptr diffuseMp25 = Texture2D::LoadFromFile("images/CreatureTexture.png");
 		Texture2D::sptr diffuseMp26 = Texture2D::LoadFromFile("images/barrel_texture.png");
-		Texture2D::sptr diffuseMp27 = Texture2D::LoadFromFile("images/LavaPlatformTexture2.png");
+		Texture2D::sptr diffuseMp27 = Texture2D::LoadFromFile("images/FireIslandPlatform_Texture.png");
 
 		Texture2D::sptr diffuseMp28 = Texture2D::LoadFromFile("images/snowman_texture.png");
 		Texture2D::sptr diffuseMp29 = Texture2D::LoadFromFile("images/sled_texture.png");
@@ -3171,6 +3187,7 @@ int main() {
 
 		#pragma region Second Level Island (Taiga Island) Objects
 
+
 		btCollisionShape* taigaIsland1Shape = new btCylinderShapeZ(btVector3(20.5f, 20.5f, 2.0f));
 
 		btTransform taigaIsland1Transform;
@@ -3369,6 +3386,65 @@ int main() {
 		}
 
 		#pragma endregion
+
+
+
+		#pragma region Phantom Objects Level 2
+
+		GameObject PhantomLevel2 = scene2->CreateEntity("Phantom");
+		{
+			PhantomLevel2.emplace<MorphRenderer>();
+
+			std::string PhantomLevel2Prefix = "models/Phantom/Phantom0";
+			std::string PhantomLevel2FileName;
+
+			for (int i = 0; i < 4; i++)
+			{
+				PhantomLevel2FileName = PhantomLevel2Prefix + std::to_string(i) + ".obj";
+
+				PhantomLevel2.get<MorphRenderer>().addFrame(MorphLoader::LoadFromFile(PhantomLevel2FileName), 0);
+
+			}
+
+			PhantomLevel2.get<MorphRenderer>().SetFrameTime(0.3f, 0);
+
+			//VertexArrayObject::sptr PhantomLevel2VAO = ObjLoader::LoadFromFile("models/Phantom/Phantom0.obj");
+			PhantomLevel2.get<MorphRenderer>().SetMesh(PhantomLevel2.get<MorphRenderer>().vao).SetMaterial(material3);
+			PhantomLevel2.get<Transform>().SetLocalPosition(-9.5f, -55.0f, -2.9f);
+			PhantomLevel2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 270.0f);
+			PhantomLevel2.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(PhantomLevel2);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
+		GameObject Phantom2Level2 = scene2->CreateEntity("Phantom2");
+		{
+			Phantom2Level2.emplace<MorphRenderer>();
+
+			std::string Phantom2Level2Prefix = "models/Phantom/Phantom0";
+			std::string Phantom2Level2FileName;
+
+			for (int i = 0; i < 4; i++)
+			{
+				Phantom2Level2FileName = Phantom2Level2Prefix + std::to_string(i) + ".obj";
+
+				Phantom2Level2.get<MorphRenderer>().addFrame(MorphLoader::LoadFromFile(Phantom2Level2FileName), 0);
+
+			}
+
+			Phantom2Level2.get<MorphRenderer>().SetFrameTime(0.3f, 0);
+
+			//VertexArrayObject::sptr Phantom2Level2VAO = ObjLoader::LoadFromFile("models/Phantom/Phantom0.obj");
+			Phantom2Level2.get<MorphRenderer>().SetMesh(Phantom2Level2.get<MorphRenderer>().vao).SetMaterial(material3);
+			Phantom2Level2.get<Transform>().SetLocalPosition(-27.5f, -45.0f, -2.9f);
+			Phantom2Level2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
+			Phantom2Level2.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Phantom2Level2);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+		}
+
+		#pragma endregion
+
 
 
 		#pragma region Fence Object
@@ -4657,7 +4733,7 @@ int main() {
 
 		GameObject Fireisland1 = scene4->CreateEntity("Fireisland1");
 		{
-			VertexArrayObject::sptr Fireisland1VAO = ObjLoader::LoadFromFile("models/FireIslandDone.obj");
+			VertexArrayObject::sptr Fireisland1VAO = ObjLoader::LoadFromFile("models/FireIsland.obj");
 			Fireisland1.emplace<RendererComponent>().SetMesh(Fireisland1VAO).SetMaterial(material21);
 			Fireisland1.get<Transform>().SetLocalPosition(0.0f, 0.0f, -4.5f);
 			Fireisland1.get<Transform>().SetLocalRotation(-90.0f, 180.0f, 0.0f);
@@ -4750,7 +4826,7 @@ int main() {
 		
 		GameObject Volcano1 = scene4->CreateEntity("Volcano1");
 		{
-			VertexArrayObject::sptr Volcano1VAO = ObjLoader::LoadFromFile("models/VolcanoWorking.obj");
+			VertexArrayObject::sptr Volcano1VAO = ObjLoader::LoadFromFile("models/Volcano.obj");
 			Volcano1.emplace<RendererComponent>().SetMesh(Volcano1VAO).SetMaterial(material22);
 			Volcano1.get<Transform>().SetLocalPosition(-19.0f, -20.0f, -3.0f);
 			Volcano1.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
@@ -4766,7 +4842,7 @@ int main() {
 
 		GameObject Volcano2 = scene4->CreateEntity("Volcano2");
 		{
-			VertexArrayObject::sptr Volcano2VAO = ObjLoader::LoadFromFile("models/VolcanoWorking.obj");
+			VertexArrayObject::sptr Volcano2VAO = ObjLoader::LoadFromFile("models/Volcano.obj");
 			Volcano2.emplace<RendererComponent>().SetMesh(Volcano2VAO).SetMaterial(material22);
 			Volcano2.get<Transform>().SetLocalPosition(-35.0f, 35.0f, -5.0f);
 			Volcano2.get<Transform>().SetLocalRotation(90.0f, 0.0f, -90.0f);
@@ -4782,7 +4858,7 @@ int main() {
 
 		GameObject Volcano3 = scene4->CreateEntity("Volcano3");
 		{
-			VertexArrayObject::sptr Volcano3VAO = ObjLoader::LoadFromFile("models/VolcanoWorking.obj");
+			VertexArrayObject::sptr Volcano3VAO = ObjLoader::LoadFromFile("models/Volcano.obj");
 			Volcano3.emplace<RendererComponent>().SetMesh(Volcano3VAO).SetMaterial(material22);
 			Volcano3.get<Transform>().SetLocalPosition(-92.0f, -7.8f, -3.0f);
 			Volcano3.get<Transform>().SetLocalRotation(90.0f, 0.0f, 0.0f);
@@ -6538,6 +6614,74 @@ int main() {
 			{
 				Phantom.get<Transform>().SetLocalPosition(100, 100, 100);
 				Phantom2.get<Transform>().SetLocalPosition(100, 100, 100);
+
+
+				ObjectTimer2 += time.DeltaTime;
+
+				if (ObjectTimer2 >= ObjectTimeLimit)
+				{
+					ObjectTimer2 = 0.0f;
+					
+				}
+				float objectTPos = ObjectTimer2 / ObjectTimeLimit;
+
+
+				currentPosition = glm::vec3(PhantomLevel2.get<Transform>().GetLocalPosition());
+
+				if (currentPosition == startPos5)
+				{
+					Phantom2Move = !Phantom2Move;
+					PhantomLevel2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 270.0f);
+				}
+					
+				else if (currentPosition == endPos5)
+				{
+					Phantom2Move = !Phantom2Move;
+					PhantomLevel2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
+				}
+					
+
+				if (Phantom2Move == true)
+					PhantomLevel2.get<Transform>().SetLocalPosition(LERP(startPos5, endPos5, objectTPos));
+				else if (Phantom2Move == false)
+					PhantomLevel2.get<Transform>().SetLocalPosition(LERP(endPos5, startPos5, objectTPos));
+
+				/// ///
+				
+				Object2Timer2 += time.DeltaTime;
+
+				if (Object2Timer2 >= ObjectTimeLimit)
+				{
+					Object2Timer2 = 0.0f;
+
+				}
+				float object2TPos = Object2Timer2 / ObjectTimeLimit;
+
+				currentPosition2 = glm::vec3(Phantom2Level2.get<Transform>().GetLocalPosition());
+
+				if (currentPosition2 == startPos6)
+				{
+					Phantom2Move2 = !Phantom2Move2;
+					Phantom2Level2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
+				}
+
+				else if (currentPosition2 == endPos6)
+				{
+					Phantom2Move2 = !Phantom2Move2;
+					Phantom2Level2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 270.0f);
+				}
+
+
+				if (Phantom2Move2 == true)
+					Phantom2Level2.get<Transform>().SetLocalPosition(LERP(startPos6, endPos6, object2TPos));
+				else if (Phantom2Move2 == false)
+					Phantom2Level2.get<Transform>().SetLocalPosition(LERP(endPos6, startPos6, object2TPos));
+
+
+
+
+
+
 			}
 			else if (RenderGroupBool == 4)
 			{
@@ -6879,11 +7023,7 @@ int main() {
 			#pragma region Checking Collision
 
 			//CheckCollision(player, Wizard, 0.85f, 0.85f, 0.85f, 0.85f);
-			if (RenderGroupBool == 1)
-			{
-				CheckPhantomCollision(player, playerBody, playerTransform, Phantom, 0.8f, 0.8f, 0.8f, 0.8f);
-				CheckPhantomCollision(player, playerBody, playerTransform, Phantom2, 0.8f, 0.8f, 0.8f, 0.8f);
-			}
+		
 
 			#pragma endregion
 
@@ -7073,6 +7213,8 @@ int main() {
 				//Update Animation
 				player.get<MorphRenderer>().nextFrame(time.DeltaTime, 0);
 				player.get<MorphRenderer>().render(morphShader, viewProjection, player.get<Transform>(), view, viewProjection);
+
+				
 
 				#pragma endregion
 
@@ -7455,6 +7597,11 @@ int main() {
 
 				}
 
+
+
+			
+				
+
 				// Sort the renderers by shader and material, we will go for a minimizing context switches approach here,
 				// but you could for instance sort front to back to optimize for fill rate if you have intensive fragment shaders
 				renderGroup2.sort<RendererComponent>([](const RendererComponent& l, const RendererComponent& r) {
@@ -7529,6 +7676,15 @@ int main() {
 
 				#pragma endregion
 
+				#pragma region Render PhantomsLevel2
+				Phantom2Level2.get<MorphRenderer>().nextFrame(time.DeltaTime, 0);
+				Phantom2Level2.get<MorphRenderer>().render(morphShader, viewProjection, Phantom2Level2.get<Transform>(), view, viewProjection);
+				PhantomLevel2.get<MorphRenderer>().nextFrame(time.DeltaTime, 0);
+				PhantomLevel2.get<MorphRenderer>().render(morphShader, viewProjection, PhantomLevel2.get<Transform>(), view, viewProjection);
+				#pragma endregion
+
+				CheckPhantomCollision(player, playerBody, playerTransform, PhantomLevel2, 0.8f, 0.8f, 0.8f, 0.8f);
+				CheckPhantomCollision(player, playerBody, playerTransform, Phantom2Level2, 0.8f, 0.8f, 0.8f, 0.8f);
 				
 				#pragma region Render Player
 
@@ -7866,12 +8022,12 @@ int main() {
 				//LinkBody(Bridge2, bridgeBody);
 				LinkBody(Fireisland1, Fireisland1Body);
 				//LinkBody(Fireisland2, Fireisland2Body, 2.0f, 0.0f, 0.0f);
-				LinkBody(FirePlatform, FirePlatform1Body, 0.0f, 0.0f, 0.2f);
-				LinkBody(FirePlatform2, FirePlatform2Body, 0.0f, 0.0f, 0.2f);
-				LinkBody(FirePlatform3, FirePlatform3Body, 0.0f, 0.0f, 0.2f);
-				LinkBody(FirePlatform4, FirePlatform4Body, 0.0f, 0.0f, 0.2f);
-				LinkBody(FirePlatform5, FirePlatform5Body, 0.0f, 0.0f, 0.2f);
-				LinkBody(FirePlatform6, FirePlatform6Body, 0.0f, 0.0f, 0.2f);
+				LinkBody(FirePlatform, FirePlatform1Body, 0.0f, 0.0f, -1.5f);
+				LinkBody(FirePlatform2, FirePlatform2Body, 0.0f, 0.0f, -1.5f);
+				LinkBody(FirePlatform3, FirePlatform3Body, 0.0f, 0.0f, -1.5f);
+				LinkBody(FirePlatform4, FirePlatform4Body, 0.0f, 0.0f, -1.5f);
+				LinkBody(FirePlatform5, FirePlatform5Body, 0.0f, 0.0f, -1.5f);
+				LinkBody(FirePlatform6, FirePlatform6Body, 0.0f, 0.0f, -1.5f);
 
 				#pragma endregion
 
