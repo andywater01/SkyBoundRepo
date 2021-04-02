@@ -3456,6 +3456,615 @@ int main() {
 		}
 
 		#pragma endregion
+
+
+		#pragma region SnowmanArray Object
+
+		////// Row 1
+
+		btCollisionShape* SnowmanA1Shape = new btCylinderShapeZ(btVector3(1.0f, 1.0f, 2.5f));
+
+		btTransform SnowmanA1Transform;
+
+		btScalar SnowmanA1Mass(0.f);
+
+		//rigidbody is dynamic if and only if mass is non zero, otherwise static
+		bool isSnowmanA1Dynamic = (SnowmanA1Mass != 0.f);
+
+		btVector3 localSnowmanA1Inertia(0, 0, 0);
+
+		//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+		btDefaultMotionState* SnowmanA1MotionState;
+		btRigidBody* SnowmanA1Body;
+
+		GameObject SnowmanA1 = scene2->CreateEntity("snowman");
+		{
+
+			VertexArrayObject::sptr SnowmanA1VAO = ObjLoader::LoadFromFile("models/Ethan/snowman.obj");
+			SnowmanA1.emplace<RendererComponent>().SetMesh(SnowmanA1VAO).SetMaterial(material27);
+			SnowmanA1.get<Transform>().SetLocalPosition(-11.0f, -60.0f, -3.9f);
+			SnowmanA1.get<Transform>().SetLocalRotation(90.0f, 0.0f, -90.0f);
+			SnowmanA1.get<Transform>().SetLocalScale(0.85f, 0.85f, 0.85f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(SnowmanA1);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+
+			//Collision Stuff
+			collisionShapes.push_back(SnowmanA1Shape);
+			SnowmanA1Transform.setIdentity();
+			SnowmanA1Transform.setOrigin(btVector3(-11.0f, -60.0f, -3.9f));
+			btQuaternion rotation;
+			rotation.setEuler(0.0f, 0.0f, 0.0f);
+			SnowmanA1Transform.setRotation(rotation);
+			//island4Transform.setRotation(btQuaternion(btVector3(1, 0, 0), btScalar(-1.57)));
+			//island4Transform.setRotation(btQuaternion(btVector3(1, 0, 0), btScalar(-1.57)));
+			//island4Transform.setOrigin(glm2bt(island4.get<Transform>().GetLocalPosition()));
+			//island4Transform.setIdentity();
+
+			if (isSnowmanA1Dynamic)
+				SnowmanA1Shape->calculateLocalInertia(SnowmanA1Mass, localSnowmanA1Inertia);
+
+			//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+			SnowmanA1MotionState = new btDefaultMotionState(SnowmanA1Transform);
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(SnowmanA1Mass, SnowmanA1MotionState, SnowmanA1Shape, localSnowmanA1Inertia);
+			SnowmanA1Body = new btRigidBody(rbInfo);
+
+		}
+
+
+		//////
+
+		btCollisionShape* SnowmanA2Shape = new btCylinderShapeZ(btVector3(1.0f, 1.0f, 2.5f));
+
+		btTransform SnowmanA2Transform;
+
+		btScalar SnowmanA2Mass(0.f);
+
+		//rigidbody is dynamic if and only if mass is non zero, otherwise static
+		bool isSnowmanA2Dynamic = (SnowmanA2Mass != 0.f);
+
+		btVector3 localSnowmanA2Inertia(0, 0, 0);
+
+		//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+		btDefaultMotionState* SnowmanA2MotionState;
+		btRigidBody* SnowmanA2Body;
+
+		GameObject SnowmanA2 = scene2->CreateEntity("snowman");
+		{
+
+			VertexArrayObject::sptr SnowmanA2VAO = ObjLoader::LoadFromFile("models/Ethan/snowman.obj");
+			SnowmanA2.emplace<RendererComponent>().SetMesh(SnowmanA2VAO).SetMaterial(material27);
+			SnowmanA2.get<Transform>().SetLocalPosition(-11.0f, -50.0f, -3.9f);
+			SnowmanA2.get<Transform>().SetLocalRotation(90.0f, 0.0f, -90.0f);
+			SnowmanA2.get<Transform>().SetLocalScale(0.85f, 0.85f, 0.85f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(SnowmanA2);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+
+			//Collision Stuff
+			collisionShapes.push_back(SnowmanA2Shape);
+			SnowmanA2Transform.setIdentity();
+			SnowmanA2Transform.setOrigin(btVector3(-11.0f, -50.0f, -3.9f));
+			btQuaternion rotation;
+			rotation.setEuler(0.0f, 0.0f, 0.0f);
+			SnowmanA2Transform.setRotation(rotation);
+			//island4Transform.setRotation(btQuaternion(btVector3(1, 0, 0), btScalar(-1.57)));
+			//island4Transform.setRotation(btQuaternion(btVector3(1, 0, 0), btScalar(-1.57)));
+			//island4Transform.setOrigin(glm2bt(island4.get<Transform>().GetLocalPosition()));
+			//island4Transform.setIdentity();
+
+			if (isSnowmanA2Dynamic)
+				SnowmanA2Shape->calculateLocalInertia(SnowmanA2Mass, localSnowmanA2Inertia);
+
+			//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+			SnowmanA2MotionState = new btDefaultMotionState(SnowmanA2Transform);
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(SnowmanA2Mass, SnowmanA2MotionState, SnowmanA2Shape, localSnowmanA2Inertia);
+			SnowmanA2Body = new btRigidBody(rbInfo);
+		}
+
+
+		//////
+
+		btCollisionShape* SnowmanA3Shape = new btCylinderShapeZ(btVector3(1.0f, 1.0f, 2.5f));
+
+		btTransform SnowmanA3Transform;
+
+		btScalar SnowmanA3Mass(0.f);
+
+		//rigidbody is dynamic if and only if mass is non zero, otherwise static
+		bool isSnowmanA3Dynamic = (SnowmanA3Mass != 0.f);
+
+		btVector3 localSnowmanA3Inertia(0, 0, 0);
+
+		//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+		btDefaultMotionState* SnowmanA3MotionState;
+		btRigidBody* SnowmanA3Body;
+
+		GameObject SnowmanA3 = scene2->CreateEntity("snowman");
+		{
+
+			VertexArrayObject::sptr SnowmanA3VAO = ObjLoader::LoadFromFile("models/Ethan/snowman.obj");
+			SnowmanA3.emplace<RendererComponent>().SetMesh(SnowmanA3VAO).SetMaterial(material27);
+			SnowmanA3.get<Transform>().SetLocalPosition(-11.0f, -40.0f, -3.9f);
+			SnowmanA3.get<Transform>().SetLocalRotation(90.0f, 0.0f, -90.0f);
+			SnowmanA3.get<Transform>().SetLocalScale(0.85f, 0.85f, 0.85f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(SnowmanA3);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+
+			//Collision Stuff
+			collisionShapes.push_back(SnowmanA3Shape);
+			SnowmanA3Transform.setIdentity();
+			SnowmanA3Transform.setOrigin(btVector3(-11.0f, -40.0f, -3.9f));
+			btQuaternion rotation;
+			rotation.setEuler(0.0f, 0.0f, 0.0f);
+			SnowmanA3Transform.setRotation(rotation);
+			//island4Transform.setRotation(btQuaternion(btVector3(1, 0, 0), btScalar(-1.57)));
+			//island4Transform.setRotation(btQuaternion(btVector3(1, 0, 0), btScalar(-1.57)));
+			//island4Transform.setOrigin(glm2bt(island4.get<Transform>().GetLocalPosition()));
+			//island4Transform.setIdentity();
+
+			if (isSnowmanA3Dynamic)
+				SnowmanA3Shape->calculateLocalInertia(SnowmanA3Mass, localSnowmanA3Inertia);
+
+			//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+			SnowmanA3MotionState = new btDefaultMotionState(SnowmanA3Transform);
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(SnowmanA3Mass, SnowmanA3MotionState, SnowmanA3Shape, localSnowmanA3Inertia);
+			SnowmanA3Body = new btRigidBody(rbInfo);
+		}
+
+
+		////// Row 2
+
+		btCollisionShape* SnowmanA4Shape = new btCylinderShapeZ(btVector3(1.0f, 1.0f, 2.5f));
+
+		btTransform SnowmanA4Transform;
+
+		btScalar SnowmanA4Mass(0.f);
+
+		//rigidbody is dynamic if and only if mass is non zero, otherwise static
+		bool isSnowmanA4Dynamic = (SnowmanA4Mass != 0.f);
+
+		btVector3 localSnowmanA4Inertia(0, 0, 0);
+
+		//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+		btDefaultMotionState* SnowmanA4MotionState;
+		btRigidBody* SnowmanA4Body;
+
+		GameObject SnowmanA4 = scene2->CreateEntity("snowman");
+		{
+
+			VertexArrayObject::sptr SnowmanA4VAO = ObjLoader::LoadFromFile("models/Ethan/snowman.obj");
+			SnowmanA4.emplace<RendererComponent>().SetMesh(SnowmanA4VAO).SetMaterial(material27);
+			SnowmanA4.get<Transform>().SetLocalPosition(-16.0f, -60.0f, -3.9f);
+			SnowmanA4.get<Transform>().SetLocalRotation(90.0f, 0.0f, -90.0f);
+			SnowmanA4.get<Transform>().SetLocalScale(0.85f, 0.85f, 0.85f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(SnowmanA4);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+
+			//Collision Stuff
+			collisionShapes.push_back(SnowmanA4Shape);
+			SnowmanA4Transform.setIdentity();
+			SnowmanA4Transform.setOrigin(btVector3(-16.0f, -60.0f, -3.9f));
+			btQuaternion rotation;
+			rotation.setEuler(0.0f, 0.0f, 0.0f);
+			SnowmanA4Transform.setRotation(rotation);
+			//island4Transform.setRotation(btQuaternion(btVector3(1, 0, 0), btScalar(-1.57)));
+			//island4Transform.setRotation(btQuaternion(btVector3(1, 0, 0), btScalar(-1.57)));
+			//island4Transform.setOrigin(glm2bt(island4.get<Transform>().GetLocalPosition()));
+			//island4Transform.setIdentity();
+
+			if (isSnowmanA4Dynamic)
+				SnowmanA4Shape->calculateLocalInertia(SnowmanA4Mass, localSnowmanA4Inertia);
+
+			//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+			SnowmanA4MotionState = new btDefaultMotionState(SnowmanA4Transform);
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(SnowmanA4Mass, SnowmanA4MotionState, SnowmanA4Shape, localSnowmanA4Inertia);
+			SnowmanA4Body = new btRigidBody(rbInfo);
+		}
+
+
+		//////
+
+		btCollisionShape* SnowmanA5Shape = new btCylinderShapeZ(btVector3(1.0f, 1.0f, 2.5f));
+
+		btTransform SnowmanA5Transform;
+
+		btScalar SnowmanA5Mass(0.f);
+
+		//rigidbody is dynamic if and only if mass is non zero, otherwise static
+		bool isSnowmanA5Dynamic = (SnowmanA5Mass != 0.f);
+
+		btVector3 localSnowmanA5Inertia(0, 0, 0);
+
+		//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+		btDefaultMotionState* SnowmanA5MotionState;
+		btRigidBody* SnowmanA5Body;
+
+		GameObject SnowmanA5 = scene2->CreateEntity("snowman");
+		{
+
+			VertexArrayObject::sptr SnowmanA5VAO = ObjLoader::LoadFromFile("models/Ethan/snowman.obj");
+			SnowmanA5.emplace<RendererComponent>().SetMesh(SnowmanA5VAO).SetMaterial(material27);
+			SnowmanA5.get<Transform>().SetLocalPosition(-16.0f, -50.0f, -3.9f);
+			SnowmanA5.get<Transform>().SetLocalRotation(90.0f, 0.0f, -90.0f);
+			SnowmanA5.get<Transform>().SetLocalScale(0.85f, 0.85f, 0.85f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(SnowmanA5);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+
+			//Collision Stuff
+			collisionShapes.push_back(SnowmanA5Shape);
+			SnowmanA5Transform.setIdentity();
+			SnowmanA5Transform.setOrigin(btVector3(-16.0f, -50.0f, -3.9f));
+			btQuaternion rotation;
+			rotation.setEuler(0.0f, 0.0f, 0.0f);
+			SnowmanA5Transform.setRotation(rotation);
+			//island4Transform.setRotation(btQuaternion(btVector3(1, 0, 0), btScalar(-1.57)));
+			//island4Transform.setRotation(btQuaternion(btVector3(1, 0, 0), btScalar(-1.57)));
+			//island4Transform.setOrigin(glm2bt(island4.get<Transform>().GetLocalPosition()));
+			//island4Transform.setIdentity();
+
+			if (isSnowmanA5Dynamic)
+				SnowmanA5Shape->calculateLocalInertia(SnowmanA5Mass, localSnowmanA5Inertia);
+
+			//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+			SnowmanA5MotionState = new btDefaultMotionState(SnowmanA5Transform);
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(SnowmanA5Mass, SnowmanA5MotionState, SnowmanA5Shape, localSnowmanA5Inertia);
+			SnowmanA5Body = new btRigidBody(rbInfo);
+		}
+
+
+		//////
+
+		btCollisionShape* SnowmanA6Shape = new btCylinderShapeZ(btVector3(1.0f, 1.0f, 2.5f));
+
+		btTransform SnowmanA6Transform;
+
+		btScalar SnowmanA6Mass(0.f);
+
+		//rigidbody is dynamic if and only if mass is non zero, otherwise static
+		bool isSnowmanA6Dynamic = (SnowmanA6Mass != 0.f);
+
+		btVector3 localSnowmanA6Inertia(0, 0, 0);
+
+		//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+		btDefaultMotionState* SnowmanA6MotionState;
+		btRigidBody* SnowmanA6Body;
+
+		GameObject SnowmanA6 = scene2->CreateEntity("snowman");
+		{
+
+			VertexArrayObject::sptr SnowmanA6VAO = ObjLoader::LoadFromFile("models/Ethan/snowman.obj");
+			SnowmanA6.emplace<RendererComponent>().SetMesh(SnowmanA6VAO).SetMaterial(material27);
+			SnowmanA6.get<Transform>().SetLocalPosition(-16.0f, -40.0f, -3.9f);
+			SnowmanA6.get<Transform>().SetLocalRotation(90.0f, 0.0f, -90.0f);
+			SnowmanA6.get<Transform>().SetLocalScale(0.85f, 0.85f, 0.85f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(SnowmanA6);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+
+			//Collision Stuff
+			collisionShapes.push_back(SnowmanA6Shape);
+			SnowmanA6Transform.setIdentity();
+			SnowmanA6Transform.setOrigin(btVector3(-16.0f, -40.0f, -3.9f));
+			btQuaternion rotation;
+			rotation.setEuler(0.0f, 0.0f, 0.0f);
+			SnowmanA6Transform.setRotation(rotation);
+			//island4Transform.setRotation(btQuaternion(btVector3(1, 0, 0), btScalar(-1.57)));
+			//island4Transform.setRotation(btQuaternion(btVector3(1, 0, 0), btScalar(-1.57)));
+			//island4Transform.setOrigin(glm2bt(island4.get<Transform>().GetLocalPosition()));
+			//island4Transform.setIdentity();
+
+			if (isSnowmanA6Dynamic)
+				SnowmanA6Shape->calculateLocalInertia(SnowmanA6Mass, localSnowmanA6Inertia);
+
+			//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+			SnowmanA6MotionState = new btDefaultMotionState(SnowmanA6Transform);
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(SnowmanA6Mass, SnowmanA6MotionState, SnowmanA6Shape, localSnowmanA6Inertia);
+			SnowmanA6Body = new btRigidBody(rbInfo);
+		}
+
+
+		////// Row 3
+
+		btCollisionShape* SnowmanA7Shape = new btCylinderShapeZ(btVector3(1.0f, 1.0f, 2.5f));
+
+		btTransform SnowmanA7Transform;
+
+		btScalar SnowmanA7Mass(0.f);
+
+		//rigidbody is dynamic if and only if mass is non zero, otherwise static
+		bool isSnowmanA7Dynamic = (SnowmanA7Mass != 0.f);
+
+		btVector3 localSnowmanA7Inertia(0, 0, 0);
+
+		//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+		btDefaultMotionState* SnowmanA7MotionState;
+		btRigidBody* SnowmanA7Body;
+
+		GameObject SnowmanA7 = scene2->CreateEntity("snowman");
+		{
+
+			VertexArrayObject::sptr SnowmanA7VAO = ObjLoader::LoadFromFile("models/Ethan/snowman.obj");
+			SnowmanA7.emplace<RendererComponent>().SetMesh(SnowmanA7VAO).SetMaterial(material27);
+			SnowmanA7.get<Transform>().SetLocalPosition(-21.0f, -60.0f, -3.9f);
+			SnowmanA7.get<Transform>().SetLocalRotation(90.0f, 0.0f, -90.0f);
+			SnowmanA7.get<Transform>().SetLocalScale(0.85f, 0.85f, 0.85f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(SnowmanA7);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+
+			//Collision Stuff
+			collisionShapes.push_back(SnowmanA7Shape);
+			SnowmanA7Transform.setIdentity();
+			SnowmanA7Transform.setOrigin(btVector3(-21.0f, -60.0f, -3.9f));
+			btQuaternion rotation;
+			rotation.setEuler(0.0f, 0.0f, 0.0f);
+			SnowmanA7Transform.setRotation(rotation);
+			//island4Transform.setRotation(btQuaternion(btVector3(1, 0, 0), btScalar(-1.57)));
+			//island4Transform.setRotation(btQuaternion(btVector3(1, 0, 0), btScalar(-1.57)));
+			//island4Transform.setOrigin(glm2bt(island4.get<Transform>().GetLocalPosition()));
+			//island4Transform.setIdentity();
+
+			if (isSnowmanA7Dynamic)
+				SnowmanA7Shape->calculateLocalInertia(SnowmanA7Mass, localSnowmanA7Inertia);
+
+			//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+			SnowmanA7MotionState = new btDefaultMotionState(SnowmanA7Transform);
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(SnowmanA7Mass, SnowmanA7MotionState, SnowmanA7Shape, localSnowmanA7Inertia);
+			SnowmanA7Body = new btRigidBody(rbInfo);
+		}
+
+
+		//////
+
+		btCollisionShape* SnowmanA8Shape = new btCylinderShapeZ(btVector3(1.0f, 1.0f, 2.5f));
+
+		btTransform SnowmanA8Transform;
+
+		btScalar SnowmanA8Mass(0.f);
+
+		//rigidbody is dynamic if and only if mass is non zero, otherwise static
+		bool isSnowmanA8Dynamic = (SnowmanA8Mass != 0.f);
+
+		btVector3 localSnowmanA8Inertia(0, 0, 0);
+
+		//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+		btDefaultMotionState* SnowmanA8MotionState;
+		btRigidBody* SnowmanA8Body;
+
+		GameObject SnowmanA8 = scene2->CreateEntity("snowman");
+		{
+
+			VertexArrayObject::sptr SnowmanA8VAO = ObjLoader::LoadFromFile("models/Ethan/snowman.obj");
+			SnowmanA8.emplace<RendererComponent>().SetMesh(SnowmanA8VAO).SetMaterial(material27);
+			SnowmanA8.get<Transform>().SetLocalPosition(-21.0f, -50.0f, -3.9f);
+			SnowmanA8.get<Transform>().SetLocalRotation(90.0f, 0.0f, -90.0f);
+			SnowmanA8.get<Transform>().SetLocalScale(0.85f, 0.85f, 0.85f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(SnowmanA8);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+
+			//Collision Stuff
+			collisionShapes.push_back(SnowmanA8Shape);
+			SnowmanA8Transform.setIdentity();
+			SnowmanA8Transform.setOrigin(btVector3(-21.0f, -50.0f, -3.9f));
+			btQuaternion rotation;
+			rotation.setEuler(0.0f, 0.0f, 0.0f);
+			SnowmanA8Transform.setRotation(rotation);
+			//island4Transform.setRotation(btQuaternion(btVector3(1, 0, 0), btScalar(-1.57)));
+			//island4Transform.setRotation(btQuaternion(btVector3(1, 0, 0), btScalar(-1.57)));
+			//island4Transform.setOrigin(glm2bt(island4.get<Transform>().GetLocalPosition()));
+			//island4Transform.setIdentity();
+
+			if (isSnowmanA8Dynamic)
+				SnowmanA8Shape->calculateLocalInertia(SnowmanA8Mass, localSnowmanA8Inertia);
+
+			//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+			SnowmanA8MotionState = new btDefaultMotionState(SnowmanA8Transform);
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(SnowmanA8Mass, SnowmanA8MotionState, SnowmanA8Shape, localSnowmanA8Inertia);
+			SnowmanA8Body = new btRigidBody(rbInfo);
+		}
+
+
+		//////
+
+		btCollisionShape* SnowmanA9Shape = new btCylinderShapeZ(btVector3(1.0f, 1.0f, 2.5f));
+
+		btTransform SnowmanA9Transform;
+
+		btScalar SnowmanA9Mass(0.f);
+
+		//rigidbody is dynamic if and only if mass is non zero, otherwise static
+		bool isSnowmanA9Dynamic = (SnowmanA9Mass != 0.f);
+
+		btVector3 localSnowmanA9Inertia(0, 0, 0);
+
+		//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+		btDefaultMotionState* SnowmanA9MotionState;
+		btRigidBody* SnowmanA9Body;
+
+		GameObject SnowmanA9 = scene2->CreateEntity("snowman");
+		{
+
+			VertexArrayObject::sptr SnowmanA9VAO = ObjLoader::LoadFromFile("models/Ethan/snowman.obj");
+			SnowmanA9.emplace<RendererComponent>().SetMesh(SnowmanA9VAO).SetMaterial(material27);
+			SnowmanA9.get<Transform>().SetLocalPosition(-21.0f, -40.0f, -3.9f);
+			SnowmanA9.get<Transform>().SetLocalRotation(90.0f, 0.0f, -90.0f);
+			SnowmanA9.get<Transform>().SetLocalScale(0.85f, 0.85f, 0.85f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(SnowmanA9);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+
+			//Collision Stuff
+			collisionShapes.push_back(SnowmanA9Shape);
+			SnowmanA9Transform.setIdentity();
+			SnowmanA9Transform.setOrigin(btVector3(-21.0f, -40.0f, -3.9f));
+			btQuaternion rotation;
+			rotation.setEuler(0.0f, 0.0f, 0.0f);
+			SnowmanA9Transform.setRotation(rotation);
+			//island4Transform.setRotation(btQuaternion(btVector3(1, 0, 0), btScalar(-1.57)));
+			//island4Transform.setRotation(btQuaternion(btVector3(1, 0, 0), btScalar(-1.57)));
+			//island4Transform.setOrigin(glm2bt(island4.get<Transform>().GetLocalPosition()));
+			//island4Transform.setIdentity();
+
+			if (isSnowmanA9Dynamic)
+				SnowmanA9Shape->calculateLocalInertia(SnowmanA9Mass, localSnowmanA9Inertia);
+
+			//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+			SnowmanA9MotionState = new btDefaultMotionState(SnowmanA9Transform);
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(SnowmanA9Mass, SnowmanA9MotionState, SnowmanA9Shape, localSnowmanA9Inertia);
+			SnowmanA9Body = new btRigidBody(rbInfo);
+		}
+
+
+		////// Row 4
+
+		btCollisionShape* SnowmanA10Shape = new btCylinderShapeZ(btVector3(1.0f, 1.0f, 2.5f));
+
+		btTransform SnowmanA10Transform;
+
+		btScalar SnowmanA10Mass(0.f);
+
+		//rigidbody is dynamic if and only if mass is non zero, otherwise static
+		bool isSnowmanA10Dynamic = (SnowmanA10Mass != 0.f);
+
+		btVector3 localSnowmanA10Inertia(0, 0, 0);
+
+		//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+		btDefaultMotionState* SnowmanA10MotionState;
+		btRigidBody* SnowmanA10Body;
+
+		GameObject SnowmanA10 = scene2->CreateEntity("snowman");
+		{
+
+			VertexArrayObject::sptr SnowmanA10VAO = ObjLoader::LoadFromFile("models/Ethan/snowman.obj");
+			SnowmanA10.emplace<RendererComponent>().SetMesh(SnowmanA10VAO).SetMaterial(material27);
+			SnowmanA10.get<Transform>().SetLocalPosition(-26.0f, -60.0f, -3.9f);
+			SnowmanA10.get<Transform>().SetLocalRotation(90.0f, 0.0f, -90.0f);
+			SnowmanA10.get<Transform>().SetLocalScale(0.85f, 0.85f, 0.85f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(SnowmanA10);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+
+			//Collision Stuff
+			collisionShapes.push_back(SnowmanA10Shape);
+			SnowmanA10Transform.setIdentity();
+			SnowmanA10Transform.setOrigin(btVector3(-26.0f, -60.0f, -3.9f));
+			btQuaternion rotation;
+			rotation.setEuler(0.0f, 0.0f, 0.0f);
+			SnowmanA10Transform.setRotation(rotation);
+			//island4Transform.setRotation(btQuaternion(btVector3(1, 0, 0), btScalar(-1.57)));
+			//island4Transform.setRotation(btQuaternion(btVector3(1, 0, 0), btScalar(-1.57)));
+			//island4Transform.setOrigin(glm2bt(island4.get<Transform>().GetLocalPosition()));
+			//island4Transform.setIdentity();
+
+			if (isSnowmanA10Dynamic)
+				SnowmanA10Shape->calculateLocalInertia(SnowmanA10Mass, localSnowmanA10Inertia);
+
+			//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+			SnowmanA10MotionState = new btDefaultMotionState(SnowmanA10Transform);
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(SnowmanA10Mass, SnowmanA10MotionState, SnowmanA10Shape, localSnowmanA10Inertia);
+			SnowmanA10Body = new btRigidBody(rbInfo);
+		}
+
+
+		//////
+
+		btCollisionShape* SnowmanA11Shape = new btCylinderShapeZ(btVector3(1.0f, 1.0f, 2.5f));
+
+		btTransform SnowmanA11Transform;
+
+		btScalar SnowmanA11Mass(0.f);
+
+		//rigidbody is dynamic if and only if mass is non zero, otherwise static
+		bool isSnowmanA11Dynamic = (SnowmanA11Mass != 0.f);
+
+		btVector3 localSnowmanA11Inertia(0, 0, 0);
+
+		//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+		btDefaultMotionState* SnowmanA11MotionState;
+		btRigidBody* SnowmanA11Body;
+
+		GameObject SnowmanA11 = scene2->CreateEntity("snowman");
+		{
+
+			VertexArrayObject::sptr SnowmanA11VAO = ObjLoader::LoadFromFile("models/Ethan/snowman.obj");
+			SnowmanA11.emplace<RendererComponent>().SetMesh(SnowmanA11VAO).SetMaterial(material27);
+			SnowmanA11.get<Transform>().SetLocalPosition(-26.0f, -50.0f, -3.9f);
+			SnowmanA11.get<Transform>().SetLocalRotation(90.0f, 0.0f, -90.0f);
+			SnowmanA11.get<Transform>().SetLocalScale(0.85f, 0.85f, 0.85f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(SnowmanA11);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+
+			//Collision Stuff
+			collisionShapes.push_back(SnowmanA11Shape);
+			SnowmanA11Transform.setIdentity();
+			SnowmanA11Transform.setOrigin(btVector3(-26.0f, -50.0f, -3.9f));
+			btQuaternion rotation;
+			rotation.setEuler(0.0f, 0.0f, 0.0f);
+			SnowmanA11Transform.setRotation(rotation);
+			//island4Transform.setRotation(btQuaternion(btVector3(1, 0, 0), btScalar(-1.57)));
+			//island4Transform.setRotation(btQuaternion(btVector3(1, 0, 0), btScalar(-1.57)));
+			//island4Transform.setOrigin(glm2bt(island4.get<Transform>().GetLocalPosition()));
+			//island4Transform.setIdentity();
+
+			if (isSnowmanA11Dynamic)
+				SnowmanA11Shape->calculateLocalInertia(SnowmanA11Mass, localSnowmanA11Inertia);
+
+			//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+			SnowmanA11MotionState = new btDefaultMotionState(SnowmanA11Transform);
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(SnowmanA11Mass, SnowmanA11MotionState, SnowmanA11Shape, localSnowmanA11Inertia);
+			SnowmanA11Body = new btRigidBody(rbInfo);
+		}
+
+
+		//////
+
+		btCollisionShape* SnowmanA12Shape = new btCylinderShapeZ(btVector3(1.0f, 1.0f, 2.5f));
+
+		btTransform SnowmanA12Transform;
+
+		btScalar SnowmanA12Mass(0.f);
+
+		//rigidbody is dynamic if and only if mass is non zero, otherwise static
+		bool isSnowmanA12Dynamic = (SnowmanA12Mass != 0.f);
+
+		btVector3 localSnowmanA12Inertia(0, 0, 0);
+
+		//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+		btDefaultMotionState* SnowmanA12MotionState;
+		btRigidBody* SnowmanA12Body;
+
+		GameObject SnowmanA12 = scene2->CreateEntity("snowman");
+		{
+
+			VertexArrayObject::sptr SnowmanA12VAO = ObjLoader::LoadFromFile("models/Ethan/snowman.obj");
+			SnowmanA12.emplace<RendererComponent>().SetMesh(SnowmanA12VAO).SetMaterial(material27);
+			SnowmanA12.get<Transform>().SetLocalPosition(-26.0f, -40.0f, -3.9f);
+			SnowmanA12.get<Transform>().SetLocalRotation(90.0f, 0.0f, -90.0f);
+			SnowmanA12.get<Transform>().SetLocalScale(0.85f, 0.85f, 0.85f);
+			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(SnowmanA12);
+			//SetLocalPosition(-40.0f, 0.0f, -50.0f)->SetLocalRotation(90.0f, 0.0f, 0.0f)->SetLocalScale(8.0f, 8.0f, 8.0f);
+
+			//Collision Stuff
+			collisionShapes.push_back(SnowmanA12Shape);
+			SnowmanA12Transform.setIdentity();
+			SnowmanA12Transform.setOrigin(btVector3(-26.0f, -40.0f, -3.9f));
+			btQuaternion rotation;
+			rotation.setEuler(0.0f, 0.0f, 0.0f);
+			SnowmanA12Transform.setRotation(rotation);
+			//island4Transform.setRotation(btQuaternion(btVector3(1, 0, 0), btScalar(-1.57)));
+			//island4Transform.setRotation(btQuaternion(btVector3(1, 0, 0), btScalar(-1.57)));
+			//island4Transform.setOrigin(glm2bt(island4.get<Transform>().GetLocalPosition()));
+			//island4Transform.setIdentity();
+
+			if (isSnowmanA12Dynamic)
+				SnowmanA12Shape->calculateLocalInertia(SnowmanA12Mass, localSnowmanA12Inertia);
+
+			//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
+			SnowmanA12MotionState = new btDefaultMotionState(SnowmanA12Transform);
+			btRigidBody::btRigidBodyConstructionInfo rbInfo(SnowmanA12Mass, SnowmanA12MotionState, SnowmanA12Shape, localSnowmanA12Inertia);
+			SnowmanA12Body = new btRigidBody(rbInfo);
+		}
+
+
+		//////
+		
+
+		#pragma endregion
 		
 
 		#pragma region Sled Object
@@ -3745,7 +4354,7 @@ int main() {
 		{
 			VertexArrayObject::sptr Tree3VAO = ObjLoader::LoadFromFile("models/tree2.obj");
 			Tree3.emplace<RendererComponent>().SetMesh(Tree3VAO).SetMaterial(material32);
-			Tree3.get<Transform>().SetLocalPosition(-18.5f, -58.5f, -4.8f);
+			Tree3.get<Transform>().SetLocalPosition(-23.5f, -63.5f, -4.8f);
 			Tree3.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
 			Tree3.get<Transform>().SetLocalScale(1.2f, 1.2f, 1.2f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Tree3);
@@ -3756,7 +4365,7 @@ int main() {
 		{
 			VertexArrayObject::sptr Tree3_2VAO = ObjLoader::LoadFromFile("models/tree2.obj");
 			Tree3_2.emplace<RendererComponent>().SetMesh(Tree3_2VAO).SetMaterial(material32);
-			Tree3_2.get<Transform>().SetLocalPosition(-30.5f, -52.5f, -4.8f);
+			Tree3_2.get<Transform>().SetLocalPosition(-37.5f, -52.5f, -4.8f);
 			Tree3_2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 90.0f);
 			Tree3_2.get<Transform>().SetLocalScale(1.2f, 1.2f, 1.2f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(Tree3_2);
@@ -5436,7 +6045,7 @@ int main() {
 				{
 					menuSelect = 3;
 					//menu.StopImmediately();
-					Prelude1.Play();
+					//Prelude1.Play();
 					//RenderGroupBool = 1;
 					//Application::Instance().ActiveScene = scene;
 				}
@@ -5447,17 +6056,19 @@ int main() {
 				else if (menuSelect == 3)
 				{
 					menuSelect = 4;
-					Prelude1.StopImmediately();
+					//Prelude1.StopImmediately();
+					//Prelude2.Play();
 				}
 				else if (menuSelect == 4)
 				{
 					menuSelect = 5;
-					Prelude2.StopImmediately();
+					//Prelude2.StopImmediately();
+					//Prelude3.Play();
 				}
 				else if (menuSelect == 5)
 				{
 					menuSelect = 6;
-					Prelude3.StopImmediately();
+					//Prelude3.StopImmediately();
 				}
 				
 			});
@@ -5801,10 +6412,11 @@ int main() {
 			{
 				menu.StopImmediately();
 				playMenuObj.get<Sprite>().SetMaterial(story1Mat);
-				Prelude2.Play();
+				
+				//Prelude2.Play();
 				storyTimer += time.DeltaTime;
-
-				if (storyTimer > 8.0f)
+				Prelude1.Play();
+				if (storyTimer > 8.3f)
 				{
 					menuSelect = 4;
 					storyTimer = 0.0f;
@@ -5813,10 +6425,11 @@ int main() {
 			else if (menuSelect == 4)
 			{
 				playMenuObj.get<Sprite>().SetMaterial(story2Mat);
-				Prelude3.Play();
+				
 				storyTimer += time.DeltaTime;
-
-				if (storyTimer > 8.0f)
+				Prelude1.StopImmediately();
+				Prelude2.Play();
+				if (storyTimer > 7.4f)
 				{
 					menuSelect = 5;
 					storyTimer = 0.0f;
@@ -5825,10 +6438,12 @@ int main() {
 			else if (menuSelect == 5)
 			{
 				playMenuObj.get<Sprite>().SetMaterial(story3Mat);
-				
+				Prelude1.StopImmediately();
+				Prelude2.StopImmediately();
+				Prelude3.Play();
 				storyTimer += time.DeltaTime;
 
-				if (storyTimer > 8.0f)
+				if (storyTimer > 7.0f)
 				{
 					menuSelect = 6;
 					storyTimer = 0.0f;
@@ -5836,6 +6451,9 @@ int main() {
 			}
 			else if (menuSelect == 6)
 			{
+				Prelude1.StopImmediately();
+				Prelude2.StopImmediately();
+				Prelude3.StopImmediately();
 				menuSelect = 7;
 				RenderGroupBool = 1;
 				//menu.StopImmediately();
@@ -6820,6 +7438,19 @@ int main() {
 					dynamicsWorld->addRigidBody(bridge2Body, 1, 1);
 					dynamicsWorld->addRigidBody(bridge3Body, 1, 1);
 					dynamicsWorld->addRigidBody(bridge4Body, 1, 1);
+					dynamicsWorld->addRigidBody(SnowmanA1Body, 1, 1);
+					dynamicsWorld->addRigidBody(SnowmanA2Body, 1, 1);
+					dynamicsWorld->addRigidBody(SnowmanA3Body, 1, 1);
+					dynamicsWorld->addRigidBody(SnowmanA4Body, 1, 1);
+					dynamicsWorld->addRigidBody(SnowmanA5Body, 1, 1);
+					dynamicsWorld->addRigidBody(SnowmanA6Body, 1, 1);
+					dynamicsWorld->addRigidBody(SnowmanA7Body, 1, 1);
+					dynamicsWorld->addRigidBody(SnowmanA8Body, 1, 1);
+					dynamicsWorld->addRigidBody(SnowmanA9Body, 1, 1);
+					dynamicsWorld->addRigidBody(SnowmanA10Body, 1, 1);
+					dynamicsWorld->addRigidBody(SnowmanA11Body, 1, 1);
+					dynamicsWorld->addRigidBody(SnowmanA12Body, 1, 1);
+
 					
 
 				}
@@ -6959,6 +7590,19 @@ int main() {
 				LinkBody(Bridge2, bridge2Body);
 				LinkBody(Bridge3, bridge3Body);
 
+				LinkBody(SnowmanA1, SnowmanA1Body);
+				LinkBody(SnowmanA2, SnowmanA2Body);
+				LinkBody(SnowmanA3, SnowmanA3Body);
+				LinkBody(SnowmanA4, SnowmanA4Body);
+				LinkBody(SnowmanA5, SnowmanA5Body);
+				LinkBody(SnowmanA6, SnowmanA6Body);
+				LinkBody(SnowmanA7, SnowmanA7Body);
+				LinkBody(SnowmanA8, SnowmanA8Body);
+				LinkBody(SnowmanA9, SnowmanA9Body);
+				LinkBody(SnowmanA10, SnowmanA10Body);
+				LinkBody(SnowmanA11, SnowmanA11Body);
+				LinkBody(SnowmanA12, SnowmanA12Body);
+
 
 
 				//LinkBody(TaigaGround2, island2Body, 0.0f, 0.0f, -9.0f);
@@ -7038,6 +7682,19 @@ int main() {
 					dynamicsWorld->removeRigidBody(bridge2Body);
 					dynamicsWorld->removeRigidBody(bridge3Body);
 					dynamicsWorld->removeRigidBody(bridge4Body);
+					dynamicsWorld->removeRigidBody(SnowmanA1Body);
+					dynamicsWorld->removeRigidBody(SnowmanA2Body);
+					dynamicsWorld->removeRigidBody(SnowmanA3Body);
+					dynamicsWorld->removeRigidBody(SnowmanA4Body);
+					dynamicsWorld->removeRigidBody(SnowmanA5Body);
+					dynamicsWorld->removeRigidBody(SnowmanA6Body);
+					dynamicsWorld->removeRigidBody(SnowmanA7Body);
+					dynamicsWorld->removeRigidBody(SnowmanA8Body);
+					dynamicsWorld->removeRigidBody(SnowmanA9Body);
+					dynamicsWorld->removeRigidBody(SnowmanA10Body);
+					dynamicsWorld->removeRigidBody(SnowmanA11Body);
+					dynamicsWorld->removeRigidBody(SnowmanA12Body);
+
 					destroyedScene2Objects = true;
 
 					//Adding the current scene's physics bodies
