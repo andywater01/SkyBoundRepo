@@ -67,6 +67,10 @@ bool canMoveBack = true;
 bool canMoveRight = true;
 bool playerControlLock = false;
 
+bool sortByQuantity = false;
+bool sortByLetter = false;
+bool sortByColor = false;
+
 
 int firstFrame = 0;
 int lastFrame = 4;
@@ -139,6 +143,8 @@ float interactSketchyGuy1Distance = 0;
 float interactSketchyGuy2Distance = 0;
 bool showInteraction = false;
 int dialogueSelect = 0;
+
+bool panToObjects = false;
 
 bool puzzleSelect = false;
 int puzzleTracker = 0;
@@ -436,6 +442,15 @@ void swapPositions(GameObject& obj1, GameObject& obj2)
 	obj2.get<Transform>().SetLocalPosition(temp);
 }
 
+void swapObjects(GameObject& obj1, GameObject& obj2)
+{
+	GameObject temp = obj1;
+
+	obj1 = obj2;
+
+	obj2 = temp;
+}
+
 void swapPos(Transform& obj1, Transform& obj2)
 {
 	glm::vec3 temp = obj1.GetLocalPosition();
@@ -465,7 +480,61 @@ void swapPos(Transform& obj1, Transform& obj2)
 
 
 
-void bubbleSort(GameObject data[], int n)
+void bubbleSortQuantity(GameObject data[], int n, float dt)
+{
+	for (int i = 0; i < n - 1; i++)
+	{
+		//std::cout << "\n I: " << i << std::endl;
+
+		for (int j = n - 1; j > i; --j)
+		{
+			//std::cout << "\n J: " << j << std::endl;
+			if (data[j].get<SortingInfo>().GetQuantity() < data[j - 1].get<SortingInfo>().GetQuantity())
+			{
+				swapPositions(data[j], data[j - 1]);
+				swapObjects(data[j], data[j - 1]);
+			}
+
+			
+			std::cout << "\nSorted Array Step " << i + 1 << ": { ";
+
+			for (int k = 0; k < n; k++)
+			{
+				std::cout << data[k].get<SortingInfo>().GetQuantity() << " ";
+			}
+			std::cout << "}" << std::endl;
+		}
+	}
+}
+
+void bubbleSortLetter(GameObject data[], int n, float dt)
+{
+	for (int i = 0; i < n - 1; i++)
+	{
+		//std::cout << "\n I: " << i << std::endl;
+
+		for (int j = n - 1; j > i; --j)
+		{
+			//std::cout << "\n J: " << j << std::endl;
+			if (data[j].get<SortingInfo>().GetAlphabet() < data[j - 1].get<SortingInfo>().GetAlphabet())
+			{
+				swapPositions(data[j], data[j - 1]);
+				swapObjects(data[j], data[j - 1]);
+			}
+
+
+			std::cout << "\nSorted Array Step " << i + 1 << ": { ";
+
+			for (int k = 0; k < n; k++)
+			{
+				std::cout << data[k].get<SortingInfo>().GetQuantity() << " ";
+			}
+			std::cout << "}" << std::endl;
+		}
+	}
+}
+
+void bubbleSortColor(GameObject data[], int n, float dt)
 {
 	for (int i = 0; i < n - 1; i++)
 	{
@@ -475,7 +544,19 @@ void bubbleSort(GameObject data[], int n)
 		{
 			//std::cout << "\n J: " << j << std::endl;
 			if (data[j].get<SortingInfo>().GetColor() < data[j - 1].get<SortingInfo>().GetColor())
+			{
 				swapPositions(data[j], data[j - 1]);
+				swapObjects(data[j], data[j - 1]);
+			}
+
+
+			std::cout << "\nSorted Array Step " << i + 1 << ": { ";
+
+			for (int k = 0; k < n; k++)
+			{
+				std::cout << data[k].get<SortingInfo>().GetQuantity() << " ";
+			}
+			std::cout << "}" << std::endl;
 		}
 	}
 }
@@ -973,6 +1054,16 @@ void panCamera(GameObject& camera, GameObject& orthoCamera, glm::vec3 target, fl
 }
 
 #pragma endregion
+
+void clearSortingItems()
+{
+	appleHeld = false;
+	bananaHeld = false;
+	greenGrapeHeld = false;
+	purpleGrapeHeld = false;
+	carrotHeld = false;
+	blueDonutHeld = false;
+}
 
 
 //Callback for specific object ids
@@ -1506,7 +1597,7 @@ int main() {
 
 					float intensity = temp->GetIntensity();
 
-					if (ImGui::SliderFloat("Intensity", &intensity, 400.0f, 3000.0f))
+					if (ImGui::SliderFloat("Intensity", &intensity, 400.0f, 8000.0f))
 					{
 						temp->SetIntensity(intensity);
 					}
@@ -2126,6 +2217,11 @@ int main() {
 		Texture2D::sptr quizDiffuseD1 = Texture2D::LoadFromFile("images/Dialogue/Quiz1.png");
 		Texture2D::sptr quizDiffuseD2 = Texture2D::LoadFromFile("images/Dialogue/Quiz2.png");
 		Texture2D::sptr quizDiffuseD3 = Texture2D::LoadFromFile("images/Dialogue/Quiz3.png");
+
+		Texture2D::sptr confirmDiffuse = Texture2D::LoadFromFile("images/Dialogue/Confirm.png");
+		Texture2D::sptr numberDiffuse = Texture2D::LoadFromFile("images/Dialogue/Number.png");
+		Texture2D::sptr letterDiffuse = Texture2D::LoadFromFile("images/Dialogue/Letter.png");
+		Texture2D::sptr colorDiffuse = Texture2D::LoadFromFile("images/Dialogue/Color.png");
 
 		Texture2D::sptr quizSelectDiffuse = Texture2D::LoadFromFile("images/Dialogue/QuizSelect.png");
 		Texture2D::sptr selectObjectDiffuse = Texture2D::LoadFromFile("images/Dialogue/SelectObject.png");
@@ -2839,6 +2935,26 @@ int main() {
 		swapObjectMat->Shader = spriteShader;
 		swapObjectMat->Set("s_Diffuse", swapObjectDiffuse);
 		swapObjectMat->RenderLayer = 0;
+
+		ShaderMaterial::sptr confirmMat = ShaderMaterial::Create();
+		confirmMat->Shader = spriteShader;
+		confirmMat->Set("s_Diffuse", confirmDiffuse);
+		confirmMat->RenderLayer = 0;
+
+		ShaderMaterial::sptr numberMat = ShaderMaterial::Create();
+		numberMat->Shader = spriteShader;
+		numberMat->Set("s_Diffuse", numberDiffuse);
+		numberMat->RenderLayer = 0;
+
+		ShaderMaterial::sptr letterMat = ShaderMaterial::Create();
+		letterMat->Shader = spriteShader;
+		letterMat->Set("s_Diffuse", letterDiffuse);
+		letterMat->RenderLayer = 0;
+
+		ShaderMaterial::sptr colorMat = ShaderMaterial::Create();
+		colorMat->Shader = spriteShader;
+		colorMat->Set("s_Diffuse", colorDiffuse);
+		colorMat->RenderLayer = 0;
 
 		#pragma endregion
 
@@ -4715,7 +4831,7 @@ int main() {
 
 			VertexArrayObject::sptr bananasVAO = ObjLoader::LoadFromFile("models/SortingObjects/Bananas.obj");
 			bananasObj2.emplace<RendererComponent>().SetMesh(bananasVAO).SetMaterial(bananaMat);
-			bananasObj2.get<Transform>().SetLocalPosition(-14.4f, 89.5f, -3.0f);
+			bananasObj2.get<Transform>().SetLocalPosition(-10.4f, 89.5f, -3.0f);
 			bananasObj2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 30.0f);
 			bananasObj2.get<Transform>().SetLocalScale(0.3f, 0.3f, 0.3f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(bananasObj);
@@ -4730,7 +4846,7 @@ int main() {
 
 			VertexArrayObject::sptr appleVAO = ObjLoader::LoadFromFile("models/SortingObjects/RedApples.obj");
 			appleObj2.emplace<RendererComponent>().SetMesh(appleVAO).SetMaterial(appleMat);
-			appleObj2.get<Transform>().SetLocalPosition(-14.4f, 95.0f, -3.0f);
+			appleObj2.get<Transform>().SetLocalPosition(-10.4f, 95.0f, -3.0f);
 			appleObj2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 70.0f);
 			appleObj2.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(appleObj);
@@ -4745,7 +4861,7 @@ int main() {
 
 			VertexArrayObject::sptr carrotVAO = ObjLoader::LoadFromFile("models/SortingObjects/Carrots.obj");
 			carrotObj2.emplace<RendererComponent>().SetMesh(carrotVAO).SetMaterial(carrotMat);
-			carrotObj2.get<Transform>().SetLocalPosition(-14.4f, 100.0f, -3.0f);
+			carrotObj2.get<Transform>().SetLocalPosition(-10.4f, 100.0f, -3.0f);
 			carrotObj2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 70.0f);
 			carrotObj2.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(carrotObj);
@@ -4760,7 +4876,7 @@ int main() {
 
 			VertexArrayObject::sptr greenGrapeVAO = ObjLoader::LoadFromFile("models/SortingObjects/GreenGrapes.obj");
 			greenGrapeObj2.emplace<RendererComponent>().SetMesh(greenGrapeVAO).SetMaterial(greenGrapeMat);
-			greenGrapeObj2.get<Transform>().SetLocalPosition(-14.4f, 105.0f, -3.0f);
+			greenGrapeObj2.get<Transform>().SetLocalPosition(-10.4f, 105.0f, -3.0f);
 			greenGrapeObj2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 70.0f);
 			greenGrapeObj2.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(greenGrapeObj);
@@ -4775,7 +4891,7 @@ int main() {
 
 			VertexArrayObject::sptr purpleGrapeVAO = ObjLoader::LoadFromFile("models/SortingObjects/PurpleGrapes.obj");
 			purpleGrapeObj2.emplace<RendererComponent>().SetMesh(purpleGrapeVAO).SetMaterial(purpleGrapeMat);
-			purpleGrapeObj2.get<Transform>().SetLocalPosition(-14.4f, 110.0f, -3.0f);
+			purpleGrapeObj2.get<Transform>().SetLocalPosition(-10.4f, 110.0f, -3.0f);
 			purpleGrapeObj2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 70.0f);
 			purpleGrapeObj2.get<Transform>().SetLocalScale(1.5f, 1.5f, 1.5f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(purpleGrapeObj);
@@ -4790,7 +4906,7 @@ int main() {
 
 			VertexArrayObject::sptr blueDonutVAO = ObjLoader::LoadFromFile("models/SortingObjects/BlueDonut.obj");
 			blueDonutObj2.emplace<RendererComponent>().SetMesh(blueDonutVAO).SetMaterial(blueDonutMat);
-			blueDonutObj2.get<Transform>().SetLocalPosition(-14.4f, 115.0f, -3.0f);
+			blueDonutObj2.get<Transform>().SetLocalPosition(-10.4f, 115.0f, -3.0f);
 			blueDonutObj2.get<Transform>().SetLocalRotation(90.0f, 0.0f, 70.0f);
 			blueDonutObj2.get<Transform>().SetLocalScale(1.0f, 1.0f, 1.0f);
 			BehaviourBinding::BindDisabled<SimpleMoveBehaviour>(blueDonutObj);
@@ -7898,18 +8014,40 @@ int main() {
 
 			#pragma endregion
 
-
+			int sortCounter = 0;
 			keyToggles.emplace_back(GLFW_KEY_G, [&]() {
 				if (RenderGroupBool == 2 && !sortingItemHeld)
 				{
-					if (blueDonutObj.get<Transform>().GetLocalPosition().y < purpleGrapeObj.get<Transform>().GetLocalPosition().y &&
-						greenGrapeObj.get<Transform>().GetLocalPosition().y < carrotObj.get<Transform>().GetLocalPosition().y &&
-						appleObj.get<Transform>().GetLocalPosition().y < bananasObj.get<Transform>().GetLocalPosition().y)
+					if (sortCounter == 0 && blueDonutObj.get<Transform>().GetLocalPosition().y < carrotObj.get<Transform>().GetLocalPosition().y &&
+						appleObj.get<Transform>().GetLocalPosition().y < purpleGrapeObj.get<Transform>().GetLocalPosition().y &&
+						bananasObj.get<Transform>().GetLocalPosition().y < greenGrapeObj.get<Transform>().GetLocalPosition().y)
 					{
-						coinDescend2 = true;
-						std::cout << "\nWINNER!!!" << std::endl;
+						sortByQuantity = true;
+						sortCounter++;
 					}
+					else if (sortCounter == 1 && appleObj.get<Transform>().GetLocalPosition().y < carrotObj.get<Transform>().GetLocalPosition().y &&
+						bananasObj.get<Transform>().GetLocalPosition().y < greenGrapeObj.get<Transform>().GetLocalPosition().y &&
+						bananasObj.get<Transform>().GetLocalPosition().y < purpleGrapeObj.get<Transform>().GetLocalPosition().y)
+					{
+						sortByLetter = true;
+						sortCounter++;
+					}
+					else if (sortCounter == 2 && appleObj.get<Transform>().GetLocalPosition().y < carrotObj.get<Transform>().GetLocalPosition().y &&
+						bananasObj.get<Transform>().GetLocalPosition().y < greenGrapeObj.get<Transform>().GetLocalPosition().y &&
+						bananasObj.get<Transform>().GetLocalPosition().y < purpleGrapeObj.get<Transform>().GetLocalPosition().y)
+					{
+						sortByLetter = true;
+						sortCounter++;
+						coinDescend2 = true;
+					}
+					else
+					{
+						PlayerHealth--;
+					}
+
 				}
+
+				
 			});
 
 			#pragma region Interaction Keys
@@ -8175,22 +8313,27 @@ int main() {
 							if (bananaHeld)
 							{
 								swapPositions(bananasObj, appleObj);
+								clearSortingItems();
 							}
 							else if (greenGrapeHeld)
 							{
 								swapPositions(greenGrapeObj, appleObj);
+								clearSortingItems();
 							}
 							else if (purpleGrapeHeld)
 							{
 								swapPositions(purpleGrapeObj, appleObj);
+								clearSortingItems();
 							}
 							else if (carrotHeld)
 							{
 								swapPositions(carrotObj, appleObj);
+								clearSortingItems();
 							}
 							else if (blueDonutHeld)
 							{
 								swapPositions(blueDonutObj, appleObj);
+								clearSortingItems();
 							}
 						}
 					}
@@ -8208,22 +8351,27 @@ int main() {
 							if (appleHeld)
 							{
 								swapPositions(appleObj, bananasObj);
+								clearSortingItems();
 							}
 							else if (greenGrapeHeld)
 							{
 								swapPositions(greenGrapeObj, bananasObj);
+								clearSortingItems();
 							}
 							else if (purpleGrapeHeld)
 							{
 								swapPositions(purpleGrapeObj, bananasObj);
+								clearSortingItems();
 							}
 							else if (carrotHeld)
 							{
 								swapPositions(carrotObj, bananasObj);
+								clearSortingItems();
 							}
 							else if (blueDonutHeld)
 							{
 								swapPositions(blueDonutObj, bananasObj);
+								clearSortingItems();
 							}
 						}
 					}
@@ -8241,22 +8389,27 @@ int main() {
 							if (appleHeld)
 							{
 								swapPositions(appleObj, greenGrapeObj);
+								clearSortingItems();
 							}
 							else if (bananaHeld)
 							{
 								swapPositions(bananasObj, greenGrapeObj);
+								clearSortingItems();
 							}
 							else if (purpleGrapeHeld)
 							{
 								swapPositions(purpleGrapeObj, greenGrapeObj);
+								clearSortingItems();
 							}
 							else if (carrotHeld)
 							{
 								swapPositions(carrotObj, greenGrapeObj);
+								clearSortingItems();
 							}
 							else if (blueDonutHeld)
 							{
 								swapPositions(blueDonutObj, greenGrapeObj);
+								clearSortingItems();
 							}
 						}
 					}
@@ -8274,22 +8427,27 @@ int main() {
 							if (appleHeld)
 							{
 								swapPositions(appleObj, purpleGrapeObj);
+								clearSortingItems();
 							}
 							else if (bananaHeld)
 							{
 								swapPositions(bananasObj, purpleGrapeObj);
+								clearSortingItems();
 							}
 							else if (greenGrapeHeld)
 							{
 								swapPositions(greenGrapeObj, purpleGrapeObj);
+								clearSortingItems();
 							}
 							else if (carrotHeld)
 							{
 								swapPositions(carrotObj, purpleGrapeObj);
+								clearSortingItems();
 							}
 							else if (blueDonutHeld)
 							{
 								swapPositions(blueDonutObj, purpleGrapeObj);
+								clearSortingItems();
 							}
 						}
 					}
@@ -8307,22 +8465,27 @@ int main() {
 							if (appleHeld)
 							{
 								swapPositions(appleObj, carrotObj);
+								clearSortingItems();
 							}
 							else if (bananaHeld)
 							{
 								swapPositions(bananasObj, carrotObj);
+								clearSortingItems();
 							}
 							else if (greenGrapeHeld)
 							{
 								swapPositions(greenGrapeObj, carrotObj);
+								clearSortingItems();
 							}
 							else if (purpleGrapeHeld)
 							{
 								swapPositions(purpleGrapeObj, carrotObj);
+								clearSortingItems();
 							}
 							else if (blueDonutHeld)
 							{
 								swapPositions(blueDonutObj, carrotObj);
+								clearSortingItems();
 							}
 						}
 					}
@@ -8340,24 +8503,40 @@ int main() {
 							if (appleHeld)
 							{
 								swapPositions(appleObj, blueDonutObj);
+								clearSortingItems();
 							}
 							else if (bananaHeld)
 							{
 								swapPositions(bananasObj, blueDonutObj);
+								clearSortingItems();
 							}
 							else if (greenGrapeHeld)
 							{
 								swapPositions(greenGrapeObj, blueDonutObj);
+								clearSortingItems();
 							}
 							else if (purpleGrapeHeld)
 							{
 								swapPositions(purpleGrapeObj, blueDonutObj);
+								clearSortingItems();
 							}
 							else if (carrotHeld)
 							{
 								swapPositions(carrotObj, blueDonutObj);
+								clearSortingItems();
 							}
 						}
+					}
+
+					#pragma endregion
+
+
+					#pragma Sorting Puzzle
+
+					if (startSortingPuzzle && interactSketchyGuy2Distance <= 8.0f)
+					{
+						panToObjects = true;
+
 					}
 
 					#pragma endregion
@@ -8776,6 +8955,14 @@ int main() {
 
 		menu.Play();
 
+
+		PixelateEffect* pixelEffect = (PixelateEffect*)scene3Effects[6];
+		float intensity = pixelEffect->GetIntensity();
+
+		
+
+		pixelEffect->SetIntensity(intensity);
+
 		///// Game loop /////
 		while (!glfwWindowShouldClose(BackendHandler::window)) {
 			glfwPollEvents();
@@ -8830,7 +9017,14 @@ int main() {
 			
 			#pragma endregion
 
-
+			if (RenderGroupBool == 4)
+			{
+				if (pixelEffect->GetIntensity() >= 400.0f && !isGameFinished)
+				{
+					intensity = intensity - 1.0f;
+					pixelEffect->SetIntensity(intensity);
+				}
+			}
 			
 
 			#pragma region PhantomCol
@@ -9012,6 +9206,12 @@ int main() {
 
 			#pragma endregion
 
+			if (RenderGroupBool == 2 && CoinCount == 2)
+			{
+				parkingMeterPoleTransform.setOrigin(btVector3(50.0f, 50.0f, 50.0f));
+				parkingMeterPoleBody->setWorldTransform(parkingMeterPoleTransform);
+			}
+
 
 			#pragma region Distance Checking
 
@@ -9108,6 +9308,7 @@ int main() {
 				Application::Instance().ActiveScene = scene2;
 				BG.StopImmediately();
 				Islandmusic2.Play();
+				CoinCount = 0;
 			}
 
 			if (player.get<Transform>().GetLocalPosition().x <= -52.0f && RenderGroupBool == 2)
@@ -9148,6 +9349,9 @@ int main() {
 
 			if (isGameFinished)
 			{
+				intensity = 10000.0f;
+				pixelEffect->SetIntensity(intensity);
+
 				if (setFinalCamera)
 				{
 					cameraObject4.get<Transform>().SetLocalPosition(0.0f, 0.0f, 0.0f).LookAt(lastMenuObj.get<Transform>().GetLocalPosition());
@@ -9236,14 +9440,39 @@ int main() {
 
 			#pragma region Sorting Puzzle
 
-			if (coinDescend2 && RenderGroupBool == 2)
+			if (sortByQuantity && RenderGroupBool == 2)
 			{
 				GameObject arr[6] = { bananasObj2, appleObj2,
 				carrotObj2, greenGrapeObj2,
 				purpleGrapeObj2, blueDonutObj2 };
 
-				bubbleSort(arr, 6);
-				coinDescend2 = false;
+				bubbleSortQuantity(arr, 6, time.DeltaTime);
+
+				sortByQuantity = false;
+			}
+
+			if (sortByLetter && RenderGroupBool == 2)
+			{
+				sortByLetter == false;
+
+				GameObject arr[6] = { bananasObj2, appleObj2,
+				carrotObj2, greenGrapeObj2,
+				purpleGrapeObj2, blueDonutObj2 };
+
+				bubbleSortLetter(arr, 6, time.DeltaTime);
+
+				sortByLetter == false;
+			}
+
+			if (sortByColor && RenderGroupBool == 2)
+			{
+
+				GameObject arr[6] = { bananasObj2, appleObj2,
+				carrotObj2, greenGrapeObj2,
+				purpleGrapeObj2, blueDonutObj2 };
+
+				bubbleSortColor(arr, 6, time.DeltaTime);
+				sortByColor == false;
 			}
 
 			#pragma endregion
@@ -9266,6 +9495,23 @@ int main() {
 				float coin2DescendTPos = coin2DescendTimer / coin2DescendLimit;
 
 				Coin2.get<Transform>().SetLocalPosition(LERP(glm::vec3(-19.6f, 6.6f, 50.5f), glm::vec3(-19.6f, 6.6f, -1.5f), coin2DescendTPos));
+			}
+
+			if (coinDescend2)
+			{
+				coin2DescendTimer += time.DeltaTime;
+
+				//Resetting timers and adjusting back/forth booleans.
+				if (coin2DescendTimer >= coin2DescendLimit)
+				{
+					//playerControlLock = true;
+					coinDescend2 = false;
+				}
+
+				//Calculate t.
+				float coin2DescendTPos = coin2DescendTimer / coin2DescendLimit;
+
+				Coin2.get<Transform>().SetLocalPosition(LERP(sketchyGuy2.get<Transform>().GetLocalPosition() + glm::vec3(0, -5.0f, 50), sketchyGuy2.get<Transform>().GetLocalPosition() + glm::vec3(0, -5.0f, 0), coin2DescendTPos));
 			}
 
 			if (puzzleSelect)
@@ -9793,6 +10039,25 @@ int main() {
 
 						showInteraction = true;
 					}
+					else if (startSortingPuzzle && interactSketchyGuy2Distance <= 8.0f)
+					{
+						panCamera(cameraObject2, orthoCameraObject2, sketchyGuy2, time.DeltaTime, -20.0f, 0.0f, 20.0f);
+
+						/*dialogueL2.get<Transform>().SetLocalPosition(wallButton.get<Transform>().GetLocalPosition().x,
+							sketchyGuy.get<Transform>().GetLocalPosition().y + 1.8f,
+							sketchyGuy.get<Transform>().GetLocalPosition().z + 4.8f);*/
+
+						interactionObj2.get<Transform>().SetLocalPosition(sketchyGuy2.get<Transform>().GetLocalPosition().x - 20.0f,
+							sketchyGuy2.get<Transform>().GetLocalPosition().y,
+							sketchyGuy2.get<Transform>().GetLocalPosition().z + 15.0f);
+						GameObject arr[6] = { bananasObj2, appleObj2,
+												carrotObj2, greenGrapeObj2,
+												purpleGrapeObj2, blueDonutObj2 };
+
+						showInteraction = true;
+
+						
+					}
 					#pragma region Snowmen Distances
 
 					else if (redSnowmanDistance <= 3.0f)
@@ -9941,107 +10206,7 @@ int main() {
 					}
 					#pragma endregion
 
-					/*#pragma region Sorting Objects
-
-					else if (appleDistance <= 3.0f)
-					{
-						panCamera(cameraObject2, orthoCameraObject2, appleObj, time.DeltaTime, 4.0f, 0.0f, 5.0f);
-
-						dialogueL2.get<Transform>().SetLocalPosition(appleObj.get<Transform>().GetLocalPosition().x,
-							appleObj.get<Transform>().GetLocalPosition().y + 1.8f,
-							appleObj.get<Transform>().GetLocalPosition().z + 4.8f);
-
-						interactionObj2.get<Sprite>().SetMaterial(continueMat);
-
-						interactionObj2.get<Transform>().SetLocalPosition(appleObj.get<Transform>().GetLocalPosition().x,
-							appleObj.get<Transform>().GetLocalPosition().y,
-							appleObj.get<Transform>().GetLocalPosition().z + 0.3f);
-
-						showInteraction = true;
-					}
-					else if (bananaDistance <= 3.0f)
-					{
-						panCamera(cameraObject2, orthoCameraObject2, bananasObj, time.DeltaTime, 4.0f, 0.0f, 5.0f);
-
-						dialogueL2.get<Transform>().SetLocalPosition(bananasObj.get<Transform>().GetLocalPosition().x,
-							bananasObj.get<Transform>().GetLocalPosition().y + 1.8f,
-							bananasObj.get<Transform>().GetLocalPosition().z + 4.8f);
-
-						interactionObj2.get<Sprite>().SetMaterial(continueMat);
-
-						interactionObj2.get<Transform>().SetLocalPosition(bananasObj.get<Transform>().GetLocalPosition().x,
-							bananasObj.get<Transform>().GetLocalPosition().y,
-							bananasObj.get<Transform>().GetLocalPosition().z + 0.3f);
-
-						showInteraction = true;
-					}
-					else if (greenGrapeDistance <= 3.0f)
-					{
-						panCamera(cameraObject2, orthoCameraObject2, greenGrapeObj, time.DeltaTime, 4.0f, 0.0f, 5.0f);
-
-						dialogueL2.get<Transform>().SetLocalPosition(greenGrapeObj.get<Transform>().GetLocalPosition().x,
-							greenGrapeObj.get<Transform>().GetLocalPosition().y + 1.8f,
-							greenGrapeObj.get<Transform>().GetLocalPosition().z + 4.8f);
-
-						interactionObj2.get<Sprite>().SetMaterial(continueMat);
-
-						interactionObj2.get<Transform>().SetLocalPosition(greenGrapeObj.get<Transform>().GetLocalPosition().x,
-							greenGrapeObj.get<Transform>().GetLocalPosition().y,
-							greenGrapeObj.get<Transform>().GetLocalPosition().z + 0.3f);
-
-						showInteraction = true;
-					}
-					else if (purpleGrapeDistance <= 3.0f)
-					{
-						panCamera(cameraObject2, orthoCameraObject2, purpleGrapeObj, time.DeltaTime, 4.0f, 0.0f, 5.0f);
-
-						dialogueL2.get<Transform>().SetLocalPosition(purpleGrapeObj.get<Transform>().GetLocalPosition().x,
-							purpleGrapeObj.get<Transform>().GetLocalPosition().y + 1.8f,
-							purpleGrapeObj.get<Transform>().GetLocalPosition().z + 4.8f);
-
-						interactionObj2.get<Sprite>().SetMaterial(continueMat);
-
-						interactionObj2.get<Transform>().SetLocalPosition(purpleGrapeObj.get<Transform>().GetLocalPosition().x,
-							purpleGrapeObj.get<Transform>().GetLocalPosition().y,
-							purpleGrapeObj.get<Transform>().GetLocalPosition().z + 0.3f);
-
-						showInteraction = true;
-					}
-					else if (blueDonutDistance <= 3.0f)
-					{
-						panCamera(cameraObject2, orthoCameraObject2, blueDonutObj, time.DeltaTime, 4.0f, 0.0f, 5.0f);
-
-						dialogueL2.get<Transform>().SetLocalPosition(blueDonutObj.get<Transform>().GetLocalPosition().x,
-							blueDonutObj.get<Transform>().GetLocalPosition().y + 1.8f,
-							blueDonutObj.get<Transform>().GetLocalPosition().z + 4.8f);
-
-						interactionObj2.get<Sprite>().SetMaterial(continueMat);
-
-						interactionObj2.get<Transform>().SetLocalPosition(blueDonutObj.get<Transform>().GetLocalPosition().x,
-							blueDonutObj.get<Transform>().GetLocalPosition().y,
-							blueDonutObj.get<Transform>().GetLocalPosition().z + 0.3f);
-
-						showInteraction = true;
-					}
-					else if (carrotDistance <= 3.0f)
-					{
-						panCamera(cameraObject2, orthoCameraObject2, carrotObj, time.DeltaTime, 4.0f, 0.0f, 5.0f);
-
-						dialogueL2.get<Transform>().SetLocalPosition(carrotObj.get<Transform>().GetLocalPosition().x,
-							carrotObj.get<Transform>().GetLocalPosition().y + 1.8f,
-							carrotObj.get<Transform>().GetLocalPosition().z + 4.8f);
-
-						interactionObj2.get<Sprite>().SetMaterial(continueMat);
-
-						interactionObj2.get<Transform>().SetLocalPosition(carrotObj.get<Transform>().GetLocalPosition().x,
-							carrotObj.get<Transform>().GetLocalPosition().y,
-							carrotObj.get<Transform>().GetLocalPosition().z + 0.3f);
-
-						showInteraction = true;
-					}
-
-
-					#pragma endregion*/
+					
 				}
 				
 				if ((interactDistance <= 8.0f || interactSketchyGuy1Distance <= 8.0f || interactSketchyGuy2Distance <= 8.0f || interactButtonDistance <= 5.0f) &&
@@ -11437,8 +11602,17 @@ int main() {
 				{
 					activeEffect = 1;
 
+					PixelateEffect* temp = (PixelateEffect*)scene3Effects[6];
+					float intensity = temp->GetIntensity();
+
+					intensity = 8000.0f;
+
+					temp->SetIntensity(intensity);
+
 					initScene4 = false;
 				}
+
+
 
 				if (!destroyedScene2Objects)
 				{
@@ -11697,6 +11871,9 @@ int main() {
 				basicEffect3->UnbindBuffer();
 
 				scene3Effects[activeEffect]->ApplyEffect(basicEffect3);
+
+				scene3Effects[6]->ApplyEffect(scene3Effects[activeEffect]);
+				
 
 				scene3Effects[activeEffect]->DrawToScreen();
 
