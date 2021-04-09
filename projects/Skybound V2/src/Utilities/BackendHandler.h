@@ -9,7 +9,9 @@
 #include "Graphics/Post/CoolEffect.h"
 #include "Graphics/Post/BloomEffect.h"
 #include "Graphics/Post/VignetteEffect.h"
+#include "Graphics/Post/PixelateEffect.h"
 #include "Graphics/LUT.h"
+#include "Utilities/SortingInfo.h"
 
 #include <iostream>
 #include <Logging.h>

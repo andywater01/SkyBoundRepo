@@ -9,9 +9,9 @@ const std::vector<BufferAttribute> VertexPosNormTexJointWeight::V_DECL = {
 	AttribUsage::Normal),
 	BufferAttribute(3, 2, GL_FLOAT, false, sizeof(VertexPosNormTexJointWeight), (size_t)&VPNTJW->UV,
 	AttribUsage::Texture),
-	BufferAttribute(4, 4, GL_FLOAT, false, sizeof(VertexPosNormTexJointWeight), (size_t)&VPNTJW->Joints,
+	BufferAttribute(5, 4, GL_FLOAT, false, sizeof(VertexPosNormTexJointWeight), (size_t)&VPNTJW->Joints,
 	AttribUsage::User0),
-	BufferAttribute(5, 4, GL_FLOAT, false, sizeof(VertexPosNormTexJointWeight), (size_t)&VPNTJW->Weights,
+	BufferAttribute(6, 4, GL_FLOAT, false, sizeof(VertexPosNormTexJointWeight), (size_t)&VPNTJW->Weights,
 	AttribUsage::User1)
 };
 
@@ -484,6 +484,8 @@ void GLTFSkinnedMesh::Draw(Shader::sptr& const shader, glm::mat4& const viewProj
 
 	shader->Bind();
 
+	Material->Apply();
+
 	for (auto const mesh : m_loadedMeshes)
 	{
 		int skinIndex = mesh.second.m_associatedSkin;
@@ -502,6 +504,43 @@ void GLTFSkinnedMesh::Draw(Shader::sptr& const shader, glm::mat4& const viewProj
 
 	shader->UnBind();
 }
+
+void GLTFSkinnedMesh::Draw(Shader::sptr& const shader, glm::mat4& const viewProjection, const Transform& transform, const glm::mat4& view, const glm::mat4& projection, const glm::mat4& lightSpaceMat)
+{
+	shader->Bind();
+
+	Material->Apply();
+
+	shader->SetUniformMatrix("u_ModelViewProjection", viewProjection * transform.WorldTransform());
+	shader->SetUniformMatrix("u_Model", transform.WorldTransform());
+	shader->SetUniformMatrix("u_NormalMatrix", transform.WorldNormalMatrix());
+	shader->SetUniformMatrix("u_LightSpaceMatrix", lightSpaceMat);
+
+	//shader->SetUniformMatrix("u_View", view);
+	//shader->SetUniformMatrix("u_ViewProjection", projection * view);
+	//shader->SetUniformMatrix("u_SkyboxMatrix", projection * glm::mat4(glm::mat3(view)));
+	//glm::vec3 camPos = glm::inverse(view) * glm::vec4(0, 0, 0, 1);
+	//shader->SetUniform("u_CamPos", camPos);
+
+	for (auto const mesh : m_loadedMeshes)
+	{
+		int skinIndex = mesh.second.m_associatedSkin;
+		if (m_skinData.count(skinIndex))
+		{
+			m_skinData[skinIndex].RecalculateJoints();
+			shader->SetUniformMatrix(shader->GetUniformLocation("u_JointMatrices"),
+				m_skinData[skinIndex].m_jointMatrices.data(), MAX_BONES, false);
+		}
+
+		for (int i = 0; i < mesh.second.m_primitives.size(); i++)
+		{
+			mesh.second.m_primitives[i]->Render();
+		}
+	}
+
+	shader->UnBind();
+}
+
 
 float GLTFSkinnedMesh::GetAnimationLength(tinygltf::Animation& const animation)
 {

@@ -34,6 +34,19 @@ layout (binding = 30) uniform sampler2D s_ShadowMap;
 uniform sampler2D s_Diffuse;
 uniform sampler2D s_Diffuse2;
 uniform sampler2D s_Specular;
+uniform sampler2D s_Emissive;
+
+
+uniform bool u_LightToggle;
+uniform bool u_AmbientToggle;
+uniform bool u_SpecularToggle;
+uniform bool u_AmbientSpecularToggle;
+uniform bool u_CustomToggle;
+uniform bool u_DiffuseRampToggle;
+uniform bool u_SpecularRampToggle;
+
+uniform sampler2D s_DiffuseRamp;
+uniform sampler2D s_SpecularRamp;
 
 uniform float u_TextureMix;
 uniform vec3  u_CamPos;
@@ -90,6 +103,12 @@ void main() {
 	float dif = max(dot(N, lightDir), 0.0);
 	vec3 diffuse = dif * sun._lightCol.xyz;// add diffuse intensity
 
+	vec3 reflectDir = reflect(-lightDir, N);
+	float dif2 = max(0.0, dot(reflectDir, N));
+	float diffuseU = dif2 * 0.5 + 0.5;
+	vec2 diffuseUV = vec2(diffuseU, 0.5);
+	vec4 diffuseRamp = texture(s_DiffuseRamp, diffuseUV);
+
 	// Specular
 	vec3 viewDir  = normalize(u_CamPos - inPos);
 	vec3 h        = normalize(lightDir + viewDir);
@@ -99,12 +118,19 @@ void main() {
 	float spec = pow(max(dot(N, h), 0.0), 4.0); // Shininess coefficient (can be a uniform)
 	vec3 specular = sun._lightSpecularPow * texSpec * spec * sun._lightCol.xyz; // Can also use a specular color
 
+	float specularU = spec * 0.5 + 0.5;
+	vec2 specularUV = vec2(specularU, 0.5);
+	vec4 specularRamp = texture(s_SpecularRamp, specularUV);
+
 	vec3 ambient = sun._ambientCol.xyz * sun._ambientPow;
 
 	// Get the albedo from the diffuse / albedo map
 	vec4 textureColor1 = texture(s_Diffuse, inUV);
 	vec4 textureColor2 = texture(s_Diffuse2, inUV);
 	vec4 textureColor = mix(textureColor1, textureColor2, u_TextureMix);
+
+	//Emissive
+	vec3 emissive = texture(s_Emissive, inUV).rgb;
 
 	float shadow = ShadowCalculation(inFragPosLightSpace);
 
@@ -115,15 +141,56 @@ void main() {
 
 	lightContribution = clamp(floor(lightContribution * bands) * scaleFactor, vec3(0.0), vec3(1.0));
 
-	vec3 result = (
+	
+
+	vec3 result;
+
+
+	if(u_LightToggle == true)
+	{
+		result = inColor * textureColor.rgb * edge;
+	}
+
+	if(u_AmbientToggle == true)
+	{
+		result = (ambient) * inColor * textureColor.rgb;
+	}
+
+	if(u_SpecularToggle == true)
+	{
+		result = (specular) * inColor * textureColor.rgb;
+	}
+
+	if(u_AmbientSpecularToggle == true)
+	{
+		result = (ambient + specular) * inColor * textureColor.rgb;
+	}
+
+	if(u_CustomToggle == true)
+	{
+		result = (
 		(sun._ambientPow * sun._ambientCol.xyz) + // global ambient light
 		(1.0 - shadow) * (lightContribution) // light factors from our single light
 		) * inColor * textureColor.rgb * edge; // Object color
+	}
+
+
+	if(u_DiffuseRampToggle == true)
+	{
+		result = (diffuse) * inColor * textureColor.rgb * diffuseRamp.rgb;
+	}
+
+	if(u_SpecularRampToggle == true)
+	{
+		result = (specular) * inColor * textureColor.rgb * specularRamp.rgb;
+	}
 
 //	vec3 result = (
 //		(sun._ambientPow * sun._ambientCol.xyz) + // global ambient light
 //		(1.0 - shadow) * (diffuse + specular) // light factors from our single light
 //		) * inColor * textureColor.rgb; // Object color
+	
+	result = result + emissive;
 
 	frag_color = vec4(result, textureColor.a);
 }

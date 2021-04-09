@@ -53,8 +53,18 @@ void MorphRenderer::nextFrame(float dt, int anim)
 
 			m_anim[anim]->frameIndex += 1;
 
-			if (m_anim[anim]->frameIndex >= m_anim[anim]->frame.size())
+			if (m_anim[anim]->frameIndex >= m_anim[anim]->frame.size() && m_anim[anim]->looping)
+			{
 				m_anim[anim]->frameIndex = 0;
+				stopAnimation = true;
+			}
+			
+			if (m_anim[anim]->frameIndex >= m_anim[anim]->frame.size() && !m_anim[anim]->looping)
+			{
+				m_anim[anim]->frameIndex = 0;
+				stopAnimation = false;
+			}
+			
 
 		}
 
@@ -81,7 +91,13 @@ void MorphRenderer::nextFrame(float dt, int anim)
 		f0Index = f1Index - 1;
 	}
 
+	if (!stopAnimation)
+	{
+		f0Index = m_anim[anim]->frame.size() - 1;
+		f1Index = m_anim[anim]->frame.size() - 1;
+	}
 
+	
 	UpdateData(m_anim[anim]->frame[f0Index], m_anim[anim]->frame[f1Index], t);
 }
 

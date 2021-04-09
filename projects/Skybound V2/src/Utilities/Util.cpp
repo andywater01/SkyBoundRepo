@@ -60,6 +60,17 @@ bool Util::CheckNumBetween(glm::vec4 num, glm::vec4 min, glm::vec4 max)
     return (x && y && z && w);
 }
 
+//Get Random Num between two numbers
+int Util::GetRandomNumberBetween(int from, int to, float deltaTime)
+{
+	srand(deltaTime);
+
+	int randomNum = (rand() % (to - from)) + from;
+
+	return randomNum;
+}
+
+
 int Util::GetRandomNumberBetween(int from, int to, std::vector<int> avoidFrom, std::vector<int> avoidTo)
 {
     //Just the typical random number generation within range

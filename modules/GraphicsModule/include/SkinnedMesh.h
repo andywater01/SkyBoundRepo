@@ -8,11 +8,13 @@
 
 #include "VertexArrayObject.h"
 #include "Shader.h"
+#include "ShaderMaterial.h"
+#include <Transform.h>
 
 #include "SimpleTransform.h"
 
 // Ensure this is the same number as your vertex shader
-#define MAX_BONES 12
+#define MAX_BONES 20
 
 // Custom vertex for VAO to store per-vertex joint and weight information
 struct VertexPosNormTexJointWeight
@@ -90,6 +92,8 @@ public:
 
     void Draw(Shader::sptr& const shader, glm::mat4& const viewProjection, glm::mat4& const worldTransform);
 
+	void Draw(Shader::sptr& const shader, glm::mat4& const viewProjection, const Transform& transform, const glm::mat4& view, const glm::mat4& projection, const glm::mat4& lightSpaceMat);
+
     template<typename T>
     T SampleAnimationChannel(tinygltf::AnimationChannel& const channel, float time,
         tinygltf::Animation& const animation, int const accessorType = TINYGLTF_TYPE_VEC3);
@@ -106,12 +110,16 @@ public:
 
     SimpleTransform* const FindNodeSimpleTransform(int const nodeIndex) const;
 
+	GLTFSkinnedMesh& SetMaterial(const ShaderMaterial::sptr& material) { Material = material; return *this; }
+
 private:
     bool LoadNodes();
     bool LoadMesh(int const meshIndex, int const associatedSkin);
     bool LoadSkin(int const skinIndex);
 
     tinygltf::Model m_model;
+
+	ShaderMaterial::sptr Material;
 
     // GLTF Models could contain multiple meshes and skins
     std::map<int, GLTFMesh> m_loadedMeshes;

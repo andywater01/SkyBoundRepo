@@ -30,6 +30,8 @@ namespace Util
 	bool CheckNumBetween(glm::vec3 num, glm::vec3 min, glm::vec3 max);
 	bool CheckNumBetween(glm::vec4 num, glm::vec4 min, glm::vec4 max);
 
+	int GetRandomNumberBetween(int from, int to, float deltaTime);
+
 	//Get random number between two values, while avoiding multiple specific ranges of numbers (or none)
 	int GetRandomNumberBetween(int from, int to, std::vector<int> avoidFrom = std::vector<int>(), std::vector<int> avoidTo = std::vector<int>());
 	float GetRandomNumberBetween(float from, float to, std::vector<float> avoidFrom = std::vector<float>(), std::vector<float> avoidTo = std::vector<float>());

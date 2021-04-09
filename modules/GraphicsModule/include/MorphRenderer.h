@@ -47,6 +47,8 @@ public:
 	MorphRenderer& SetMesh(const VertexArrayObject::sptr& mesh) { vao = mesh; return *this; }
 	MorphRenderer& SetMaterial(const ShaderMaterial::sptr& material) { Material = material; return *this; }
 
+	void SetLooping(bool const shouldLoop, int anim) { m_anim[anim]->looping = shouldLoop; }
+
 
 	protected:
 
@@ -60,6 +62,7 @@ public:
 		//The time inbetween frames.
 		float frameTime;
 		int frameIndex;
+		bool looping = true;
 
 		AnimData();
 		~AnimData() = default;
@@ -72,8 +75,10 @@ public:
 
 	float m_t;
 
+
 private:
 	VertexPosNormTexCol* VPNTC = nullptr;
+	bool stopAnimation = true;
 
 
 };

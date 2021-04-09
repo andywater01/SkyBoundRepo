@@ -86,6 +86,10 @@ void BackendHandler::GlfwWindowResizedCallback(GLFWwindow* window, int width, in
 	{
 		buf.Reshape(width, height);
 	});
+	Application::Instance().ActiveScene->Registry().view<PixelateEffect>().each([=](PixelateEffect& buf)
+	{
+		buf.Reshape(width, height);
+	});
 
 	for (int i = 0; i < Application::Instance().scenes.size(); i++)
 	{
@@ -126,6 +130,10 @@ void BackendHandler::GlfwWindowResizedCallback(GLFWwindow* window, int width, in
 				buf.Reshape(width, height);
 			});
 		Application::Instance().scenes[i]->Registry().view<VignetteEffect>().each([=](VignetteEffect& buf)
+			{
+				buf.Reshape(width, height);
+			});
+		Application::Instance().ActiveScene->Registry().view<PixelateEffect>().each([=](PixelateEffect& buf)
 			{
 				buf.Reshape(width, height);
 			});
