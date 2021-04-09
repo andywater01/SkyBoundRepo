@@ -26,9 +26,9 @@ public:
 	void SetOpacity(float opacity);
 
 private:
-	float _innerRadius = 0.2f;
-	float _outerRadius = 1.0f;
-	float _opacity = 1.0f;
+	float _innerRadius = 0.548f;
+	float _outerRadius = 0.335f;
+	float _opacity = 0.289f;
 };
 
 #endif

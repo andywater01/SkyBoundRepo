@@ -50,6 +50,8 @@ bool isLeft = true;
 int CoinCount = 0;
 bool gotCoin = false;
 
+bool isHit = false;
+
 //Scene number
 int RenderGroupBool = 0;
 int PlayerHealth = 3;
@@ -70,7 +72,7 @@ int firstFrame = 0;
 int lastFrame = 4;
 bool pauseGame = false;
 bool drawPhysics = false;
-
+bool moveWizard = false;
 bool playerAirborne = false;
 
 int menuSelect = 1;
@@ -618,6 +620,7 @@ void MoveWizard(GameObject player, GameObject wizard, btRigidBody* wizardBody, b
 
 	if (distance2.x <= 4.0f && distance2.y <= 4.0f && CoinCount >= 1 && glfwGetKey(BackendHandler::window, GLFW_KEY_E) == GLFW_PRESS)
 	{
+		moveWizard = true;
 		CoinCount = 0;
 		//wizard.get<Transform>().SetLocalPosition(wizard.get<Transform>().GetLocalPosition() + glm::vec3(-33.0f, 5.0f, 0.0f));
 		wizardTransform.setOrigin(btVector3(-47.5f, 5.0f, -2.5f));
@@ -739,6 +742,7 @@ void CheckPhantomCollision(GameObject player, btRigidBody *playerBody, btTransfo
 		player.get<Transform>().GetLocalPosition().y <= other.get<Transform>().GetLocalPosition().y + yRangePos &&
 		player.get<Transform>().GetLocalPosition().y >= other.get<Transform>().GetLocalPosition().y - yRangeNeg)
 	{
+		isHit = true;
 		PlayerHealth--;
 		playerTransform.setOrigin(btVector3(0.0f, 0.0f, 5.0f));
 		playerBody->setWorldTransform(playerTransform);
@@ -750,6 +754,7 @@ void CheckPhantomCollision(GameObject player, btRigidBody *playerBody, btTransfo
 		player.get<Transform>().GetLocalPosition().y <= other.get<Transform>().GetLocalPosition().y + yRangePos &&
 		player.get<Transform>().GetLocalPosition().y >= other.get<Transform>().GetLocalPosition().y - yRangeNeg)
 	{
+		isHit = true;
 		PlayerHealth--;
 		playerTransform.setOrigin(btVector3(0.0f, 0.0f, 5.0f));
 		playerBody->setWorldTransform(playerTransform);
@@ -762,6 +767,7 @@ void CheckPhantomCollision(GameObject player, btRigidBody *playerBody, btTransfo
 		player.get<Transform>().GetLocalPosition().x <= other.get<Transform>().GetLocalPosition().x + xRangeNeg &&
 		player.get<Transform>().GetLocalPosition().x >= other.get<Transform>().GetLocalPosition().x - xRangePos)
 	{
+		isHit = true;
 		PlayerHealth--;
 		playerTransform.setOrigin(btVector3(0.0f, 0.0f, 5.0f));
 		playerBody->setWorldTransform(playerTransform);
@@ -773,6 +779,7 @@ void CheckPhantomCollision(GameObject player, btRigidBody *playerBody, btTransfo
 		player.get<Transform>().GetLocalPosition().x <= other.get<Transform>().GetLocalPosition().x + xRangeNeg &&
 		player.get<Transform>().GetLocalPosition().x >= other.get<Transform>().GetLocalPosition().x - xRangePos)
 	{
+		isHit = true;
 		PlayerHealth--;
 		playerTransform.setOrigin(btVector3(0.0f, 0.0f, 5.0f));
 		playerBody->setWorldTransform(playerTransform);;
@@ -2593,7 +2600,7 @@ int main() {
 		Texture2D::sptr winMenuDiffuse = Texture2D::LoadFromFile("images/YouWin.png");
 
 		ShaderMaterial::sptr winMenuMat = ShaderMaterial::Create();
-		winMenuMat->Shader = shader;
+		winMenuMat->Shader = spriteShader;
 		winMenuMat->Set("s_Diffuse", winMenuDiffuse);
 		winMenuMat->Set("s_DiffuseRamp", diffuseRamp);
 		winMenuMat->Set("s_SpecularRamp", specularRamp);
@@ -3348,6 +3355,20 @@ int main() {
 			player.get<MorphRenderer>().SetFrameTime(0.85, 2);
 
 
+			//Shiver Animation
+			std::string shiverPrefix = "models/Player/Shiver/SkyBoundCharacterShiver0";
+			std::string shiverFileName;
+
+			for (int i = 0; i < 8; i++)
+			{
+				shiverFileName = shiverPrefix + std::to_string(i) + ".obj";
+
+				player.get<MorphRenderer>().addFrame(MorphLoader::LoadFromFile(shiverFileName), 3);
+
+			}
+
+			player.get<MorphRenderer>().SetFrameTime(0.85, 3);
+
 
 			/*
 			player.emplace<MorphRenderer>();
@@ -3541,6 +3562,7 @@ int main() {
 		{
 			Wizard.emplace<MorphRenderer>();
 
+			//Idle Animation
 			std::string IdlePrefix = "models/BridgeKeeper/Wizard0";
 			std::string IdleFileName;
 
@@ -3554,6 +3576,22 @@ int main() {
 
 			Wizard.get<MorphRenderer>().SetFrameTime(0.7f, 0);
 			Wizard.get<MorphRenderer>().SetLooping(true, 0);
+
+
+			//Teleport Animation
+			std::string teleportPrefix = "models/BridgeKeeper/Teleport/WizardTeleport";
+			std::string teleportFileName;
+
+			for (int i = 0; i < 12; i++)
+			{
+				teleportFileName = teleportPrefix + std::to_string(i) + ".obj";
+
+				Wizard.get<MorphRenderer>().addFrame(MorphLoader::LoadFromFile(teleportFileName), 1);
+
+			}
+
+			Wizard.get<MorphRenderer>().SetFrameTime(0.85, 1);
+			Wizard.get<MorphRenderer>().SetLooping(false, 1);
 
 
 			Wizard.get<MorphRenderer>().SetMesh(Wizard.get<MorphRenderer>().vao).SetMaterial(material2);
@@ -3817,6 +3855,25 @@ int main() {
 
 		GameObject Portal = scene->CreateEntity("Portal");
 		{
+
+			Portal.emplace<MorphRenderer>();
+
+			//Idle Animation
+			std::string IdlePrefix = "models/Portal/portal_updated0";
+			std::string IdleFileName;
+
+			for (int i = 0; i <= 4; i++)
+			{
+				IdleFileName = IdlePrefix + std::to_string(i) + ".obj";
+
+				Portal.get<MorphRenderer>().addFrame(MorphLoader::LoadFromFile(IdleFileName), 0);
+
+			}
+
+			Portal.get<MorphRenderer>().SetFrameTime(0.7f, 0);
+			Portal.get<MorphRenderer>().SetLooping(true, 0);
+
+
 			VertexArrayObject::sptr PortalVAO = ObjLoader::LoadFromFile("models/portal.obj");
 			Portal.emplace<RendererComponent>().SetMesh(PortalVAO).SetMaterial(material8).SetCastShadow(false);
 			Portal.get<Transform>().SetLocalPosition(-48.0f, -0.0f, 1.0f);
@@ -4823,7 +4880,7 @@ int main() {
 		{
 			parkingMeter.emplace<MorphRenderer>();
 
-			std::string IdlePrefix = "models/ParkingMeter/Parking_Meter_00000";
+			std::string IdlePrefix = "models/ParkingMeter/Parking_Meter_0000";
 			std::string IdleFileName;
 
 			for (int i = 1; i < 8; i++)
@@ -5740,6 +5797,22 @@ int main() {
 
 		GameObject Portal2 = scene2->CreateEntity("Portal2");
 		{
+			Portal2.emplace<MorphRenderer>();
+
+			//Idle Animation
+			std::string IdlePrefix = "models/Portal/portal_updated0";
+			std::string IdleFileName;
+
+			for (int i = 0; i <= 4; i++)
+			{
+				IdleFileName = IdlePrefix + std::to_string(i) + ".obj";
+
+				Portal2.get<MorphRenderer>().addFrame(MorphLoader::LoadFromFile(IdleFileName), 0);
+
+			}
+			Portal2.get<MorphRenderer>().SetFrameTime(0.7f, 0);
+			Portal2.get<MorphRenderer>().SetLooping(true, 0);
+
 			VertexArrayObject::sptr Portal2VAO = ObjLoader::LoadFromFile("models/portal.obj");
 			Portal2.emplace<RendererComponent>().SetMesh(Portal2VAO).SetMaterial(material8);
 			Portal2.get<Transform>().SetLocalPosition(-52.0f, 50.0f, 1.0f);
@@ -6807,6 +6880,22 @@ int main() {
 
 		GameObject Portal3 = scene4->CreateEntity("Portal3");
 		{
+			Portal3.emplace<MorphRenderer>();
+
+			//Idle Animation
+			std::string IdlePrefix = "models/Portal/portal_updated0";
+			std::string IdleFileName;
+
+			for (int i = 0; i <= 4; i++)
+			{
+				IdleFileName = IdlePrefix + std::to_string(i) + ".obj";
+
+				Portal3.get<MorphRenderer>().addFrame(MorphLoader::LoadFromFile(IdleFileName), 0);
+
+			}
+			Portal3.get<MorphRenderer>().SetFrameTime(0.7f, 0);
+			Portal3.get<MorphRenderer>().SetLooping(true, 0);
+
 			VertexArrayObject::sptr FirePlatformVAO = ObjLoader::LoadFromFile("models/portal.obj");
 			Portal3.emplace<RendererComponent>().SetMesh(FirePlatformVAO).SetMaterial(material8);
 			Portal3.get<Transform>().SetLocalPosition(-73.0f, 0.0f, 9.5f);
@@ -8383,6 +8472,7 @@ int main() {
 					startPanCamera = false;
 					playerControlLock = false;
 					moveWizard1 = true;
+
 					
 				}
 
@@ -8674,6 +8764,9 @@ int main() {
 		float cutsceneTimer = 0.0f;
 		bool setFinalCamera = true;
 		bool isGameFinished = false;
+		float vigTimer = 0.0f;
+		float teleportTimer = 0.0f;
+		bool isTeleporting = false;
 
 		Application::Instance().scenes.push_back(scene0);
 		Application::Instance().scenes.push_back(scene);
@@ -8735,6 +8828,50 @@ int main() {
 
 			//checkPosition(player);
 			
+			#pragma endregion
+
+
+			
+
+			#pragma region PhantomCol
+			if (RenderGroupBool == 1)
+			{
+				CheckPhantomCollision(player, playerBody, playerTransform, Phantom, 0.8f, 0.8f, 0.8f, 0.8f);
+				CheckPhantomCollision(player, playerBody, playerTransform, Phantom2, 0.8f, 0.8f, 0.8f, 0.8f);
+			}
+			else if (RenderGroupBool == 2)
+			{
+				//CheckPhantomCollision(player, playerBody, playerTransform, PhantomLevel2, 0.8f, 0.8f, 0.8f, 0.8f);
+				//CheckPhantomCollision(player, playerBody, playerTransform, Phantom2Level2, 0.8f, 0.8f, 0.8f, 0.8f);
+			}
+			#pragma endregion
+
+			#pragma region vignette controls
+			if (isHit == true)
+			{
+				activeEffect = 5;
+				vigTimer += time.DeltaTime;
+
+
+
+				if (vigTimer >= 0.2f)
+				{
+					if (RenderGroupBool == 1)
+						activeEffect = 4;
+					else if (RenderGroupBool == 2)
+						activeEffect = 2;
+					else if (RenderGroupBool == 3)
+						activeEffect = 1;
+
+					isHit = false;
+					vigTimer = 0.0f;
+
+
+				}
+
+
+
+			}
 			#pragma endregion
 
 
@@ -8924,6 +9061,7 @@ int main() {
 			if (player.get<Transform>().GetLocalPosition().z <= -7.0f)
 			{
 				PlayerHealth--;
+				//isHit = true;
 				if (RenderGroupBool != 2)
 				{
 					playerTransform.setOrigin(btVector3(0.0f, 0.0f, 5.0f));
@@ -8985,7 +9123,9 @@ int main() {
 			if (player.get<Transform>().GetLocalPosition().x <= -73.0f && RenderGroupBool == 4)
 			{
 				Islandmusic3.StopImmediately();
+
 				footsteps.StopImmediately();
+				PlayerHealth = 3;
 				playerControlLock = true;
 				lastMenuObj.get<Transform>().SetLocalPosition(-5.0f, 0.0f, 10.0f);
 
@@ -10308,21 +10448,35 @@ int main() {
 
 			if (moveWizard1)
 			{
+				
 				wizardMoveTimer += time.DeltaTime;
+				isTeleporting = true;
+				 //Teleport
 
-				if (wizardMoveTimer >= 2.0f)
+				if (wizardMoveTimer >= 1.5f)
 				{
 					wizardTransform.setOrigin(btVector3(-47.5f, 5.0f, -2.5f));
 					wizardBody->setWorldTransform(wizardTransform);
-
+					
 					btCollisionShape* wizardShape = new btBoxShape(btVector3(1.1f, 1.1f, 2.4f));
 					wizardBody->setCollisionShape(wizardShape);
 
 					dialogueL1D1.get<Sprite>().SetMaterial(dialogueMatL2D1);
+					
 
 					wizardMoveTimer = 0.0f;
 					moveWizard1 = false;
+					isTeleporting = false;
 				}
+				
+			}
+			if (isTeleporting)
+			{
+				Wizard.get<MorphRenderer>().nextFrame(time.DeltaTime, 1);
+			}
+			else
+			{
+				Wizard.get<MorphRenderer>().nextFrame(time.DeltaTime, 0);
 			}
 			//MoveWizard(player, Wizard, wizardBody, wizardTransform, WizardDistance);
 
@@ -10698,14 +10852,22 @@ int main() {
 
 				#pragma region Rendering Animated Models
 
+				
 				//Animated Models
-				Wizard.get<MorphRenderer>().nextFrame(time.DeltaTime, 0);
+				if (moveWizard1 == false)
+					Wizard.get<MorphRenderer>().nextFrame(time.DeltaTime, 0);
+				else
+					Wizard.get<MorphRenderer>().nextFrame(time.DeltaTime, 1);
 				shadowBuffer->BindDepthAsTexture(30);
 				Wizard.get<MorphRenderer>().render(morphShader, viewProjection, Wizard.get<Transform>(), view, viewProjection, lightSpaceViewProj);
 
 				Phantom.get<MorphRenderer>().nextFrame(time.DeltaTime, 0);
 				shadowBuffer->BindDepthAsTexture(30);
 				Phantom.get<MorphRenderer>().render(morphShader, viewProjection, Phantom.get<Transform>(), view, viewProjection, lightSpaceViewProj);
+
+				/*Portal.get<MorphRenderer>().nextFrame(time.DeltaTime, 0);
+				shadowBuffer->BindDepthAsTexture(30);
+				Portal.get<MorphRenderer>().render(morphShader, viewProjection, Portal.get<Transform>(), view, viewProjection, lightSpaceViewProj);*/
 
 				Phantom2.get<MorphRenderer>().nextFrame(time.DeltaTime, 0);
 				shadowBuffer->BindDepthAsTexture(30);
@@ -10732,9 +10894,13 @@ int main() {
 				{
 					player.get<MorphRenderer>().nextFrame(time.DeltaTime, 2); //Jump
 				}
+
 				else
 				{
-					player.get<MorphRenderer>().nextFrame(time.DeltaTime, 0); //Idle
+					if (RenderGroupBool != 2)
+						player.get<MorphRenderer>().nextFrame(time.DeltaTime, 0); //Idle
+					else if (RenderGroupBool == 2)
+						player.get<MorphRenderer>().nextFrame(time.DeltaTime, 3); //Shiver
 				}
 				shadowBuffer->BindDepthAsTexture(30);
 				player.get<MorphRenderer>().render(morphShader, viewProjection, player.get<Transform>(), view, viewProjection, lightSpaceViewProj);
@@ -11054,16 +11220,7 @@ int main() {
 				//CheckPhantomCollision(player, playerBody, playerTransform, PhantomLevel2, 0.8f, 0.8f, 0.8f, 0.8f);
 				//CheckPhantomCollision(player, playerBody, playerTransform, Phantom2Level2, 0.8f, 0.8f, 0.8f, 0.8f);
 
-				if (RenderGroupBool == 1)
-				{
-					CheckPhantomCollision(player, playerBody, playerTransform, Phantom, 0.8f, 0.8f, 0.8f, 0.8f);
-					CheckPhantomCollision(player, playerBody, playerTransform, Phantom2, 0.8f, 0.8f, 0.8f, 0.8f);
-				}
-				else if (RenderGroupBool == 2)
-				{
-					//CheckPhantomCollision(player, playerBody, playerTransform, PhantomLevel2, 0.8f, 0.8f, 0.8f, 0.8f);
-					//CheckPhantomCollision(player, playerBody, playerTransform, Phantom2Level2, 0.8f, 0.8f, 0.8f, 0.8f);
-				}
+				
 				
 				#pragma region Render Player
 
@@ -11081,7 +11238,7 @@ int main() {
 				}
 				else
 				{
-					player.get<MorphRenderer>().nextFrame(time.DeltaTime, 0); //Idle
+					player.get<MorphRenderer>().nextFrame(time.DeltaTime, 3); //Shiver
 				}
 				shadowBuffer->BindDepthAsTexture(30);
 				player.get<MorphRenderer>().render(morphShader, viewProjection, player.get<Transform>(), view, viewProjection, lightSpaceViewProj);
@@ -11094,7 +11251,7 @@ int main() {
 
 				#pragma region Rendering Animated Models
 
-				//Animated Models
+
 				Wizard.get<MorphRenderer>().nextFrame(time.DeltaTime, 0);
 				shadowBuffer->BindDepthAsTexture(30);
 				Wizard.get<MorphRenderer>().render(morphShader, viewProjection, Wizard.get<Transform>(), view, viewProjection, lightSpaceViewProj);
@@ -11102,6 +11259,10 @@ int main() {
 				parkingMeter.get<MorphRenderer>().nextFrame(time.DeltaTime, 0);
 				shadowBuffer->BindDepthAsTexture(30);
 				parkingMeter.get<MorphRenderer>().render(morphShader, viewProjection, parkingMeter.get<Transform>(), view, viewProjection, lightSpaceViewProj);
+
+				//Portal2.get<MorphRenderer>().nextFrame(time.DeltaTime, 0);
+				////shadowBuffer->BindDepthAsTexture(30);
+				//Portal2.get<MorphRenderer>().render(morphShader, viewProjection, Portal2.get<Transform>(), view, viewProjection, lightSpaceViewProj);
 
 				parkingMeterPole.get<MorphRenderer>().nextFrame(time.DeltaTime, 0);
 				shadowBuffer->BindDepthAsTexture(30);
@@ -11384,7 +11545,7 @@ int main() {
 
 				if (width > 900)
 				{
-					lastMenuObj.get<Transform>().SetLocalScale(1.14f, 1.0f, 0.6f);
+					lastMenuObj.get<Transform>().SetLocalScale(1.14f, 1.0f, 1.5f);
 				}
 				else
 				{
@@ -11437,7 +11598,10 @@ int main() {
 				}
 				else
 				{
-					player.get<MorphRenderer>().nextFrame(time.DeltaTime, 0); //Idle
+					if (RenderGroupBool != 2)
+						player.get<MorphRenderer>().nextFrame(time.DeltaTime, 0); //Idle
+					else if (RenderGroupBool == 2)
+						player.get<MorphRenderer>().nextFrame(time.DeltaTime, 3); //Idle
 				}
 				shadowBuffer->BindDepthAsTexture(30);
 				player.get<MorphRenderer>().render(morphShader, viewProjection, player.get<Transform>(), view, viewProjection);
