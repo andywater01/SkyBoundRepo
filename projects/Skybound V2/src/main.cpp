@@ -8024,6 +8024,7 @@ int main() {
 					{
 						sortByQuantity = true;
 						sortCounter++;
+						coinDescend2 = true;
 					}
 					else if (sortCounter == 1 && appleObj.get<Transform>().GetLocalPosition().y < carrotObj.get<Transform>().GetLocalPosition().y &&
 						bananasObj.get<Transform>().GetLocalPosition().y < greenGrapeObj.get<Transform>().GetLocalPosition().y &&
