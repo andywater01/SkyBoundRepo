@@ -50,6 +50,10 @@ void Init()
 	AudioEvent& music3 = engine.CreateEvent("music3", "{375f76ec-0686-45b1-996e-56e908a17a5c}");
 
 
+	AudioEvent& BackgroundMusic = engine.CreateEvent("BGMusic", "{e07395ce-0fa8-4e78-af03-265c8abfa992}");
+	AudioEvent& Skyboundanese = engine.CreateEvent("Skyboundanese", "{93eff743-9759-43dc-8343-6fef28eb52f1}");
+
+
 	AudioEvent& popSound = engine.CreateEvent("popSound", "{b2dc5970-89f7-4849-a07e-f6f6bebb4baf}");
 	AudioEvent& loonSound = engine.CreateEvent("loonSound", "{b2900161-916e-40d1-942e-e1d35089ab81}");
 	AudioEvent& footstepsSound = engine.CreateEvent("footstepsSound", "{f6976b06-1be7-48cb-b195-e34cba50f9db}");
@@ -59,6 +63,8 @@ void Init()
 	AudioEvent& Narration1 = engine.CreateEvent("Narration1", "{185de26a-67ae-46cf-9006-c3a82135e68c}");
 	AudioEvent& Narration2 = engine.CreateEvent("Narration2", "{669cc823-0d96-4813-993e-9c75a1aebcff}");
 	AudioEvent& Narration3 = engine.CreateEvent("Narration3", "{d81616ea-6cc6-4bdf-b11f-599f96594c1a}");
+
+	AudioEvent& NewNarration = engine.CreateEvent("NewNarration", "{86e0aade-bf17-43f4-8f32-1aea818c5889}");
 
 
 	//SoundObject BG(music);
@@ -95,10 +101,16 @@ void Update(float deltaTime)
 	AudioEvent& Islandmusic3 = engine.GetEvent("music3");
 
 
+	AudioEvent& BGMusic = engine.GetEvent("BGMusic");
+	AudioEvent& Skyboundanese = engine.GetEvent("Skyboundanese");
+
+
 	AudioEvent& Prelude1 = engine.GetEvent("Narration1");
 	AudioEvent& Prelude2 = engine.GetEvent("Narration2");
 	AudioEvent& Prelude3 = engine.GetEvent("Narration3");
 
+
+	AudioEvent& GameNarration = engine.GetEvent("PreLudeNarration");
 
 	//Get ref to bus
 	AudioBus& musicBus = engine.GetBus("MusicBus");
